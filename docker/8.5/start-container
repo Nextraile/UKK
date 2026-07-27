@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "sail" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'sail' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u $WWWUSER sail
+fi
+
+if [ ! -d /var/www/html/vendor ]; then
+    echo "Vendor folder not found. Please run composer install."
+fi
+
+if [ -z "$APP_ENV" ]; then
+    export APP_ENV=local
+fi
+
+if [ "$APP_ENV" != "production" ] && [ ! -z "$XDEBUG_MODE" ]; then
+    echo "Xdebug mode: $XDEBUG_MODE"
+else
+    rm -rf /etc/php/8.3/cli/conf.d/20-xdebug.ini
+fi
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu $WWWUSER "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
