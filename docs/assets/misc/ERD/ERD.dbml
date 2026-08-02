@@ -1,0 +1,551 @@
+enum role_user_admin_superadmin_t {
+	user
+	admin
+	superadmin
+}
+
+enum status_draft_pending_review_approved_active_inactive_suspended_rejected_archived_t {
+	draft
+	pending_review
+	approved
+	active
+	inactive
+	suspended
+	rejected
+	archived
+}
+
+enum duration_unit_day_week_month_t {
+	day
+	week
+	month
+}
+
+enum status_available_occupied_reserved_maintenance_inactive_t {
+	available
+	occupied
+	reserved
+	maintenance
+	inactive
+}
+
+enum duration_unit_day_week_month_t {
+	day
+	week
+	month
+}
+
+enum status_pending_paid_confirmed_active_completed_cancelled_t {
+	pending
+	paid
+	confirmed
+	active
+	completed
+	cancelled
+}
+
+enum verification_status_pending_approved_rejected_t {
+	pending
+	approved
+	rejected
+}
+
+enum status_pending_success_failed_t {
+	pending
+	success
+	failed
+}
+
+enum status_pending_paid_confirmed_active_completed_cancelled_t {
+	pending
+	paid
+	confirmed
+	active
+	completed
+	cancelled
+}
+
+enum review_type_kost_room_t {
+	kost
+	room
+}
+
+Table users [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	first_name varchar(100) [ not null ]
+	last_name varchar(100)
+	email varchar(254) [ not null, unique ]
+	email_verified_at timestamp
+	phone varchar(20)
+	phone_verified_at timestamp
+	role role_user_admin_superadmin_t [ not null, default: 'user' ]
+	avatar_path varchar(500)
+	remember_token varchar(100)
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table kosts [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	user_id bigint [ not null ]
+	slug varchar(150) [ not null ]
+	name varchar(150) [ not null ]
+	description text
+	contact_number varchar(20) [ not null ]
+	status status_draft_pending_review_approved_active_inactive_suspended_rejected_archived_t [ not null, default: 'draft' ]
+	published_at timestamp
+	approved_at timestamp
+	approved_by bigint
+	rejected_reason text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table addresses [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null, unique ]
+	full_address text [ not null ]
+	district varchar(100) [ not null ]
+	city varchar(100) [ not null ]
+	province varchar(100) [ not null ]
+	postal_code varchar(10)
+	country varchar(100) [ default: 'Indonesia' ]
+	latitude decimal(10,8)
+	longitude decimal(11,8)
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table kost_images [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	image_path varchar(500) [ not null ]
+	is_thumbnail boolean [ not null, default: false ]
+	sort_order smallint [ not null ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table categories [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	name varchar(100) [ not null ]
+	slug varchar(120) [ not null, unique ]
+	description text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table category_kost [headercolor: #175e7a] {
+	kost_id bigint [ not null ]
+	category_id bigint [ not null ]
+
+	indexes {
+		(kost_id, category_id) [ name: 'category_kost_index_0' ]
+	}
+}
+
+Table facilities [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	name varchar(100) [ not null ]
+	slug varchar(120) [ not null, unique ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table facility_schemes [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	name varchar(100) [ not null ]
+	description text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table facility_scheme_items [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	facility_scheme_id bigint [ not null ]
+	facility_id bigint [ not null ]
+}
+
+Table facility_scheme_kosts [headercolor: #175e7a] {
+	facility_scheme_id bigint [ not null ]
+	kost_id bigint [ not null ]
+
+	indexes {
+		(facility_scheme_id, kost_id) [ name: 'facility_scheme_kosts_index_1' ]
+	}
+}
+
+Table facility_scheme_room_types [headercolor: #175e7a] {
+	facility_scheme_id bigint [ not null ]
+	room_type_id bigint [ not null ]
+
+	indexes {
+		(facility_scheme_id, room_type_id) [ name: 'facility_scheme_room_types_index_2' ]
+	}
+}
+
+Table rules [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	name varchar(150) [ not null ]
+	slug varchar(170) [ not null, unique ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table rule_schemes [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	name varchar(100) [ not null ]
+	description text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table rule_scheme_items [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rule_scheme_id bigint [ not null ]
+	rule_id bigint [ not null ]
+}
+
+Table rule_scheme_kosts [headercolor: #175e7a] {
+	rule_scheme_id bigint [ not null ]
+	kost_id bigint [ not null ]
+
+	indexes {
+		(rule_scheme_id, kost_id) [ name: 'rule_scheme_kosts_index_3' ]
+	}
+}
+
+Table rule_scheme_room_types [headercolor: #175e7a] {
+	rule_scheme_id bigint [ not null ]
+	room_type_id bigint [ not null ]
+
+	indexes {
+		(rule_scheme_id, room_type_id) [ name: 'rule_scheme_room_types_index_4' ]
+	}
+}
+
+Table room_types [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	name varchar(100) [ not null ]
+	slug varchar(120) [ not null ]
+	description text
+	room_size varchar(20) [ not null ]
+	max_occupants tinyint [ not null ]
+	security_deposit decimal(12,2) [ not null ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table room_type_images [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	room_type_id bigint [ not null ]
+	image_path varchar(500) [ not null ]
+	is_thumbnail boolean [ not null, default: false ]
+	sort_order smallint [ not null ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table price_schemes [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	name varchar(100) [ not null ]
+	description text
+	price decimal(12,2) [ not null ]
+	duration_value smallint [ not null ]
+	duration_unit duration_unit_day_week_month_t [ not null ]
+	is_active boolean [ not null, default: true ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+}
+
+Table room_type_price_schemes [headercolor: #175e7a] {
+	room_type_id bigint [ not null ]
+	price_scheme_id bigint [ not null ]
+
+	indexes {
+		(room_type_id, price_scheme_id) [ name: 'room_type_price_schemes_index_6' ]
+	}
+}
+
+Table rooms [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	kost_id bigint [ not null ]
+	room_type_id bigint [ not null ]
+	code varchar(30) [ not null ]
+	status status_available_occupied_reserved_maintenance_inactive_t [ not null, default: 'available' ]
+	internal_notes text(65535)
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+	deleted_at timestamp
+
+	indexes {
+		(kost_id, code) [ name: 'rooms_index_5', unique ]
+	}
+}
+
+Table rentals [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	room_id bigint [ not null ]
+	user_id bigint [ not null ]
+	price_scheme_id bigint [ not null ]
+	duration_value smallint [ not null ]
+	duration_unit duration_unit_day_week_month_t [ not null ]
+	start_date datetime [ not null ]
+	end_date datetime [ not null ]
+	room_price decimal(12,2) [ not null ]
+	security_deposit decimal(12,2) [ not null ]
+	grand_total decimal(12,2) [ not null ]
+	status status_pending_paid_confirmed_active_completed_cancelled_t [ not null, default: 'pending' ]
+	cancelled_reason text
+	cancelled_at timestamp
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table rental_documents [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rental_id bigint [ not null ]
+	document_type varchar(50) [ not null, note: 'example: ktp, selfie, student_card' ]
+	document_path varchar(500) [ not null ]
+	uploaded_at timestamp [ not null ]
+	verification_status verification_status_pending_approved_rejected_t [ not null, default: 'pending' ]
+	verified_by bigint
+	verified_at timestamp
+	notes text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table payments [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rental_id bigint [ not null, unique ]
+	transaction_id varchar(100)
+	gateway varchar(30) [ not null ]
+	method varchar(50) [ not null ]
+	status status_pending_success_failed_t [ not null, default: 'pending' ]
+	amount decimal(12,2) [ not null ]
+	payment_url varchar(500) [ not null ]
+	expired_at timestamp [ not null ]
+	paid_at timestamp
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table payment_logs [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	payment_id bigint [ not null ]
+	gateway_status varchar(30) [ not null ]
+	gateway_response json
+	created_at timestamp [ not null ]
+}
+
+Table rental_status_histories [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rental_id bigint [ not null ]
+	status status_pending_paid_confirmed_active_completed_cancelled_t [ not null ]
+	changed_by bigint
+	internal_notes text
+	created_at timestamp [ not null ]
+}
+
+Table kost_reviews [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rental_id bigint [ not null, unique ]
+	kost_id bigint [ not null ]
+	rating tinyint [ not null ]
+	comment text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table room_reviews [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	rental_id bigint [ not null, unique ]
+	room_id bigint [ not null ]
+	rating tinyint [ not null ]
+	comment text
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table review_images [headercolor: #175e7a] {
+	id bigint [ pk, increment, not null, unique ]
+	review_type review_type_kost_room_t [ not null ]
+	review_id bigint [ not null ]
+	image_path varchar(500) [ not null ]
+	sort_order smallint [ not null ]
+	created_at timestamp [ not null ]
+}
+
+Ref "fk_users_id_kosts.user_id" {
+	users.id < kosts.user_id [ delete: restrict, update: cascade ]
+}
+
+Ref "fk_users_id_kosts.approved_by" {
+	users.id < kosts.approved_by [ delete: set null, update: cascade ]
+}
+
+Ref fk_kosts_id_addresses {
+	kosts.id - addresses.kost_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_categories_id_category_kost {
+	categories.id < category_kost.category_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_category_kost {
+	kosts.id < category_kost.kost_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_facility_schemes_id_facility_scheme_items {
+	facility_schemes.id < facility_scheme_items.facility_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_facilities_id_facility_scheme_items {
+	facilities.id < facility_scheme_items.facility_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_facility_schemes_id_facility_scheme_kosts {
+	facility_schemes.id < facility_scheme_kosts.facility_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_facility_scheme_kosts {
+	kosts.id < facility_scheme_kosts.kost_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rule_schemes_id_rule_scheme_items {
+	rule_schemes.id < rule_scheme_items.rule_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rules_id_rule_scheme_items {
+	rules.id < rule_scheme_items.rule_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_rule_schemes_id_rule_scheme_kosts {
+	rule_schemes.id < rule_scheme_kosts.rule_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_rule_scheme_kosts {
+	kosts.id < rule_scheme_kosts.kost_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_room_types_id_room_type_images {
+	room_types.id < room_type_images.room_type_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_rooms {
+	kosts.id < rooms.kost_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_room_types_id_rooms {
+	room_types.id < rooms.room_type_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_room_types_id_room_type_price_schemes {
+	room_types.id < room_type_price_schemes.room_type_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_price_schemes_id_room_type_price_schemes {
+	price_schemes.id < room_type_price_schemes.price_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_facility_schemes_id_facility_scheme_room_types {
+	facility_schemes.id < facility_scheme_room_types.facility_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_room_types_id_facility_scheme_room_types {
+	room_types.id < facility_scheme_room_types.room_type_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rule_schemes_id_rule_scheme_room_types {
+	rule_schemes.id < rule_scheme_room_types.rule_scheme_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_room_types_id_rule_scheme_room_types {
+	room_types.id < rule_scheme_room_types.room_type_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rooms_id_rentals {
+	rooms.id < rentals.room_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_users_id_rentals {
+	users.id < rentals.user_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_price_schemes_id_rentals {
+	price_schemes.id < rentals.price_scheme_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_rentals_id_rental_status_histories {
+	rentals.id < rental_status_histories.rental_id [ delete: cascade, update: cascade ]
+}
+
+Ref "fk_users_id_rental_status_histories.changed_by" {
+	users.id < rental_status_histories.changed_by [ delete: set null, update: cascade ]
+}
+
+Ref fk_rentals_id_rental_documents {
+	rentals.id < rental_documents.rental_id [ delete: cascade, update: cascade ]
+}
+
+Ref "fk_users_id_rental_documents.verified_by" {
+	users.id < rental_documents.verified_by [ delete: set null, update: cascade ]
+}
+
+Ref fk_rentals_id_payments {
+	rentals.id - payments.rental_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_payments_id_payment_logs {
+	payments.id < payment_logs.payment_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rentals_id_kost_reviews {
+	rentals.id - kost_reviews.rental_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_kost_reviews {
+	kosts.id < kost_reviews.kost_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_rentals_id_room_reviews {
+	rentals.id - room_reviews.rental_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_rooms_id_room_reviews {
+	rooms.id < room_reviews.room_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_kosts_id_kost_images {
+	kosts.id < kost_images.kost_id [ delete: cascade, update: cascade ]
+}
+
+Ref fk_kosts_id_room_types {
+	kosts.id < room_types.kost_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_kosts_id_price_schemes {
+	kosts.id < price_schemes.kost_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_kosts_id_facility_schemes {
+	kosts.id < facility_schemes.kost_id [ delete: restrict, update: cascade ]
+}
+
+Ref fk_kosts_id_rule_schemes {
+	kosts.id < rule_schemes.kost_id [ delete: restrict, update: cascade ]
+}
