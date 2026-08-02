@@ -7,6 +7,11 @@ The next sections will provide an overview of the entities, their attributes, an
 
 ## Entities and Attributes
 
+### Visulaization
+![ERD Diagram](images/ERD.png)
+
+> its a bit cloudy aint it?
+
 ### References
 - [ERD in DBML format](misc/ERD/ERD.dbml)<br>
 - [ERD in JSON format](misc/ERD/ERD.json)<br>
