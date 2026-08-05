@@ -5,6 +5,7 @@ This is the index page for the documentation.
 ## Research & Business Analysis
 
 ### [Discovery Document](discovery-document.md)
+### [Business Analysis Document](business-analysis-document.md)
 
 ## System Design
 
