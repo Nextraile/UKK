@@ -13,4 +13,5 @@ This is the index page for the documentation.
 
 ## System Design
 
+### [Design Document Specification](design-document-specification.md)
 ### [Entity Relationship Diagram](assets/entity-relationship-diagram.md)
