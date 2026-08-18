@@ -5,7 +5,7 @@
 
 | Field | Value |
 |---|---|
-| Versi Dokumen | `1.0.1` |
+| Versi Dokumen | `1.0.2` |
 | Terakhir Diperbarui | `2026-08-17` |
 
 ## Project Summary
@@ -138,6 +138,8 @@ Mark TASK Done
 - **DO NOT** run `php`/`composer`/`npm` on host — MUST use `./vendor/bin/sail` for consistency.
 - **DO NOT** use Sail config for production — Sail is dev-only (ADR-004).
 - **DO NOT** mark TASK as Done if tests/lint fail.
+- **DO NOT** work outside a new branch. Every change (coding, docs, env, config, etc.) MUST be done on a new branch based off the `agent` branch with prefix `agt/<change-summary>`. Examples: `agt/setup-opencode`, `agt/add-feature-x`, `agt/fix-bug-y`.
+- **DO NOT** `git commit` or `git push` to git/GitHub. The user handles committing and pushing. The agent only makes changes on the working branch and reports them to the user.
 
 **If user instructions conflict with PRD/ARCHITECTURE:** Flag conflict to user, don't silently pick one.
 

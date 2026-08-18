@@ -5,8 +5,8 @@
 
 | Field | Value |
 |---|---|
-| Versi Dokumen | `0.2.0` |
-| Terakhir Diperbarui | `2026-08-16` |
+| Versi Dokumen | `0.2.1` |
+| Terakhir Diperbarui | `2026-08-17` |
 
 ---
 
@@ -54,6 +54,8 @@ Skema ini mengganti dokumen tradisional (Discovery Doc, Business Analysis Doc, S
 Ini adalah fase yang berulang untuk setiap `TASK-xxx`:
 
 ```
+0. Agent membuat branch baru dengan basis branch `agent` dan prefix `agt/<ringkasan-perubahan>`
+   (lihat `AGENTS.md` §Hard Rules). Agent TIDAK melakukan `git commit`/`git push` — hanya user.
 1. Agent memilih TASK-xxx berstatus "Ready" (bukan Blocked) dari TODO.md
 2. Agent membaca FR-xxx/NFR-xxx terkait (PRD.md) + COMP-xxx/ADR-xxx terkait (ARCHITECTURE.md)
 3. Agent cek tabel Rujukan Dokumentasi Resmi (ARCHITECTURE.md §3.1): jika task menyentuh
@@ -128,3 +130,4 @@ Perubahan requirement/desain **di tengah** proses Build tidak dilarang, tapi waj
 | Versi | Tanggal | Perubahan | Oleh |
 |---|---|---|---|
 | 0.1.0 | 2026-08-15 | Initial workflow documentation: 5 phases (Discovery→Design→Planning→Build→Verify), Definition of Ready/Done, Release Checklist, Change Management process, Roles definition. Baseline untuk SewaKost project (Laravel 13 modular monolith, agentic development workflow). | OpenCode |
+| 0.2.1 | 2026-08-17 | Fase 4 Build: tambah langkah 0 — agent wajib membuat branch baru (basis `agent`, prefix `agt/<ringkasan-perubahan>) dan dilarang melakukan `git commit`/`git push` (hanya user). Konsisten dengan `AGENTS.md` §Hard Rules v1.0.2. | OpenCode |
