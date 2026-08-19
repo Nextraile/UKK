@@ -8,8 +8,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `0.2.0` |
-| Terakhir Diperbarui | `2026-08-16` |
+| Versi Dokumen | `0.2.1` |
+| Terakhir Diperbarui | `2026-08-18` |
 | Baseline Arsitektur | **Laravel 13** — Modular Monolith, session-based auth, server-rendered web routes, containerized via **Docker (Laravel Sail untuk local/dev)** |
 
 ---
@@ -115,12 +115,13 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
 - **Tanggung jawab:** 
   - User authentication (login/logout)
   - Self-registration Tenant dengan OTP email verification (6-digit code, expiry 15 menit)
+  - Verifikasi email bersifat **on-demand** (ADR-023): tidak ada OTP saat registrasi (FR-003); OTP dikirim saat user membuka halaman verifikasi atau diminta fitur yang membutuhkan email terverifikasi via popup (FR-004, FR-006). User unverified juga dapat memulai verifikasi dari tombol 'Verifikasi Email' di halaman profil (menu profile).
   - Email change dengan re-verification OTP
   - Profile management (first name, last name, phone, avatar, email)
   - Soft delete account
   - RBAC (role: user/admin/superadmin)
   - TIDAK menangani: business-specific authorization (mis. "apakah Admin dapat edit kost ini") — itu tanggung jawab komponen bisnis masing-masing via Policy/Gate
-- **Memenuhi requirement:** FR-001—FR-013, NFR-004—NFR-010 (Security)
+- **Memenuhi requirement:** FR-001—FR-013, FR-130, NFR-004—NFR-010 (Security)
 - **Lokasi di repo:** 
   - `app/Domain/Identity/` (Models: User, OtpVerification jika perlu)
   - `app/Http/Controllers/Auth/` (Laravel Breeze controllers, customized untuk OTP)
@@ -133,6 +134,7 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
   - Laravel Breeze sebagai starting point, customisasi untuk OTP verification (bukan link). OTP disimpan di cache Redis (key: `otp:{user_id}`, expiry: 15 menit) atau di tabel `otp_verifications` jika perlu audit trail.
   - Email verification tidak mutlak wajib untuk login, hanya saat akses fitur tertentu (FR-006). Middleware `verified` hanya dipasang di route yang butuh email verified (misal: create rental).
   - Email change: email baru disimpan di `users.email`, tapi `email_verified_at` di-null dan OTP baru dikirim. Email lama tetap di session sampai email baru verified.
+  - Password reset via OTP (FR-130, ADR-022): alur 3 langkah (email → OTP 6 digit → password baru), reuse OtpService dengan purpose `password-reset`, menggantikan token link Breeze. `password_reset_tokens` tidak dipakai lagi (tidak di-drop).
   - Policy untuk resource ownership (FR-008): setiap komponen bisnis (Kost, Rental, dll.) implement Policy yang check ownership.
   - Soft delete: `deleted_at` di-set, user logout paksa (invalidate session), dan tidak dapat login lagi. Middleware `active` untuk check `deleted_at IS NULL`.
 
@@ -902,7 +904,7 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
 | Route | Method | Controller@Action | Middleware | Memenuhi Requirement |
 |---|---|---|---|---|
 | `/` | GET | `HomeController@index` | — | Landing page |
-| `/marketplace` | GET | `MarketplaceController@index` | — | FR-048, US-014 |
+| `/marketplace` | GET | `MarketplaceController@index` | — | FR-048, US-014 (stub interim sejak TASK-086/ADR-023 — empty state; implementasi penuh TASK-036, COMP-005) |
 | `/marketplace/kosts/{kost}` | GET | `KostDetailController@show` | — | FR-057, US-016 |
 
 #### Auth Routes (Laravel Breeze, customized untuk OTP)
@@ -914,9 +916,15 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
 | `/register` | GET | `Auth\RegisterController@create` | `guest` | FR-003 |
 | `/register` | POST | `Auth\RegisterController@store` | `guest` | FR-003 |
 | `/logout` | POST | `Auth\LoginController@destroy` | `auth` | FR-002 |
-| `/email/verify` | GET | `Auth\EmailVerificationController@show` | `auth` | FR-004 |
-| `/email/verify` | POST | `Auth\EmailVerificationController@verify` | `auth` | FR-004 |
+| `/verify-email` | GET | `Auth\EmailVerificationController@show` | `auth`, `throttle:5,1` | FR-004 |
+| `/verify-email` | POST | `Auth\EmailVerificationController@verify` | `auth`, `throttle:5,1` | FR-004 |
 | `/email/resend` | POST | `Auth\EmailVerificationController@resend` | `auth` | FR-005 |
+| `/forgot-password` | GET | `Auth\PasswordResetLinkController@create` | `guest` | FR-130 |
+| `/forgot-password` | POST | `Auth\PasswordResetLinkController@store` | `guest`, `throttle:5,1` | FR-130 |
+| `/reset-password` | GET | `Auth\PasswordResetLinkController@showOtp` | `guest` | FR-130 |
+| `/reset-password/verify` | POST | `Auth\PasswordResetLinkController@verifyOtp` | `guest`, `throttle:5,1` | FR-130 |
+| `/reset-password/change` | GET | `Auth\NewPasswordController@create` | `guest` | FR-130 |
+| `/reset-password/change` | POST | `Auth\NewPasswordController@store` | `guest` | FR-130 |
 
 #### Profile Routes
 
@@ -1346,6 +1354,29 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
   - **Negatif:** Tidak dapat benefit dari Pest syntax (test description natural language, `it()` / `expect()` chaining). Untuk developer yang prefer Pest, ini bisa dianggap kurang ergonomic.
   - **Kewajiban:** Update AGENTS.md §Setup & Perintah: remove mention Pest, tegas command test: `./vendor/bin/sail artisan test` atau `./vendor/bin/sail test` (PHPUnit). Update ARCHITECTURE.md §3.1: tambah PHPUnit version (12.5.12) ke tabel dokumentasi. Test ditulis dengan PHPUnit syntax (bukan Pest), mengikuti struktur `tests/Feature/` dan `tests/Unit/` standar Laravel.
 
+### ADR-022: Password Reset via OTP (reuse OTP service)
+- **Status:** `Accepted`
+- **Konteks:** Breeze default reset password berbasis token link (`password_reset_tokens` + email berisi link). Sistem sudah memiliki infrastruktur OTP untuk email verification (FR-004/005/128): tabel `otp_verifications`, cache Redis, hash SHA-256, lockout, throttle. Mekanisme token link Breeze butuh klik email, tidak punya lockout brute-force, dan memakai tabel terpisah.
+- **Keputusan:** Reset password memakai alur OTP 3 langkah (email → OTP → password baru), reuse `OtpService` dengan purpose `'password-reset'`. `OtpService::verify` menambah parameter `markEmailVerified: false` agar reset password tidak menandai email sebagai verified. Session menyimpan `password_reset_email` + `password_reset_verified` sebagai guard antar langkah. Anti-enumeration: response generik untuk email yang tidak terdaftar. Tabel `password_reset_tokens` dibiarkan (tidak dipakai, tidak di-drop — YAGNI). Route: `password.request`, `password.email`, `password.otp`, `password.otp.verify`, `password.reset`, `password.store` (lihat §6.1). OtpVerificationMail memilih subject + instruksi berdasarkan purpose; untuk `password-reset`: `[SewaKost] Kode Reset Password Anda`.
+- **Alternatif yang dipertimbangkan:**
+  - **Token link Breeze** — ditolak: butuh klik email, tanpa lockout brute-force, tabel terpisah, alur lebih panjang untuk user.
+  - **Tabel OTP terpisah khusus reset password** — ditolak: duplikasi infrastruktur OTP (storage, lockout, throttle, expiry) yang sudah ada.
+- **Konsekuensi:**
+  - **Positif:** Satu infrastruktur OTP dipakai untuk verifikasi email & reset password; lockout & throttle berlaku di kedua konteks; alur reset lebih pendek (tanpa klik email).
+  - **Negatif:** `OtpService` menjadi multi-purpose (konteks di-kodekan via `$purpose` di `generate`/`verify`); satu OTP aktif per user — request reset password menimpa OTP email verification yang belum dipakai; shared lockout counter antara verification & reset (percobaan gagal reset ikut menghitung lockout verification).
+  - **Kewajiban:** Update PRD.md (FR-130), PAGES.md (PAGE-006A/006B/006C + EMAIL-008), TODO.md (TASK-085). `User::maskedEmail()` dipakai untuk menampilkan email tersamar (menggantikan `maskEmail` private di EmailVerificationController).
+
+### ADR-023: On-Demand Email Verification
+- **Status:** `Accepted`
+- **Konteks:** Awalnya OTP dikirim otomatis saat registrasi (FR-003/FR-004 lama). Kenyataan: verifikasi tidak wajib untuk semua fitur (FR-006) — user bisa langsung explore marketplace tanpa verified; OTP tidak diminta. Kirim otomatis = spam email + paksaan langkah yang tidak diperlukan.
+- **Keputusan:** Registrasi hanya membuat akun (role `user`, `email_verified_at` NULL) + redirect ke `/marketplace` (`marketplace.index`) tanpa mengirim OTP. OTP dikirim **on-demand (lazy)** saat: (a) user membuka `/verify-email` (`verification.notice`) dan belum ada OTP valid (`hasValidOtp` false → `OtpService::generate`), atau OTP sebelumnya expired (>15 menit, FR-128); (b) middleware `verified` (`EnsureEmailIsVerified`) memblok fitur yang butuh email terverifikasi → `redirect()->back()` + flash `verify_email_prompt` → modal popup dengan CTA ke halaman verifikasi. Route GET `verification.notice` diberi `throttle:5,1` karena berpotensi mengirim email. Marketplace `/marketplace` dibuat **stub interim** (`MarketplaceController@index`, view empty state, `$kosts = collect()`, tanpa auth) agar redirect pasca-registrasi valid; diganti implementasi penuh di TASK-036 (COMP-005).
+- **Alternatif yang dipertimbangkan:**
+  - **Tetap kirim OTP saat registrasi** — ditolak: menjadi required step, spam email untuk user yang tidak butuh verified, bertentangan dengan FR-006.
+  - **Modal langsung berisi form OTP di halaman yang diblok** — ditolak: versi 2 kompleksitas — halaman fitur harus render + kelola state OTP; keep simple, modal hanya prompt + CTA ke halaman verifikasi.
+- **Konsekuensi:**
+  - **Positif:** Email OTP hanya keluar saat user menunjukkan intent; register flow lebih singkat (tanpa step verifikasi); sesuai FR-006 (browse marketplace tanpa verified); modal popup seragam via flash session di layout.
+  - **Negatif:** Resend/expiry tetap 15 menit (FR-128); `OtpService::hasValidOtp` menjadi titik cek lazy di `EmailVerificationController@show`; diperlukan stub marketplace (vs "kosong sampai COMP-005"); user yang tidak pernah verified menumpuk di DB (akun pasif, tanpa OTP terkirim).
+
 ---
 
 ## 8. Keamanan (Security Architecture)
@@ -1568,5 +1599,8 @@ sewakost/
 |---|---|---|---|
 | 0.1.0 | 2026-08-12 | Draft awal ARCHITECTURE.md dibuat. Konsolidasi dari DDS v1.0.0 dengan penyederhanaan: (1) Hapus 10 tabel facility/rule scheme → JSON (ADR-013), (2) Payment Midtrans → QRIS statis + verifikasi manual (ADR-014), (3) Gabung kost+room review + JSON images → 1 tabel (ADR-015), (4) Room status 2 values (`available`, `unavailable`) + real-time occupancy calculation (ADR-017), (5) Room multi-occupancy support dengan `max_occupants` (ADR-018), (6) Cancel rental dari Active diperbolehkan (ADR-019), (7) Min start_date = today + 4 hari (ADR-016). Total 9 COMP, 16 DM (dari 29 di DDS), ~70 Web Routes, 19 ADR (12 baseline + 7 penyederhanaan/constraints). Baseline: Laravel 13 modular monolith, session-based auth, web routes, Docker (Sail dev + custom image prod), MySQL 8, Redis, Leaflet, Alpine.js. | Lauhul Ridwan + OpenCode |
 | 0.1.1 | 2026-08-13 | Environment setup & dependency sync: (1) Update §3 Tech Stack table: PHP 8.3+ → 8.5, tambah version numbers untuk Laravel (13.22.0), Sail (1.64.0), Breeze (2.4.2), (2) Update §3.1 Rujukan Dokumentasi: tambah Vite 8.2.1, Tailwind CSS 4.0.0, Alpine.js 3.14.x, PHPStan/Larastan, PHPUnit 12.5.12, Mailpit, Docker actual version (29.5.1/5.1.4), pin MySQL 8.0 & Redis 7-alpine di compose.yaml, (3) Tambah ADR-020 (PHP 8.5 rationale) & ADR-021 (PHPUnit vs Pest). Environment setup selesai: APP_KEY generated, DB credentials set, npm dependencies installed (Alpine.js, Leaflet.js), Laravel Breeze installed, PHPStan/Larastan installed, Mailpit service added, Sail containers running & verified, migrations executed, frontend assets built. | OpenCode |
+| 0.1.2 | 2026-08-18 | Tambah ADR-022 (Password Reset via OTP): OtpService multi-purpose (`password-reset`), alur 3 langkah, anti-enumeration, session guard, `password_reset_tokens` tidak dipakai. Update §6.1 routes auth (forgot/reset password), COMP-001 (FR-130). | OpenCode |
+| 0.1.3 | 2026-08-18 | Tambah ADR-023 (On-Demand Email Verification): registrasi tanpa OTP → redirect `/marketplace` (stub interim TASK-086), OTP lazy saat buka `/verify-email` (throttle:5,1) atau diminta fitur via middleware `verified` + modal popup. Update COMP-001, §6.1 routes (`/verify-email`, `/marketplace` stub). Total 23 ADR. | OpenCode |
+| 0.1.4 | 2026-08-18 | COMP-001: user unverified dapat memulai verifikasi dari tombol 'Verifikasi Email' di halaman profil. Catatan env: fix izin storage untuk user runtime (avatar upload 500). | OpenCode |
 
 ---

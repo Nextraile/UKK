@@ -1,11 +1,12 @@
 services:
-  app:
+  laravel.test:
     build:
       context: ./docker/8.5
       dockerfile: Dockerfile
       args:
         WWWGROUP: "${WWWGROUP}"
     image: sail-8.5/app
+    container_name: sewakost-app-1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

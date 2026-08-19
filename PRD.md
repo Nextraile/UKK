@@ -9,10 +9,10 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `0.2.0` |
+| Versi Dokumen | `0.2.1` |
 | Status | `Approved` |
 | Pemilik (Owner) | Lauhul Ridwan |
-| Terakhir Diperbarui | `2026-08-16` |
+| Terakhir Diperbarui | `2026-08-18` |
 
 ---
 
@@ -234,7 +234,8 @@ Mobile app, multi-language, multi-currency, payment gateway otomatis (Midtrans/X
 | **Rental** | Transaksi penyewaan yang menghubungkan Tenant dengan Room, menyimpan snapshot harga dan durasi sewa yang dipilih, serta melacak lifecycle dari pending hingga completed. |
 | **Payment Deadline** | Batas waktu yang ditetapkan sistem untuk Tenant menyelesaikan pembayaran setelah Rental dibuat. **MVP: 48 jam.** Jika melewati deadline tanpa Payment Success, Rental otomatis menjadi Cancelled. |
 | **QRIS Statis** | QR Code pembayaran statis yang di-upload Admin per kost. Tenant scan QRIS, transfer manual ke rekening kost, lalu upload bukti pembayaran untuk diverifikasi Admin. |
-| **Email Verification (OTP)** | Mekanisme verifikasi email menggunakan One-Time Password (OTP) 6-digit code yang dikirim ke email user. User input kode OTP di aplikasi untuk verify email. OTP expiry time: 15 menit. Verification tidak mutlak wajib untuk login, namun wajib saat mengakses fitur tertentu (misal: Tenant create rental). |
+| **Email Verification (OTP)** | Mekanisme verifikasi email menggunakan One-Time Password (OTP) 6-digit code yang dikirim ke email user. User input kode OTP di aplikasi untuk verify email. OTP expiry time: 15 menit. Verification tidak mutlak wajib untuk login, namun wajib saat mengakses fitur tertentu (misal: Tenant create rental). OTP verifikasi email dikirim **on-demand** — saat user membuka halaman verifikasi atau diminta fitur yang membutuhkan email terverifikasi — bukan otomatis saat registrasi (lihat ADR-023 di ARCHITECTURE.md). OTP juga dipakai untuk password reset (lihat **Password Reset via OTP**). |
+| **Password Reset via OTP** | Mekanisme reset password menggunakan OTP 6-digit code yang dikirim ke email terdaftar (FR-130). Alur 3 langkah: input email → verifikasi OTP → set password baru. Menggantikan reset berbasis token link Breeze. Email yang tidak terdaftar tetap mendapat respons generik (anti-enumeration). |
 | **Document Requirement** | Kebijakan dokumen administrasi yang didefinisikan per kost oleh Admin, menentukan jenis dokumen apa yang dibutuhkan (KTP, Selfie, Kartu Pelajar, dll.), apakah wajib/opsional, dan alasan permintaannya. |
 | **Contract Start Date** | Tanggal mulai masa sewa rental, dipilih Tenant saat booking. Min: today, Max: today + 30 hari. |
 | **Contract End Date** | Tanggal berakhir masa sewa rental, dihitung dari contract start date + durasi sewa. |
@@ -267,10 +268,10 @@ Mobile app, multi-language, multi-currency, payment gateway otomatis (Midtrans/X
 |---|---|---|---|---|---|---|
 | FR-001 | User Login | Sistem harus memungkinkan user (Tenant, Admin, Super Admin) melakukan login dengan email dan password. | Must | Given user memiliki akun valid, When memasukkan email & password benar, Then user terautentikasi dan diarahkan ke halaman sesuai role. | US-001 | Draft |
 | FR-002 | User Logout | Sistem harus memungkinkan user yang terautentikasi melakukan logout. | Must | Given user terautentikasi, When memilih logout, Then session berakhir dan user diarahkan ke halaman publik. | US-001 | Draft |
-| FR-003 | Tenant Self-Registration | Sistem harus memungkinkan calon Tenant mendaftar akun baru dengan email, password, first name, last name. | Must | Given calon Tenant mengisi form registrasi valid, When submit, Then akun Tenant dibuat dengan role `user` dan email verification dikirim. | US-002 | Draft |
-| FR-004 | OTP Email Verification | Sistem harus mengirim OTP 6-digit code (expiry 15 menit) ke email Tenant yang baru registrasi. Tenant verify email dengan input kode OTP yang benar di aplikasi. | Must | Given Tenant baru registrasi, When input kode OTP yang benar sebelum expiry, Then email_verified_at di-set dan Tenant dapat mengakses fitur yang membutuhkan email terverifikasi. | US-002 | Draft |
+| FR-003 | Tenant Self-Registration | Sistem harus memungkinkan calon Tenant mendaftar akun baru dengan email, password, first name, last name. | Must | Given calon Tenant mengisi form registrasi valid, When submit, Then akun Tenant dibuat dengan role `user`, user diarahkan ke marketplace, dan verifikasi email bersifat OPSIONAL (tidak ada OTP otomatis dikirim). | US-002 | Draft |
+| FR-004 | OTP Email Verification | Sistem harus mengirim OTP 6-digit code (expiry 15 menit) ke email Tenant. OTP dikirim ON-DEMAND saat Tenant membuka halaman verifikasi email atau mengakses fitur yang membutuhkan email terverifikasi. Tidak dikirim otomatis saat registrasi. Tenant verify email dengan input kode OTP yang benar di aplikasi. | Must | Given Tenant membuka halaman verifikasi email (atau diminta verifikasi oleh fitur), When input kode OTP yang benar sebelum expiry, Then email_verified_at di-set dan Tenant dapat mengakses fitur yang membutuhkan email terverifikasi. | US-002 | Draft |
 | FR-005 | Resend OTP | Sistem harus memungkinkan Tenant yang belum verifikasi email meminta pengiriman ulang OTP. OTP lama expired saat OTP baru dikirim. | Must | Given Tenant belum verified, When request resend, Then OTP baru dikirim dan OTP lama expired. | US-002 | Draft |
-| FR-006 | Email Verification Required for Specific Features | Sistem harus mewajibkan email terverifikasi hanya saat Tenant mengakses fitur tertentu (misal: create rental). Tenant yang belum verifikasi email tetap dapat login dan browse marketplace. | Must | Given Tenant belum verified, When mencoba create rental, Then sistem tolak dan minta Tenant verifikasi email dulu. Tenant tetap dapat login dan browse marketplace tanpa verifikasi. | US-002, US-010 | Draft |
+| FR-006 | Email Verification Required for Specific Features | Sistem harus mewajibkan email terverifikasi hanya saat Tenant mengakses fitur tertentu (misal: create rental). Tenant yang belum verifikasi email tetap dapat login dan browse marketplace. Saat Tenant yang belum terverifikasi mengakses fitur tersebut, sistem menampilkan popup yang menjelaskan perlunya verifikasi email dengan CTA button menuju halaman verifikasi OTP. | Must | Given Tenant belum verified, When mencoba create rental, Then sistem tolak dan minta Tenant verifikasi email dulu. Tenant tetap dapat login dan browse marketplace tanpa verifikasi. | US-002, US-010 | Draft |
 | FR-007 | RBAC - Role-Based Access | Sistem harus membatasi akses fungsi berdasarkan role user (Tenant, Admin, Super Admin). | Must | Given user terautentikasi dengan role tertentu, When mengakses fungsi, Then hanya fungsi sesuai role yang accessible. | US-001 | Draft |
 | FR-008 | RBAC - Resource Ownership | Sistem harus memastikan user hanya dapat melakukan operasi terhadap resource yang menjadi kewenangannya. | Must | Given user mencoba akses resource, When resource bukan milik/kewenangan user, Then akses ditolak. | US-001 | Draft |
 | FR-009 | Manage User Profile - View | Sistem harus memungkinkan user melihat profil miliknya (first name, last name, email, phone, avatar). | Must | Given user terautentikasi, When membuka profil, Then data profil ditampilkan. | US-003 | Draft |
@@ -449,6 +450,12 @@ Mobile app, multi-language, multi-currency, payment gateway otomatis (Midtrans/X
 | FR-127 | Display Cancellation Info | Sistem harus menampilkan info cancellation (alasan, timestamp) di rental detail. | Should | Given rental berstatus Cancelled, When Tenant/Admin buka rental detail, Then cancelled_reason dan cancelled_at ditampilkan. | US-021, US-022 | Draft |
 | FR-128 | OTP Expiry Time | Sistem harus menetapkan expiry time OTP = 15 menit. Jika OTP expired, user harus request OTP baru. | Must | Given OTP dikirim, When 15 menit berlalu tanpa input, Then OTP expired dan user harus request OTP baru untuk verifikasi. | US-002 | Draft |
 | FR-129 | Email Change Re-verification | Sistem harus mewajibkan re-verification via OTP saat user mengubah email. Email baru belum dapat digunakan untuk fitur yang membutuhkan email terverifikasi sampai OTP baru di-input benar. | Must | Given user mengubah email, When email baru disimpan, Then sistem kirim OTP ke email baru. Email lama tetap valid sampai email baru terverifikasi. Fitur yang membutuhkan email terverifikasi (misal: create rental) tetap blocked sampai email baru terverifikasi. | US-003 | Draft |
+
+### Authentication - Password Reset (FR-130)
+
+| ID | Judul | Deskripsi | Prioritas | Acceptance Criteria | User Story Terkait | Status |
+|---|---|---|---|---|---|---|
+| FR-130 | Password Reset via OTP | Sistem harus memungkinkan user reset password via OTP 6 digit yang dikirim ke email terdaftar. | Must | Given user lupa password dan input email, When sistem kirim OTP reset, Then user verify OTP dan dapat set password baru; email yang tidak terdaftar tidak mengungkap status (anti-enumeration). | US-001 | Draft |
 
 ---
 
@@ -763,6 +770,8 @@ Mobile app, multi-language, multi-currency, payment gateway otomatis (Midtrans/X
 | 0.1.0 | 2026-08-12 | Draft awal PRD dibuat. Konsolidasi dari docs/ (Discovery Document, Business Analysis Document, SRS v1.0.7, DDS v1.0.0, ERD). Total 127 FR, 33 NFR, 22 US. Penyederhanaan: (1) Facility/Rule Scheme → JSON, (2) Price Scheme → 1:N, (3) Kost Status → 5 state, (4) Payment → QRIS statis + verifikasi manual, (5) Review Images → JSON, (6) Kost+Room Review → 1 tabel, (7) Soft delete users, (8) Category Management UI. Open Questions resolved. | Lauhul Ridwan + OpenCode |
 | 0.1.1 | 2026-08-12 | Revisi: (1) Expand §5.1 In Scope ke versi detail, (2) Email verification → OTP 6-digit code (expiry 15 menit), tidak mutlak wajib (hanya saat akses fitur tertentu), (3) User dapat ubah email dengan re-verification, (4) Hapus asumsi dokumen fisik check-in, (5) Tambah FR-128 (OTP expiry) & FR-129 (email change re-verification). Total FR: 129. | Lauhul Ridwan + OpenCode |
 | 0.1.2 | 2026-08-13 | Revisi sinkronisasi dengan ARCHITECTURE.md v0.1.0: (1) Q-002: Update min start_date dari "today" → "today+4 hari" (ADR-016), (2) FR-046: Update room status "maintenance" → "unavailable", (3) FR-047: Klarifikasi room status hanya 2 values (available/unavailable), reserved/occupied dihitung real-time, (4) FR-122: Update min start_date = today+4 hari, (5) FR-123: Update cancel rental termasuk dari Active, (6) FR-124: Update prevent cancel hanya untuk Completed, (7) Glosarium: Update definisi "Room Status - Unavailable". Total FR: 129 (tidak ada penambahan FR baru). | Lauhul Ridwan + OpenCode |
+| 0.1.3 | 2026-08-18 | Penambahan FR-130 (Password Reset via OTP) — reset password berbasis OTP menggantikan mekanisme token link Breeze. | OpenCode |
+| 0.1.4 | 2026-08-18 | Revisi: Email verification menjadi on-demand (FR-003/FR-004). Registrasi tidak lagi mengirim OTP otomatis; user diarahkan ke marketplace. OTP kirim saat buka halaman verifikasi atau akses fitur ber-verifikasi (popup + CTA). Implementasi di TASK-086. | OpenCode |
 
 ---
 

@@ -16,7 +16,7 @@
 
 ## Critical Commands
 
-**All commands MUST run via Sail** (not bare `php`/`composer`/`npm`) — custom PHP 8.5 container. Service name is `app`, container name is `sewakost-app-1`.
+**All commands MUST run via Sail** (not bare `php`/`composer`/`npm`) — custom PHP 8.5 container. Service name is `laravel.test` (Sail-compatible), container name is `sewakost-app-1`.
 
 ```bash
 # Start environment (first time or after reboot)
@@ -24,7 +24,7 @@
 
 # Run tests (Definition of Done requirement)
 ./vendor/bin/sail artisan test                                   # PHPUnit (NOT Pest)
-docker exec sewakost-app-1 ./vendor/bin/phpstan analyse          # level 5
+./vendor/bin/sail php vendor/bin/phpstan analyse                 # level 5 (via sail, bukan docker exec root)
 ./vendor/bin/sail pint                                           # auto-fix style
 
 # Database
@@ -44,7 +44,7 @@ docker exec sewakost-app-1 ./vendor/bin/phpstan analyse          # level 5
 # http://localhost:8025 (Mailpit email UI)
 ```
 
-**Gotcha:** `./vendor/bin/sail` commands expect service named `laravel.test` but actual service is `app`. Use `docker exec sewakost-app-1 <command>` if Sail wrapper fails.
+**Note:** `compose.yaml` service `laravel.test` (Sail-compatible) dipakai wrapper `./vendor/bin/sail`; `container_name: sewakost-app-1` dieksplisitkan agar `docker exec sewakost-app-1 <command>` juga selalu jalan. Jika Sail wrapper gagal, fallback `docker exec sewakost-app-1 <command>`.
 
 ## Architecture Quick Reference
 
@@ -114,6 +114,29 @@ Run accessibility audit (axe DevTools)
 Mark TASK Done
 ```
 
+**UI Design Pipeline (4 Fase) — untuk pekerjaan desain/UI baru (dashboard, landing, komponen):**
+```
+Fase 1 — Perencanaan & Strategi (skill: design + ui-ux-pro-max)
+  AI bertindak sebagai perencana & UX strategist. Tentukan kebutuhan pengguna & jenis
+  produk; scan basis data untuk mencocokkan industri (SaaS/E-commerce/Fintech).
+  Rancang struktur layout, aturan aksesibilitas (A11y, WCAG 2.1 AA), hierarki informasi.
+  Output: cetak biru sistem desain awal → DESIGN.md.
+  ↓
+Fase 2 — Injeksi Estetika & Orisinalitas (skill: taste-skill)
+  Cegah templat standar membosankan. Serap referensi estetika orisinal tingkat tinggi.
+  Tentukan kombinasi font unik + ritme tata letak bernyawa — selayaknya desainer senior.
+  ↓
+Fase 3 — Polesan & Eksekusi Front-End (skill: impeccable)
+  Bersihkan & sempurnakan implementasi. Perbaikan visual iteratif: kontras lemah,
+  spacing acak, transisi/animasi kaku. Uji kualitas interface agar matang, profesional,
+  production-grade.
+  ↓
+Fase 4 — Implementasi Kode Akhir (skill: ui-styling)
+  Terjemahkan token desain ke tech stack (Tailwind). Definisi padding/margin/warna
+  sebagai token semantik bersih — TANPA hex mentah di komponen.
+```
+Gunakan pipeline ini SEBELUM menulis layout baru; untuk polish halaman yang ada, loncat ke Fase 3.
+
 ## Code Conventions (Non-Obvious)
 
 - **Naming:** Model `StudlyCase` singular, Controller `StudlyCase + Controller`, FormRequest `+ Request`, migration `snake_case + timestamp`, Blade `kebab-case.blade.php`, route name `dot.notation`.
@@ -148,7 +171,7 @@ Mark TASK Done
 A `TASK-xxx` is Done when:
 1. Acceptance criteria (from referenced `FR-xxx`) met
 2. `./vendor/bin/sail artisan test` passes
-3. `docker exec sewakost-app-1 ./vendor/bin/phpstan analyse` passes (level 5)
+3. `./vendor/bin/sail php vendor/bin/phpstan analyse` passes (level 5)
 4. `./vendor/bin/sail pint` passes (auto-fix before commit)
 5. No regressions in existing tests
 6. Updated `TODO.md` status to Done
