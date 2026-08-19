@@ -7,7 +7,7 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.0` |
+| Versi Dokumen | `1.0.1` |
 | Terakhir Diperbarui | `2026-08-16` |
 | Tech Stack | Laravel 13 + Blade + Alpine.js 3.14 + Tailwind CSS 4.0 |
 
@@ -1977,9 +1977,92 @@ function toast() {
 </div>
 ```
 
----
+### 3.18 Verify Email Modal (Popup)
 
-## 4. Layout Patterns
+Modal untuk meminta user yang belum verified memverifikasi email saat mengakses fitur yang butuh email terverifikasi (FR-006). Reuse pattern Modal §3.5 — dipicu oleh flash session `verify_email_prompt=true` dari middleware `verified` (`EnsureEmailIsVerified`), di-render di layout app sebagai overlay tanpa route sendiri. CTA mengarah ke route `verification.notice` (`/verify-email`), tempat OTP dikirim on-demand (ADR-023). Implementasi: `components/verify-email-modal.blade.php`.
+
+```html
+<!-- Verify Email Modal — render di layout saat session flash verify_email_prompt=true -->
+<div x-data="{ open: @json(session()->has('verify_email_prompt')) }" x-cloak>
+  <div x-show="open"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    @keydown.escape.window="open = false"
+    class="fixed inset-0 z-50 overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="verify-email-modal-title">
+
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" @click="open = false"></div>
+
+    <!-- Modal Content -->
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        class="relative transform overflow-hidden rounded-xl bg-white shadow-2xl transition-all w-full max-w-md text-center"
+        @click.stop>
+
+        <!-- Close button -->
+        <button @click="open = false; document.body.classList.remove('overflow-hidden')"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1"
+          aria-label="Tutup">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <!-- Body -->
+        <div class="px-6 py-8">
+          <!-- Email/alert icon -->
+          <div class="mx-auto flex items-center justify-center w-14 h-14 rounded-full bg-primary-50 text-primary-600 mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+
+          <h3 id="verify-email-modal-title" class="text-xl font-semibold text-gray-900">
+            Email Anda Belum Diverifikasi
+          </h3>
+
+          <p class="mt-2 text-sm text-gray-600">
+            Verifikasi email diperlukan untuk mengakses fitur ini. Kode OTP akan dikirim ke email Anda saat Anda membuka halaman verifikasi.
+          </p>
+
+          <!-- CTA -->
+          <a href="{{ route('verification.notice') }}"
+            class="mt-6 inline-flex w-full items-center justify-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+            Verifikasi Email
+          </a>
+
+          <!-- Dismiss -->
+          <button @click="open = false; document.body.classList.remove('overflow-hidden')"
+            class="mt-3 inline-flex w-full items-center justify-center px-6 py-3 text-sm font-semibold text-gray-600 hover:text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-300">
+            Nanti Saja
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+**Accessibility:**
+- `role="dialog"` + `aria-modal="true"` + `aria-labelledby` → judul modal
+- Focus trap di dalam modal saat terbuka; focus kembali ke elemen pemicu saat ditutup
+- `Escape` menutup modal; tombol tutup punya `aria-label="Tutup"`
+- CTA "Verifikasi Email" menerima focus awal (primary action)
+
+---
 
 ### 4.1 Public Layout (Marketplace)
 
@@ -2563,6 +2646,7 @@ Use Laravel image optimization packages (e.g., `spatie/laravel-image-optimizer`)
 | Version | Date | Changes | Author |
 |---|---|---|---|
 | 1.0.0 | 2026-08-16 | Initial design system creation. Extracted from reference design (soft gradients, card-based layout). Design tokens, 17 component categories, layout patterns, responsive guidelines, accessibility WCAG 2.1 AA targets, animation specs, Blade+Alpine.js implementation notes. Total 35+ components documented. | OpenCode |
+| 1.0.1 | 2026-08-18 | Tambah §3.18 Verify Email Modal (Popup): modal on-demand untuk user belum verified (FR-006), dipicu flash `verify_email_prompt` dari middleware `verified`, reuse pattern §3.5, CTA → `verification.notice`. 18 component categories. | OpenCode |
 
 ---
 

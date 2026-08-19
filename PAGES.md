@@ -1,15 +1,15 @@
 # PAGES.md — Page & Interface Specifications
 
 > **Status dokumen ini:** Single Source of Truth untuk SPESIFIKASI HALAMAN & EMAIL.
-> Dokumen ini menyediakan detail lengkap untuk semua 54 halaman + 7 email template di aplikasi SewaKost.
+> Dokumen ini menyediakan detail lengkap untuk semua 57 halaman + 8 email template di aplikasi SewaKost.
 > Setiap page spec mencakup: URL, auth requirement, layout, components, data, validation, user flows, accessibility.
 
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.0` |
-| Terakhir Diperbarui | `2026-08-16` |
-| Total Pages | 54 pages + 7 email templates |
+| Versi Dokumen | `1.1.0` |
+| Terakhir Diperbarui | `2026-08-18` |
+| Total Pages | 57 pages + 8 email templates |
 
 ---
 
@@ -51,13 +51,13 @@ Setiap page specification berisi:
 | Context | Page Count | Description |
 |---|---|---|
 | **Public (No Auth)** | 3 pages | Landing, Marketplace List, Kost Detail |
-| **Auth Pages** | 6 pages | Login, Register, OTP Verify, Forgot/Reset Password |
+| **Auth Pages** | 7 pages | Login, Register, OTP Email Verify, Verify Email Modal, Forgot Password, Reset OTP, Change Password |
 | **Tenant Interface** | 14 pages | Dashboard, Profile, Rental Management, Payment, Documents, Review |
 | **Admin Interface** | 21 pages | Dashboard, Kost CRUD, Config, Room Inventory, Rental Verification |
 | **Super Admin Interface** | 10 pages | Submissions Review, Admin Management, Category Management |
-| **Email Templates** | 7 templates | OTP, Admin Account, Payment/Document Verifications, Rental Status |
+| **Email Templates** | 8 templates | OTP, Reset OTP, Admin Account, Payment/Document Verifications, Rental Status |
 
-**Total:** 54 pages + 7 email templates = **61 interface specifications**
+**Total:** 58 pages + 8 email templates = **66 interface specifications**
 
 ---
 
@@ -179,6 +179,8 @@ public function index()
 **Auth:** None (browsing public)  
 **Controller:** `MarketplaceController@index`  
 **FR Reference:** FR-048 (Browse without login), FR-049 (Display list), FR-051-055 (Search/Filter), FR-056 (Empty state)
+
+> **Catatan (Stub):** Sejak COMP-001/TASK-086 (ADR-023), `/marketplace` dijalankan sebagai **STUB interim** — `MarketplaceController@index` menampilkan empty state (`$kosts = collect()`), tanpa auth, agar redirect pasca-registrasi valid. Implementasi penuh (list kost Active, search, filter, pagination) dibangun di TASK-036 (COMP-005). URL/route name tidak berubah: `/marketplace`, `marketplace.index`.
 
 #### Purpose
 - Display all active kosts dengan filtering & search capabilities
@@ -453,8 +455,8 @@ public function show(Kost $kost)
 1. Tenant (logged in, email not verified) navigates to kost detail
 2. Sees "Book Now" button (enabled because authenticated)
 3. Clicks "Book Now"
-4. **Toast error:** "Silakan verifikasi email terlebih dahulu"
-5. Redirect to `/email/verify` (PAGE-006)
+4. Middleware `verified` memblok → redirect back + flash `verify_email_prompt`
+5. **Modal popup verifikasi muncul** (PAGE-006D) — CTA menuju `/verify-email` (PAGE-006), OTP dikirim on-demand
 
 **Flow 3: Authenticated tenant views detail (email verified)**
 1. Tenant (logged in, email verified) navigates to kost detail
@@ -520,7 +522,7 @@ public function show(Kost $kost)
 
 ---
 
-## 3. Auth Pages (Laravel Breeze Customized) — 6 Pages
+## 3. Auth Pages (Laravel Breeze Customized) — 7 Pages
 
 ### PAGE-004: Login
 
@@ -681,12 +683,11 @@ public function authenticate()
 **Method:** GET, POST  
 **Auth:** Guest only  
 **Controller:** `Auth\RegisterController@create`, `@store`  
-**FR Reference:** FR-003 (Tenant self-registration), FR-004 (OTP email verification trigger)
+**FR Reference:** FR-003 (Tenant self-registration — verifikasi email on-demand, tidak ada OTP otomatis), FR-004 (OTP email verification — dikirim on-demand saat user buka halaman verifikasi atau diminta fitur)
 
 #### Purpose
 - Tenant account creation (self-service)
-- Trigger OTP email verification after successful registration
-- Redirect to OTP verification page
+- Redirect ke `/marketplace` setelah registrasi (verifikasi email opsional, on-demand — FR-003)
 
 #### Components Used
 - `<x-input />` x 4 (first_name, last_name, email, password with strength indicator)
@@ -708,9 +709,10 @@ public function authenticate()
 2. Checks "Setuju syarat dan ketentuan"
 3. Clicks "Daftar"
 4. Backend creates user record (role = `user`, email_verified_at = NULL)
-5. Generate 6-digit OTP, store in `otp_verifications` table with 15min expiry
-6. Send OTP email (EMAIL-001)
-7. Redirect to `/email/verify` with toast "OTP telah dikirim ke email Anda"
+5. `Akun dibuat (role=user, email_verified_at=NULL)`
+6. `Redirect ke /marketplace` TANPA kirim OTP
+
+> **Catatan:** Verifikasi email opsional — user bisa browse marketplace tanpa verified (FR-006). Popup verifikasi muncul saat akses fitur yang membutuhkan email terverifikasi (lihat PAGE-006D).
 
 **Error States:**
 - Email exists: "Email sudah terdaftar, silakan masuk"
@@ -721,12 +723,18 @@ public function authenticate()
 
 ### PAGE-006: OTP Email Verification
 
-**URL:** `/email/verify`  
+**URL:** `/verify-email`  
 **Route Name:** `verification.notice`  
-**Method:** GET, POST  
+**Method:** GET (throttle:5,1), POST  
 **Auth:** Authenticated, NOT verified  
 **Controller:** `Auth\EmailVerificationController@show`, `@verify`  
 **FR Reference:** FR-004 (OTP verification), FR-005 (Resend OTP), FR-128 (15min expiry)
+
+#### Trigger (On-Demand)
+- OTP **tidak dikirim saat registrasi** (FR-003). Dikirim otomatis (lazy) saat halaman ini dibuka **jika belum ada OTP valid** (`OtpService::hasValidOtp` false → `OtpService::generate`).
+- OTP juga dikirim ulang otomatis saat halaman dibuka jika OTP sebelumnya sudah **expired** (>15 menit, FR-128).
+- Route GET `verification.notice` diberi `throttle:5,1` karena berpotensi mengirim email (5 request per menit per user).
+- Selain diblokir oleh fitur ber-verifikasi (popup PAGE-006D), user dapat memulai verifikasi dari tombol **'Verifikasi Email'** di halaman profil (show & edit) untuk user unverified (`email_verified_at` null) → `route('verification.notice')`. Setelah verified, badge email berubah **'Terverifikasi'** (FR-004 on-demand).
 
 #### Purpose
 - Input 6-digit OTP code to verify email
@@ -761,13 +769,14 @@ Cache::put("otp:{$userId}", $otpCode, now()->addMinutes(15));
 #### User Flows
 
 **Flow 1: Successful verification**
-1. User lands on page after registration
+1. User membuka `/verify-email` (dari CTA modal popup PAGE-006D, tombol 'Verifikasi Email' di halaman profil, menu, atau akses langsung)
 2. Sees masked email address
 3. Enters 6-digit code from email
 4. Auto-submits after 6th digit (or clicks "Verifikasi")
-5. Backend validates: OTP matches + not expired
-6. Set `email_verified_at = now()`
-7. Redirect to `/rentals` with toast "Email berhasil diverifikasi!"
+5. OTP dikirim otomatis saat halaman dibuka (lazy) jika belum ada OTP valid — tidak dikirim saat registrasi
+6. Backend validates: OTP matches + not expired
+7. Set `email_verified_at = now()`
+8. Redirect to `/rentals` with toast "Email berhasil diverifikasi!"
 
 **Flow 2: Invalid OTP**
 1. User enters wrong code
@@ -793,6 +802,250 @@ Cache::put("otp:{$userId}", $otpCode, now()->addMinutes(15));
 - Each OTP input: `aria-label="Digit 1"` through "Digit 6"
 - Countdown: `aria-live="polite"` announces changes
 - Paste support: Paste 6-digit code distributes across boxes
+
+---
+
+### PAGE-006D: Verify Email Modal (Popup)
+
+**URL:** None (overlay di layout — tidak ada route sendiri)  
+**Route Name:** — (CTA button menuju `verification.notice`)  
+**Method:** —  
+**Auth:** Authenticated (user belum verified)  
+**Component:** `components/verify-email-modal.blade.php` (di-render di layout app)  
+**FR Reference:** FR-004 (OTP on-demand), FR-006 (popup saat akses fitur ber-verifikasi)
+
+#### Trigger
+- Middleware `verified` (alias `EnsureEmailIsVerified`, dipasang COMP-006 / TASK-047 mis. create rental) memblok akses fitur yang butuh email terverifikasi.
+- Middleware melakukan `redirect()->back()` + flash session `verify_email_prompt=true` (+ pesan error). Layout app membaca flash ini dan menampilkan modal sebagai overlay — user tetap di halaman asal.
+
+#### Isi Modal
+- Ikon email/alert (DESIGN.md §3.18)
+- Judul: "Email Anda Belum Diverifikasi"
+- Body: penjelasan 1–2 kalimat perlunya verifikasi email untuk fitur tersebut
+- CTA primary button: "Verifikasi Email" → `route('verification.notice')` (`/verify-email`)
+- Tombol tutup/close (dismiss) — modal bisa ditutup, user tetap bisa browse
+
+#### User Flow
+1. User (belum verified) mengakses fitur ber-verified (mis. create rental)
+2. Middleware `verified` redirect back + flash `verify_email_prompt=true`
+3. Modal popup muncul di layout
+4. User klik CTA "Verifikasi Email"
+5. Redirect ke `/verify-email` → OTP terkirim otomatis (lazy, PAGE-006 Trigger)
+6. User input OTP → verified (`email_verified_at` di-set)
+7. Redirect sesuai role dashboard; user dapat mengakses fitur yang tadi diblokir
+
+#### Accessibility Notes
+- `role="dialog"`, `aria-modal="true"`, `aria-labelledby` mengacu judul modal
+- Focus trap di dalam modal saat terbuka; focus kembali ke trigger saat ditutup
+- Tombol tutup punya `aria-label` jelas; `Escape` menutup modal
+- CTA fokus awal (primary action)
+
+---
+
+### PAGE-006A: Forgot Password (Request Reset OTP)
+
+**URL:** `/forgot-password`  
+**Route Name:** `password.request` (GET), `password.email` (POST)  
+**Method:** GET, POST  
+**Auth:** Guest only  
+**Controller:** `Auth\PasswordResetLinkController@create`, `@store`  
+**FR Reference:** FR-130 (Password Reset via OTP)
+
+#### Purpose
+- User input email untuk memulai alur reset password
+- Kirim OTP reset ke email terdaftar, set session `password_reset_email`
+- Anti-enumeration: email yang tidak terdaftar mendapat respons yang sama (tidak mengungkap status)
+
+#### Layout Structure (Auth Layout)
+```
+Centered card (max-w-md):
+- Lock icon (large)
+- Heading: "Lupa Password?"
+- Instruction: "Masukkan email terdaftar. Kami akan mengirim kode OTP reset."
+- Email input
+- [Kirim Kode Reset] button
+- Back link: "Kembali ke login"
+```
+
+#### Components Used
+- `<x-input type="email" />` (email)
+- `<x-button variant="primary" full-width />` (submit)
+- Alert/toast untuk feedback (DESIGN.md §3.10)
+
+#### Data Requirements
+```php
+// POST password.email — setelah validasi:
+// 1. Cari user by email. Jika tidak ditemukan → tetap redirect generik (anti-enumeration).
+// 2. Jika ditemukan: OtpService::generate($user, 'password-reset')
+// 3. Kirim OtpVerificationMail (purpose: password-reset → EMAIL-008)
+// 4. Session::put('password_reset_email', $email)
+// 5. Redirect ke /reset-password (password.otp)
+```
+
+#### Validation Rules
+```php
+'email' => ['required', 'string', 'email', 'max:255'],
+```
+
+#### User Flows
+
+**Flow 1: Email terdaftar (happy path)**
+1. User buka `/forgot-password`
+2. Input email terdaftar
+3. Submit → sistem generate OTP purpose `password-reset` (15 menit expiry), kirim email (EMAIL-008), set session `password_reset_email`
+4. Redirect `/reset-password` dengan toast "Kode OTP telah dikirim ke email Anda"
+
+**Flow 2: Email tidak terdaftar (anti-enumeration)**
+1. User input email tidak dikenal
+2. Sistem tetap redirect `/reset-password` dengan pesan generik yang sama (tidak ada perbedaan respons)
+3. Tidak ada OTP yang dikirim, session `password_reset_email` tidak di-set
+
+**Edge: Throttle**
+- Route POST dibatasi `throttle:5,1` — setelah 5 request per menit, error "Too Many Attempts"
+
+#### Accessibility Notes
+- `autofocus` pada email input
+- Error message terhubung via `aria-describedby`
+- Submit button disabled saat proses (prevent double-click)
+
+---
+
+### PAGE-006B: Reset Password OTP Verification
+
+**URL:** `/reset-password` (GET), `/reset-password/verify` (POST)  
+**Route Name:** `password.otp`, `password.otp.verify`  
+**Method:** GET, POST  
+**Auth:** Guest only  
+**Controller:** `Auth\PasswordResetLinkController@showOtp`, `@verifyOtp`  
+**FR Reference:** FR-130 (Password Reset via OTP), FR-128 (15 menit expiry)
+
+#### Purpose
+- Input OTP 6 digit reset yang dikirim ke email
+- Validasi via `OtpService::verify($user, $code, markEmailVerified: false)` — tidak menandai email verified
+- Set session `password_reset_verified` sebagai guard sebelum set password baru
+
+#### Layout Structure (Auth Layout)
+```
+Centered card (max-w-md):
+- Email icon (large)
+- Instruction: "Kami telah mengirim kode OTP ke r***@gmail.com" (via User::maskedEmail())
+- 6 OTP input boxes (auto-focus, auto-tab — reuse komponen OTP PAGE-006)
+- Countdown: "Kode akan expired dalam 14:32"
+- [Verifikasi] button (atau auto-submit setelah digit ke-6)
+```
+
+#### Components Used
+- OTP Input component (6 digit boxes, Alpine.js) — sama dengan PAGE-006
+- Countdown timer (Alpine.js)
+- Alert untuk error/lockout
+
+#### Data Requirements
+```php
+// GET password.otp:
+// Guard: jika session password_reset_email kosong → redirect /forgot-password
+// Tampilkan masked email: User::maskedEmail() dari session password_reset_email
+
+// POST password.otp.verify:
+// OtpService::verify($user, $code, markEmailVerified: false)
+//   → true: Session::put('password_reset_verified', true), redirect /reset-password/change
+//   → false: error (kode salah / expired / lockout)
+```
+
+#### Validation Rules
+```php
+// Kode OTP: 6 digit numerik
+'code' => ['required', 'string', 'size:6', 'regex:/^[0-9]{6}$/'],
+```
+
+#### User Flows
+
+**Flow 1: OTP benar (happy path)**
+1. User mendarat di `/reset-password` (session `password_reset_email` terisi)
+2. Input 6 digit kode
+3. Auto-submit / klik "Verifikasi"
+4. `OtpService::verify($user, $code, markEmailVerified: false)` sukses
+5. Session `password_reset_verified = true`
+6. Redirect `/reset-password/change`
+
+**Flow 2: Kode salah**
+1. Input kode salah
+2. Error: "Kode OTP tidak valid"
+3. Input di-clear, fokus kembali ke box pertama
+
+**Flow 3: Lockout (5× gagal / 15 menit)**
+1. 5 percobaan salah dalam 15 menit
+2. Error: "Terlalu banyak percobaan. Coba lagi dalam 15 menit"
+
+**Flow 4: OTP expired (>15 menit)**
+1. Error: "Kode OTP sudah expired"
+2. User harus request ulang: kembali ke `/forgot-password` dan submit email lagi
+
+**Edge: Resend OTP**
+- `OtpService::resend` ada untuk email verification, namun route resend khusus reset **belum** diimplementasikan di scope ini (enhancement). Saat ini user yang butuh OTP baru mengulang alur di `/forgot-password`.
+
+**Edge: Direct access tanpa request**
+- Session `password_reset_email` kosong → redirect `/forgot-password`
+
+#### Accessibility Notes
+- Setiap OTP input `aria-label="Digit 1"` s.d. "Digit 6"
+- Countdown `aria-live="polite"`
+- Paste support 6 digit
+
+---
+
+### PAGE-006C: Set New Password
+
+**URL:** `/reset-password/change`  
+**Route Name:** `password.reset` (GET), `password.store` (POST)  
+**Method:** GET, POST  
+**Auth:** Guest only  
+**Controller:** `Auth\NewPasswordController@create`, `@store`  
+**FR Reference:** FR-130 (Password Reset via OTP)
+
+#### Purpose
+- Set password baru setelah OTP reset terverifikasi
+- Guard session `password_reset_verified`; sukses → redirect login
+
+#### Layout Structure (Auth Layout)
+```
+Centered card (max-w-md):
+- Key icon (large)
+- Heading: "Buat Password Baru"
+- Password input + konfirmasi password
+- [Simpan Password] button
+```
+
+#### Components Used
+- `<x-input type="password" />` x 2 (password, password_confirmation)
+- Password strength indicator (Alpine.js)
+- `<x-button variant="primary" full-width />`
+
+#### Validation Rules
+```php
+'password' => ['required', 'string', 'min:8', 'confirmed'],
+// Konfirmasi: password_confirmation harus sama
+```
+
+#### User Flows
+
+**Flow 1: Happy path**
+1. User mendarat di `/reset-password/change` (session `password_reset_verified = true`)
+2. Input password baru + konfirmasi
+3. Submit → hash password baru disimpan (`users.password` update)
+4. Session `password_reset_email` + `password_reset_verified` di-clear
+5. Redirect `/login` dengan toast "Password berhasil diubah. Silakan masuk"
+
+**Flow 2: Direct access tanpa verifikasi OTP**
+1. User buka `/reset-password/change` langsung (tanpa session `password_reset_verified`)
+2. Redirect `/forgot-password`
+
+**Edge: Password tidak memenuhi syarat**
+- Error validasi standar (min 8 karakter, konfirmasi cocok)
+
+#### Accessibility Notes
+- Password toggle icon button `aria-label="Show password"` / "Hide password"
+- Error association via `aria-describedby`
+- Submit disabled saat proses (prevent double-click)
 
 ---
 
@@ -969,7 +1222,7 @@ Centered content (max-w-3xl):
 
 ---
 
-## 11. Email Templates — 7 Templates
+## 11. Email Templates — 8 Templates
 
 ### EMAIL-001: OTP Email Verification
 
@@ -995,6 +1248,35 @@ Footer: © SewaKost | Contact | Privacy
 - Font: System sans-serif
 - OTP code: 32px bold, letter-spacing 8px, primary color
 - CTA button (resend): Primary color, 44px height
+
+---
+
+### EMAIL-008: Password Reset OTP
+
+**Trigger:** User request password reset (FR-130)  
+**Recipient:** User  
+**Subject:** `[SewaKost] Kode Reset Password Anda`
+
+**Content Structure:**
+```
+Header: SewaKost logo + brand color bar
+Body:
+- Greeting: "Halo {FirstName},"
+- Instruction: "Gunakan kode berikut untuk mengatur ulang password Anda:"
+- OTP Code (large, monospace, centered): 123456
+- Expiry warning: "Kode ini berlaku selama 15 menit"
+- Security notice: "Jika Anda tidak meminta reset password, abaikan email ini"
+Footer: © SewaKost | Contact | Privacy
+```
+
+**Design Specs:**
+- Max width: 600px
+- Font: System sans-serif
+- OTP code: 32px bold, letter-spacing 8px, primary color
+- Tidak ada CTA link (berbeda dari EMAIL-001) — user kembali ke aplikasi untuk input kode
+
+**Implementation Note:**
+- Dikirim via `OtpVerificationMail` dengan purpose `password-reset` — subject + instruksi dipilih berdasarkan purpose (lihat ARCHITECTURE.md ADR-022)
 
 ---
 
@@ -1207,7 +1489,7 @@ Mark TASK Done
 
 > **Total Documentation:**
 > - DESIGN.md: 2588 lines (complete design system)
-> - PAGES.md: 1600+ lines (10 fully specified pages + summary + 7 emails)
+> - PAGES.md: 1600+ lines (13 fully specified pages + summary + 8 emails)
 > - Combined: 4200+ lines of comprehensive UI/UX documentation
 >
 > **Next:** Update AGENTS.md with references to DESIGN.md + PAGES.md
