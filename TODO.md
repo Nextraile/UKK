@@ -6,8 +6,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.0` |
-| Terakhir Diperbarui | `2026-08-16` |
+| Versi Dokumen | `1.0.1` |
+| Terakhir Diperbarui | `2026-08-18` |
 
 ---
 
@@ -26,15 +26,15 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | Dokumen | Baris | Status | Konten |
 |---|---|---|---|
-| `PRD.md` | 783 | ✅ Complete | 129 FR, 29 NFR, 22 US, 4 persona |
-| `ARCHITECTURE.md` | 1,572 | ✅ Complete | 8 COMP, 21 ADR, data model, routes |
+| `PRD.md` | 791 | ✅ Complete | 130 FR, 29 NFR, 22 US, 4 persona |
+| `ARCHITECTURE.md` | 1,592 | ✅ Complete | 8 COMP, 23 ADR, data model, routes |
 | `DESIGN.md` | 2,585 | ✅ Complete | Design tokens, 35+ components, layout patterns, a11y |
-| `PAGES.md` | 1,216 | ✅ Complete | 54 page specs + 7 email templates |
+| `PAGES.md` | 1,449 | ✅ Complete | 57 page specs + 8 email templates |
 | `WORKFLOW.md` | 130 | ✅ Complete | 5-phase development process |
 | `AGENTS.md` | 180 | ✅ Complete | Operational instructions, UI/UX workflow |
 | `MANUAL.md` | 307 | ✅ Complete | 8-document map, methodology |
 | `SKILL.md` | 135 | ✅ Complete | 19 skills registry |
-| **Total** | **7,228** | **All ready** | Complete project documentation |
+| **Total** | **7,492** | **All ready** | Complete project documentation |
 
 > **Catatan:** Saat implementasi TASK-xxx, baca `PAGES.md` untuk spec halaman dan `DESIGN.md` untuk komponen UI. Lihat workflow diagram di `AGENTS.md` §Documentation Sources.
 
@@ -52,7 +52,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 ## 1. Task Board
 
-> Breakdown task per `COMP-xxx` untuk eksekusi sistematis. Total: **78 tasks** dari **129 FR** (Must-have prioritized).
+> Breakdown task per `COMP-xxx` untuk eksekusi sistematis. Total: **82 tasks** dari **130 FR** (Must-have prioritized).
 > 
 > **Dependency Legend:**
 > - COMP-001 (Identity) → baseline untuk semua komponen
@@ -63,17 +63,21 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-001 | Setup migration & model User dengan OTP verification | FR-001—FR-013, NFR-004 | — | Must | Ready | 0.5 hari | Migration users + otp_verifications table, User model dengan SoftDeletes |
-| TASK-002 | Customize Breeze untuk OTP email verification | FR-004, FR-005, FR-128 | TASK-001 | Must | Not Started | 1 hari | Replace email link verification dengan 6-digit OTP, expiry 15 menit, Redis cache |
-| TASK-003 | Implementasi login & logout (semua role) | FR-001, FR-002, FR-007 | TASK-001 | Must | Not Started | 0.5 hari | Session-based auth, redirect berdasarkan role |
-| TASK-004 | Implementasi tenant self-registration | FR-003 | TASK-002 | Must | Not Started | 0.5 hari | Form request, controller, view. Role default = user |
-| TASK-005 | Middleware email verification untuk specific features | FR-006 | TASK-002 | Must | Not Started | 0.5 hari | Middleware `verified`, hanya untuk create rental (bukan global) |
-| TASK-006 | Profile management (view & edit) | FR-009, FR-010, FR-011 | TASK-003 | Must | Not Started | 1 hari | Update nama, phone, avatar, email. Email change trigger re-verification (FR-129) |
-| TASK-007 | Soft delete account & prevent deleted user auth | FR-012, FR-013 | TASK-003 | Should | Not Started | 0.5 hari | Middleware `active` check deleted_at, logout paksa saat delete |
-| TASK-008 | RBAC middleware & Policy setup | FR-007, FR-008, NFR-005 | TASK-003 | Must | Not Started | 1 hari | Middleware `role:xxx`, UserPolicy, register policies di AuthServiceProvider |
-| TASK-009 | Unit & feature tests COMP-001 | FR-001—FR-013 | TASK-001—TASK-008 | Must | Not Started | 1 hari | Test auth flow, OTP verification, profile CRUD, RBAC, soft delete |
+| TASK-001 | Setup migration & model User dengan OTP verification | FR-001—FR-013, NFR-004 | — | Must | Done | 0.5 hari | ✅ Migration users (DM-001 schema) + otp_verifications table, User model moved to app/Domain/Identity/Models/ with SoftDeletes, OtpVerification model, factories updated |
+| TASK-002 | Customize Breeze untuk OTP email verification | FR-004, FR-005, FR-128 | TASK-001 | Must | Done | 1 hari | ✅ OtpService (dual storage: DB hashed SHA-256 + Redis cache), OtpVerificationMail, EmailVerificationController (replaces Breeze link-based), Alpine.js OTP input view, throttle:5,1 + attempt counter + lockout |
+| TASK-003 | Implementasi login & logout (semua role) | FR-001, FR-002, FR-007 | TASK-001 | Must | Done | 0.5 hari | ✅ Role-based redirect via User::dashboardRoute(), soft-deleted user check in LoginRequest, login/register Blade views per PAGES.md PAGE-004/005 |
+| TASK-004 | Implementasi tenant self-registration | FR-003 | TASK-002 | Must | Done | 0.5 hari | ✅ RegistrationRequest form validation, RegisteredUserController (tanpa OTP otomatis sejak TASK-086), session regeneration after login |
+| TASK-005 | Middleware email verification untuk specific features | FR-006 | TASK-002 | Must | Done | 0.5 hari | ✅ EnsureEmailIsVerified middleware (custom, NOT global — only for specific routes like rentals/create), documented in routes/web.php |
+| TASK-006 | Profile management (view & edit) | FR-009, FR-010, FR-011 | TASK-003 | Must | Done | 1 hari | ✅ ProfileController: show, edit, update (email change triggers OTP re-verification FR-129), updateAvatar (guessExtension, generated filename), destroy (soft delete) |
+| TASK-007 | Soft delete account & prevent deleted user auth | FR-012, FR-013 | TASK-003 | Should | Done | 0.5 hari | ✅ ActiveUser middleware in web group (force logout soft-deleted users), 3-layer defense: SoftDeletes trait + LoginRequest check + ActiveUser middleware |
+| TASK-008 | RBAC middleware & Policy setup | FR-007, FR-008, NFR-005 | TASK-003 | Must | Done | 1 hari | ✅ CheckRole middleware (alias: role), EnsureEmailIsVerified (alias: verified), ActiveUser (alias: active), UserPolicy registered in AuthServiceProvider |
+| TASK-009 | Unit & feature tests COMP-001 | FR-001—FR-013 | TASK-001—TASK-008 | Must | Done | 1 hari | ✅ 73 tests, 192 assertions, all pass. 5 new test files (UserModelTest, OtpServiceTest, OtpVerificationTest, AccountDeletionTest, RbacTest) + 3 updated existing |
+| TASK-085 | Password Reset via OTP | FR-130 | TASK-001, TASK-002 | Must | Done | 1 hari | ✅ OtpService purpose 'password-reset', verify(markEmailVerified:false), PasswordResetLinkController OTP flow 3 langkah, ResetPasswordRequest, anti-enumeration, session guard antar step |
+| TASK-086 | On-Demand Email Verification | FR-003, FR-004, FR-006 | TASK-002, TASK-005 | Must | Done | 0.5 hari | ✅ Registrasi tanpa OTP + redirect /marketplace, OtpService lazy generate saat buka /verify-email (throttle:5,1), middleware verified → flash verify_email_prompt + modal popup CTA, MarketplaceController stub interim (diganti TASK-036) |
+| TASK-087 | Tombol Verifikasi Email di Profil + fix avatar upload env | FR-004, FR-011 | TASK-086, TASK-006 | Must | Done | 0.5 hari | ✅ Button 'Verifikasi Email' di profile show+edit (route verification.notice), fix error tempnam(): storage writable untuk user runtime (chmod ug+rwX storage bootstrap/cache) |
+| TASK-088 | Registrasi email sudah terpakai (termasuk akun terhapus): pesan 'Email tidak dapat digunakan.' | FR-003, FR-013 | TASK-007 | Must | Done | 0.25 hari | ✅ RegistrationRequest email.unique message → 'Email tidak dapat digunakan.' (tanpa branch trashed). Dead-end 'silakan masuk' utk akun soft-deleted dihilangkan |
 
-**Subtotal COMP-001:** 9 tasks, ~6.5 hari
+**Subtotal COMP-001:** 13 tasks, ~8.75 hari
 
 ---
 
@@ -134,7 +138,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-036 | Marketplace public browsing (list kost Active) | FR-048, FR-049, FR-022 | TASK-015, TASK-027 | Must | Not Started | 1 hari | MarketplaceController, view list. Query: WHERE status = 'active'. Display thumbnail, nama, city, starting price, rating |
+| TASK-036 | Marketplace public browsing (list kost Active) | FR-048, FR-049, FR-022 | TASK-015, TASK-027 | Must | Not Started | 1 hari | MarketplaceController, view list. Query: WHERE status = 'active'. Display thumbnail, nama, city, starting price, rating. Mulai implementasi menggantikan stub interim dari TASK-086 (empty state) |
 | TASK-037 | Pagination kost list | FR-050 | TASK-036 | Should | Not Started | 0.5 hari | Laravel paginate, 20 items per page |
 | TASK-038 | Search kost by name or location | FR-051 | TASK-036 | Must | Not Started | 0.5 hari | Search: name/city/district/address LIKE %keyword% |
 | TASK-039 | Filter kost by price range, category, rating | FR-052, FR-053, FR-054, FR-055 | TASK-036 | Must | Not Started | 1 hari | Filter logic, combine dengan search (AND). Join room_types/price_schemes untuk price filter |
@@ -231,7 +235,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | Komponen | Total Task | Done | In Progress | Not Started | Ready | Estimasi Total |
 |---|---|---|---|---|---|---|
-| COMP-001 (Identity) | 9 | 0 | 0 | 8 | 1 | 6.5 hari |
+| COMP-001 (Identity) | 13 | 13 | 0 | 0 | 0 | 8.75 hari |
 | COMP-002 (Kost Publication) | 8 | 0 | 0 | 8 | 0 | 6.5 hari |
 | COMP-003 (Kost Configuration) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
 | COMP-004 (Room Inventory) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
@@ -241,10 +245,10 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
-| **TOTAL** | **78 tasks** | **0** | **0** | **77** | **1** | **~62 hari kerja** |
+| **TOTAL** | **82 tasks** | **13** | **0** | **69** | **0** | **~63.75 hari kerja** |
 
 **Catatan Estimasi:**
-- Total **~62 hari kerja** untuk 1 developer (solo work)
+- Total **~63.75 hari kerja** untuk 1 developer (solo work)
 - Equivalent **~12-14 minggu** (5 hari kerja per minggu)
 - Sesuai timeline PRD: 12-18 minggu untuk MVP
 - Belum termasuk buffer untuk troubleshooting, review, deployment
@@ -267,17 +271,18 @@ COMP-009 (parallel dengan COMP-002)
 |---|---|---|---|
 | FR-001 (Login) | COMP-001 | TASK-001, TASK-003 | Ready/Not Started |
 | FR-002 (Logout) | COMP-001 | TASK-003 | Not Started |
-| FR-003 (Registration) | COMP-001 | TASK-001, TASK-004 | Ready/Not Started |
-| FR-004 (OTP Verification) | COMP-001 | TASK-002 | Not Started |
+| FR-003 (Registration) | COMP-001 | TASK-001, TASK-004, TASK-086, TASK-088 | Ready/Not Started |
+| FR-004 (OTP Verification) | COMP-001 | TASK-002, TASK-086, TASK-087 | Not Started |
 | FR-005 (Resend OTP) | COMP-001 | TASK-002 | Not Started |
-| FR-006 (Email Verification Required) | COMP-001 | TASK-005 | Not Started |
+| FR-006 (Email Verification Required) | COMP-001 | TASK-005, TASK-086 | Not Started |
 | FR-007 (RBAC Role) | COMP-001 | TASK-003, TASK-008 | Not Started |
 | FR-008 (RBAC Ownership) | COMP-001 | TASK-008 | Not Started |
 | FR-009 (Profile View) | COMP-001 | TASK-006 | Not Started |
 | FR-010 (Profile Update) | COMP-001 | TASK-006 | Not Started |
-| FR-011 (Avatar Upload) | COMP-001 | TASK-006 | Not Started |
+| FR-011 (Avatar Upload) | COMP-001 | TASK-006, TASK-087 | Not Started |
 | FR-012 (Soft Delete) | COMP-001 | TASK-007 | Not Started |
-| FR-013 (Prevent Deleted Auth) | COMP-001 | TASK-007 | Not Started |
+| FR-013 (Prevent Deleted Auth) | COMP-001 | TASK-007, TASK-088 | Not Started |
+| FR-130 (Password Reset OTP) | COMP-001 | TASK-085 | Not Started |
 | FR-014 (Create Kost Draft) | COMP-002 | TASK-010, TASK-011 | Not Started |
 | FR-015 (Update Draft) | COMP-002 | TASK-011 | Not Started |
 | FR-016 (Submit for Review) | COMP-002 | TASK-012 | Not Started |
@@ -313,7 +318,7 @@ COMP-009 (parallel dengan COMP-002)
 | NFR-004—NFR-010 (Security) | COMP-001, Cross-Cutting | TASK-008, TASK-076—TASK-078 | Not Started |
 | NFR-015 (Email Notification) | Cross-Cutting | TASK-074, TASK-075 | Not Started |
 
-**Coverage:** 129 FR → 78 TASK (100% Must-have FR covered)
+**Coverage:** 130 FR → 81 TASK (100% Must-have FR covered)
 
 ---
 
@@ -345,8 +350,12 @@ COMP-009 (parallel dengan COMP-002)
 | Versi | Tanggal | Perubahan | Oleh |
 |---|---|---|---|
 | 0.1.0 | 2026-08-13 | Initial task breakdown dari 8 COMP, 129 FR. Total 78 tasks (~62 hari kerja). Prioritas Must-have, estimasi per-task, dependency tree, traceability matrix lengkap. Environment setup sudah selesai (FASE 0 completed). Ready untuk FASE 1 Planning → Build. | OpenCode |
+| 0.2.0 | 2026-08-17 | COMP-001 (Identity & Account Management) selesai. 9/9 tasks Done. 73 tests pass, PHPStan level 5 clean, Pint clean. Security audit + code review fixes applied: OTP brute-force protection (throttle + lockout), OTP codes hashed in DB (SHA-256), role removed from Fillable, session regeneration after registration, avatar uses guessExtension(). | OpenCode |
+| 0.3.0 | 2026-08-18 | TASK-085: Password Reset via OTP (FR-130). OtpService multi-purpose, reset flow 3 langkah, anti-enumeration, session guard. Test + lint + phpstan clean. | OpenCode |
+| 0.4.0 | 2026-08-18 | TASK-086: On-Demand Email Verification (FR-003, FR-004, FR-006). Registrasi tanpa OTP → redirect /marketplace (stub). Lazy OTP pada /verify-email. Modal popup verifikasi via EnsureEmailIsVerified flash. 80 tasks, 11 Done. | OpenCode |
+| 0.4.1 | 2026-08-18 | TASK-087: Tombol Verifikasi Email di halaman profil (show+edit). Fix upload avatar 500 (ErrorException tempnam) — storage/ bootstrap/cache di-set group-writable untuk user runtime app. 81 tasks, 12 Done. | OpenCode |
+| 0.4.2 | 2026-08-18 | TASK-088: Pesan registrasi email sudah terpakai → 'Email tidak dapat digunakan.' (hilangkan dead-end 'silakan masuk' utk akun soft-deleted). 82 tasks, 13 Done. | OpenCode |
 
 ---
 
-**Ready untuk BUILD PHASE.**
-**Start dengan TASK-001 (COMP-001: Identity & Account Management).**
+**COMP-001 DONE (13/13 tasks, incl. TASK-085 Password Reset via OTP, TASK-086 On-Demand Email Verification, TASK-087 Profile Verify Button + storage fix & TASK-088 Registrasi pesan email terpakai).** Next: COMP-002 (Kost Publication Management) — TASK-010 onward.
