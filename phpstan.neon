@@ -5,6 +5,4 @@ parameters:
     paths:
         - app
     level: 5
-    ignoreErrors:
-        - '#PHPDoc tag @var#'
     excludePaths:
