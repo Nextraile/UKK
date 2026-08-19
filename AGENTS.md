@@ -194,6 +194,7 @@ When operating in planning mode:
 
 ### Build Mode Workflow
 When operating in build mode:
+- **Orkestrasi subagent wajib** — main agent adalah koordinator, bukan eksekutor. Setiap task (frontend, backend, review, test, security, devops, dokumentasi, desain) harus di-delegate ke subagent sesuai role spesifiknya masing-masing, meskipun kurang efisien. Main agent hanya orkestrasi, menyatukan hasil, dan menjalankan verifikasi akhir (test, phpstan, pint).
 1. **Never implement features yourself when subagents are available** — act as coordinator
 2. **Identify parallel workstreams** from the plan that can be implemented concurrently
 3. **Delegate to specialized subagents** for implementation (use Task tool with clear, unambiguous briefs)
@@ -212,7 +213,7 @@ When delegating to subagents:
 - **Avoid ambiguity** — Use concrete examples, not vague instructions like "make it better"
 
 ### Specialized Subagents Available
-8 specialized subagents in `.opencode/agents/`:
+9 specialized subagents in `.opencode/agents/`:
 - **architect-designer** — System architecture, database schema, endpoint design, technology selection
 - **backend-developer** — Business logic, ORM, controllers, actions, policies, migrations
 - **frontend-developer** — Blade views, Alpine.js, Tailwind styling, components, responsive design
@@ -221,6 +222,7 @@ When delegating to subagents:
 - **qa-test-engineer** — Unit tests, integration tests, factories, edge case scenarios
 - **devops-specialist** — Docker, CI/CD, Nginx config, environment management, migrations
 - **technical-writer** — Documentation, changelog, API docs, user guides, README
+- **ui-ux-director** — Design system fidelity, visual direction, UI/UX review, and coordination across all pages and components
 
 Invoke with `@agent-name` or delegate via Task tool. See individual agent specs in `.opencode/agents/` for detailed responsibilities.
 
