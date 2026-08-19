@@ -1,63 +1,90 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
+use App\Domain\Identity\Models\User;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+/**
+ * Handles the final step of the OTP-based password reset flow (Flow A):
+ * choosing a new password once the OTP has been verified.
+ *
+ * Unlike Breeze's token-based flow there is no reset token; access is
+ * gated by the session flags `password_reset_email` and
+ * `password_reset_verified` set by PasswordResetLinkController.
+ */
 class NewPasswordController extends Controller
 {
     /**
-     * Display the password reset view.
+     * Display the new-password form.
+     *
+     * Only reachable after a successful OTP verification; any other access
+     * is redirected back to the forgot-password request page.
+     *
+     * @param  Request  $request  The incoming HTTP request.
+     * @return View|RedirectResponse The change-password form, or a redirect when unauthenticated.
      */
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
-        return view('auth.reset-password', ['request' => $request]);
+        if (! $request->session()->has('password_reset_email')
+            || ! $request->session()->get('password_reset_verified')) {
+            return redirect()->route('password.request');
+        }
+
+        return view('auth.change-password', ['request' => $request]);
     }
 
     /**
-     * Handle an incoming new password request.
+     * Update the user's password after successful OTP verification.
      *
-     * @throws ValidationException
+     * The submitted email must match the email stored in the session during
+     * the forgot-password step; this binds the password change to the user
+     * who actually requested the reset.
+     *
+     * @param  ResetPasswordRequest  $request  The validated request.
+     * @return RedirectResponse Toward the login page on success.
+     *
+     * @throws ValidationException When the submitted email does not match the session email.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(ResetPasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $emailSession = $request->session()->get('password_reset_email');
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        if (! is_string($emailSession) || $request->email !== $emailSession) {
+            throw ValidationException::withMessages([
+                'email' => 'Email tidak sesuai dengan sesi reset password.',
+            ]);
+        }
 
-                event(new PasswordReset($user));
-            }
-        );
+        $user = User::where('email', $emailSession)->first();
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        if (! $user instanceof User) {
+            throw ValidationException::withMessages([
+                'email' => 'Email tidak sesuai dengan sesi reset password.',
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        event(new PasswordReset($user));
+
+        $request->session()->forget(['password_reset_email', 'password_reset_verified']);
+
+        return redirect()
+            ->route('login')
+            ->with('status', 'Password berhasil diubah. Silakan login.');
     }
 }

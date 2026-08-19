@@ -16,13 +16,16 @@
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
+            <div class="mb-6 text-center">
                 <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+                    <div class="flex items-center justify-center gap-2">
+                        <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
+                        <span class="text-2xl font-bold text-gray-800 dark:text-gray-200">SewaKost</span>
+                    </div>
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full sm:max-w-md px-6 py-8 bg-white dark:bg-gray-800 shadow-xl rounded-xl overflow-hidden">
                 {{ $slot }}
             </div>
         </div>
