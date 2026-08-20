@@ -1,3 +1,133 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@source "../views";
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@plugin "@tailwindcss/forms";
+
+@theme {
+  /* ===== Lapis 1 — Primitive Colors (DESIGN.md §2.1:126-190) ===== */
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-500: #3B82F6;
+  --color-primary-600: #2563EB;
+  --color-primary-700: #1D4ED8;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
+  --color-primary: #3B82F6;
+
+  --color-secondary-50: #FFFBEB;
+  --color-secondary-100: #FEF3C7;
+  --color-secondary-200: #FDE68A;
+  --color-secondary-300: #FCD34D;
+  --color-secondary-400: #FBBF24;
+  --color-secondary-500: #F59E0B;
+  --color-secondary-600: #D97706;
+  --color-secondary-700: #B45309;
+  --color-secondary-800: #92400E;
+  --color-secondary-900: #78350F;
+
+  --color-accent-50: #FAF5FF;
+  --color-accent-100: #F3E8FF;
+  --color-accent-200: #E9D5FF;
+  --color-accent-300: #D8B4FE;
+  --color-accent-400: #C084FC;
+  --color-accent-500: #A855F7;
+  --color-accent-600: #9333EA;
+  --color-accent-700: #7E22CE;
+  --color-accent-800: #6B21A8;
+  --color-accent-900: #581C87;
+
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  --color-error-500: #EF4444;
+  --color-error-600: #DC2626;
+  --color-error-800: #991B1B;
+  --color-success-800: #065F46;
+
+  --gradient-hero: linear-gradient(135deg, #FEF3C7 0%, #DBEAFE 50%, #E0E7FF 100%);
+  --gradient-card-hover: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+
+  /* ===== Lapis 2 — Semantic Colors (DESIGN.md §2.1:205-252) ===== */
+  --color-surface: #F9FAFB;
+  --color-surface-muted: #F3F4F6;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-dark: #111827;
+  --color-surface-muted-dark: #1F2937;
+  --color-surface-raised-dark: #1F2937;
+
+  --color-text: #4B5563;
+  --color-text-muted: #6B7280;
+  --color-text-strong: #111827;
+  --color-text-dark: #F9FAFB;
+  --color-text-muted-dark: #9CA3AF;
+  --color-text-strong-dark: #FFFFFF;
+
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+  --color-border-dark: #374151;
+  --color-border-strong-dark: #4B5563;
+
+  --color-overlay: rgba(2, 6, 23, 0.5);
+  --color-overlay-dark: rgba(2, 6, 23, 0.75);
+
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-success-700: #047857;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-700: #B45309;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-error-700: #B91C1C;
+  --color-info: #3B82F6;
+  --color-info-light: #DBEAFE;
+  --color-info-700: #1D4ED8;
+
+  /* ===== Typography (DESIGN.md §2.2) ===== */
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: clamp(1.875rem, 1.65rem + 1.125vw, 2.25rem);
+  --text-4xl: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+  --text-5xl: clamp(3rem, 2.5rem + 2.5vw, 4rem);
+
+  /* ===== Border Radius (DESIGN.md §2.4) ===== */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* ===== Shadows (DESIGN.md §2.5) ===== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* ===== Transitions (DESIGN.md §2.6) ===== */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+}
