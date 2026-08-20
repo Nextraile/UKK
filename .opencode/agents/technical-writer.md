@@ -31,8 +31,8 @@ You are a **Technical Writer / Documentation Agent** for the SewaKost project �
 **Key documentation (Single Source of Truth):**
 - **PRD.md** (783 lines): 129 FR, 29 NFR, 22 US, 4 personas — business requirements
 - **ARCHITECTURE.md** (1572 lines): 8 COMP, 21 ADR, data models, routes — technical design
-- **DESIGN.md** (2585 lines): Design system, 35+ components, layout patterns — UI/UX specifications
-- **PAGES.md** (1216 lines): 54 page specs + 7 email templates — page-specific requirements
+- **DESIGN.md** (4340 lines): Design system, 38 components, layout patterns — UI/UX specifications
+- **PAGES.md** (1928 lines): 57 page specs + 8 email templates — page-specific requirements
 - **TODO.md** (321 lines): 78 tasks across 9 components — work breakdown
 - **AGENTS.md**: Operational instructions, DoD checklist, critical commands
 - **WORKFLOW.md**: 5-phase development process, DoR, DoD, release checklist
@@ -152,8 +152,8 @@ Maintain in AGENTS.md (bottom section):
 **Documentation inventory:**
 - PRD.md (783 lines): 129 FR, 29 NFR, 22 US, 4 personas
 - ARCHITECTURE.md (1572 lines): 8 COMP, 21 ADR, data models, routes
-- DESIGN.md (2585 lines): Design system, 35+ components, layout patterns, accessibility guidelines
-- PAGES.md (1216 lines): 54 page specs + 7 email templates
+- DESIGN.md (4340 lines): Design system, 38 components, layout patterns, accessibility guidelines
+- PAGES.md (1928 lines): 57 page specs + 8 email templates
 - TODO.md (321 lines): 78 tasks across 9 components
 - WORKFLOW.md (130 lines): 5-phase development process
 - AGENTS.md (this file): Operational instructions
@@ -208,8 +208,8 @@ cp .env.example .env
 ## Documentation
 - **PRD.md** — Product requirements (129 FR, 29 NFR)
 - **ARCHITECTURE.md** — Technical design (8 COMP, 21 ADR)
-- **DESIGN.md** — UI/UX design system (35+ components)
-- **PAGES.md** — Page specifications (54 pages)
+- **DESIGN.md** — UI/UX design system (38 components)
+- **PAGES.md** — Page specifications (57 pages)
 - **TODO.md** — Task breakdown (78 tasks)
 - **AGENTS.md** — Operational instructions for agents
 - **WORKFLOW.md** — Development workflow (5 phases)
@@ -319,8 +319,8 @@ Before marking documentation task as complete:
 |---|---|---|
 | PRD.md | Business requirements (FR, NFR, US, personas) | ~783 |
 | ARCHITECTURE.md | Technical design (COMP, ADR, DM, routes) | ~1572 |
-| DESIGN.md | UI/UX design system (components, tokens) | ~2585 |
-| PAGES.md | Page specifications (54 pages, 7 emails) | ~1216 |
+| DESIGN.md | UI/UX design system (components, tokens) | ~4340 |
+| PAGES.md | Page specifications (57 pages, 8 emails) | ~1928 |
 | TODO.md | Task breakdown (78 tasks, 9 components) | ~321 |
 | AGENTS.md | Operational instructions for agents | ~250+ |
 | WORKFLOW.md | Development process (5 phases, DoR, DoD) | ~130 |

@@ -28,8 +28,8 @@ You are a **Backend Developer** for the SewaKost project — a Laravel 13 monoli
 **Key documentation (Single Source of Truth):**
 - **PRD.md** (783 lines): 129 FR, 29 NFR, 22 US, 4 personas — business requirements
 - **ARCHITECTURE.md** (1572 lines): 8 COMP, 21 ADR, data models, routes — technical design
-- **DESIGN.md** (2585 lines): Design system, 35+ components, layout patterns — UI/UX specifications
-- **PAGES.md** (1216 lines): 54 page specs + 7 email templates — page-specific requirements
+- **DESIGN.md** (4340 lines): Design system, 38 components, layout patterns — UI/UX specifications
+- **PAGES.md** (1928 lines): 57 page specs + 8 email templates — page-specific requirements
 - **TODO.md** (321 lines): 78 tasks across 9 components — work breakdown
 - **AGENTS.md**: Operational instructions, DoD checklist, critical commands
 
