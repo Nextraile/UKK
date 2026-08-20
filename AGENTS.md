@@ -267,15 +267,15 @@ See `SKILL.md` §1 for full descriptions and trigger keywords. Use `skill-archit
 
 **Playwright MCP v0.0.79** — Browser automation via accessibility snapshots (not screenshots). Enabled for UI testing, form automation, visual regression, and web scraping workflows.
 
-**Config:** `opencode.json` (headed Chrome by default, profile persists between sessions)
+**Config:** `opencode.json` → remote container (`sewakost-playwright-mcp`, headless Chromium, terminal tidak butuh Chrome).
 
 **Index stats:** 40+ MCP tools covering navigation, interaction, network inspection, screenshots, console logs
 
 ### Key Concepts
 - **Accessibility-based** — Pages represented as accessibility trees with element refs (e.g., `e5`, `e10`), not pixel coordinates
-- **Persistent sessions** — Login state, cookies, localStorage saved between sessions (profile at `~/.cache/ms-playwright/mcp-chrome-{workspace-hash}`)
+- **Headless in container** — Browser jalan di container `sewakost-playwright-mcp`; navigasi target `http://sewakost-app-1/`
+- **Persistent sessions** — Login state, cookies, localStorage saved (`--isolated` off), reset via `docker restart sewakost-playwright-mcp`
 - **Token efficient** — Snapshots cost ~200-400 tokens vs thousands for full DOM
-- **Headed by default** — Browser opens visibly so you can see what's happening
 
 ### Common Tools
 
@@ -296,7 +296,7 @@ See `SKILL.md` §1 for full descriptions and trigger keywords. Use `skill-archit
 
 ### Typical Workflow
 ```
-1. browser_navigate → https://localhost
+1. browser_navigate → http://sewakost-app-1/
 2. browser_snapshot → Get page structure, see [textbox "Email" [ref=e5]]
 3. browser_type → { target: "e5", text: "user@example.com" }
 4. browser_click → { target: "e10" } (submit button ref)
@@ -319,20 +319,30 @@ See `SKILL.md` §1 for full descriptions and trigger keywords. Use `skill-archit
 - **Unit testing** — Use PHPUnit directly via `./vendor/bin/sail artisan test`
 
 ### Configuration Options
-Current config in `opencode.json`:
+Current config in `opencode.json` (server remote di container):
 ```json
 {
   "mcp": {
     "playwright": {
-      "type": "local",
-      "command": ["npx", "@playwright/mcp@latest"],
+      "type": "remote",
+      "url": "http://localhost:8931/mcp",
       "enabled": true
     }
   }
 }
 ```
 
-**Common options** (add to `"command"` array):
+**Container setup** (browser runtime, portrait terpisah dari Sail):
+```bash
+docker compose -f docker-compose.playwright-mcp.yml up -d --build   # start / rebuild
+docker compose -f docker-compose.playwright-mcp.yml down            # stop
+```
+- Image `sewakost-playwright-mcp` (Dockerfile `docker/playwright-mcp/`) = node:24-slim + `@playwright/mcp` v0.0.79 (playwright 1.63.0-alpha) + chromium + chrome-for-testing (headless, `--no-sandbox`).
+- Terhubung ke network **`sewakost_sail`** sehingga bisa reach app: navigasi pakai `http://sewakost-app-1/` (BUKAN `localhost` — itu container itu sendiri, bukan host).
+- Endpoint MCP: streamable HTTP di `http://localhost:8931/mcp` (legacy SSE: `/sse`).
+- `--restart unless-stopped` → ikut bangun dengan Docker daemon.
+
+**Common options** (ubah `CMD` di Dockerfile, tidak di config opencode):
 - `--headless` — Run browser headless (default: headed)
 - `--mobile` — Emulate generic mobile device
 - `--caps=network,storage` — Enable network mocking, cookie/storage management
@@ -343,6 +353,7 @@ Current config in `opencode.json`:
 ```json
 "command": ["npx", "@playwright/mcp@latest", "--mobile", "--caps=network,storage"]
 ```
+(untuk container: setara diubah lewat baris `CMD` di `docker/playwright-mcp/Dockerfile`)
 
 ### Security Notes
 - `--allow-unrestricted-file-access` disabled by default (restricts to workspace roots)
