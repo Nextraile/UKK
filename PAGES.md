@@ -51,7 +51,7 @@ Setiap page specification berisi:
 | Context | Page Count | Description |
 |---|---|---|
 | **Public (No Auth)** | 3 pages | Landing, Marketplace List, Kost Detail |
-| **Auth Pages** | 6 pages (+ 1 modal: PAGE-006D) | Login, Register, OTP Verify, Forgot Password, Reset OTP, Change Password + Verify Email Modal |
+| **Auth Pages** | 6 pages | Login, Register, OTP Verify, Forgot Password, Reset OTP, Set New Password (incl. Verify Email Modal PAGE-006D spec) |
 | **Tenant Interface** | 16 pages | Dashboard, Rental Management (+ Create/Review), Payment, Documents, Review |
 | **Admin Interface** | 21 pages | Dashboard, Kost CRUD (PAGE-011), Config, Room Inventory, Rental Verification |
 | **Super Admin Interface** | 11 pages | Submissions Review (PAGE-012), Admin Management, Category Management |
@@ -103,7 +103,7 @@ Setiap page specification berisi:
 - `<x-kost-card />` x 6 — Featured kost cards (§3.3)
 - Process steps: Icon + heading + description (custom)
 - `<x-testimonial-slider />` — Card with quote + avatar + name (§3.34)
-- `<x-footer />` — Multi-column footer (custom)
+- `<x-footer />` — Multi-column footer (§3.35)
 
 #### Data Requirements
 ```php
@@ -214,7 +214,7 @@ public function index()
 - `<x-kost-card />` x N (§3.3)
 - `<x-pagination />` (§3.15, Laravel default styled)
 - `<x-empty-state />` — No results state (§3.8)
-- `<x-skeleton variant="card" />` x 12 — Loading state (§3.38)
+- `<x-skeleton variant="card" />` x 12 — Loading state (§3.38) (skeleton card pattern — DESIGN §3.9)
 
 #### Data Requirements
 ```php
@@ -382,7 +382,7 @@ public function index(Request $request)
 - `<x-gallery-lightbox />` — Hero image + thumbnail grid + lightbox (focus trap, Esc, arrow prev/next) (§3.27)
 - Kost Info Card (custom, display facilities/rules as list)
 - Document Requirements: `<x-document-upload />` (per dokumen wajib, status upload/terverifikasi) (§3.24) + checklist display (`x-empty-state`/badge pola §3.4 untuk required vs optional) — lihat §3.24 status verifikasi
-- `<x-room-card />` x N — Room types accordion (size, occupancy, price schemes, availability real-time) (draft, inventory §3.x)
+- `<x-room-card />` x N — Room types accordion (size, occupancy, price schemes, availability real-time) (DESIGN §3.3)
 - `<x-review-card />` x N (§3.30)
 - `<x-map />` — Map Widget (Leaflet.js, read-only, fallback alamat teks + link Google Maps) (§3.28)
 - `<x-rating :value="4.8" :count="32" />` — Rating summary di booking sidebar (§3.29)
@@ -1851,22 +1851,24 @@ Footer: © SewaKost | Contact | Privacy
 - **DESIGN.md:** ✅ COMPLETE (4340 lines)
   - 4 design principles
   - Complete design token system (colors, typography, spacing, shadows)
-  - 17+ component categories (38 components total)
+  - 38 components (§3.1–3.38, inventory §3.0)
   - Layout patterns (Public, Admin, Auth)
   - Responsive design guidelines
   - WCAG 2.1 AA accessibility targets
   - Implementation notes (Blade + Alpine.js + Tailwind)
 
-- **PAGES.md:** ✅ STRUCTURE COMPLETE (1400+ lines, summary approach for remaining pages)
+- **PAGES.md:** ✅ COMPLETE (1928 lines, 57 page specs + 8 email templates)
   - 3 Public pages (Landing, Marketplace, Kost Detail) — FULLY SPECIFIED
-  - 6 Auth pages (Login, Register, OTP Verify, Forgot Password, Reset OTP, Set New Password) — FULLY SPECIFIED
-  - 1 modal (PAGE-006D: Verify Email Modal) — FULLY SPECIFIED
-  - 5 Tenant pages (Dashboard, Rental Detail, Payment, Rental Create, Review Create) — FULLY SPECIFIED
-  - 21 Admin pages — SUMMARIZED (PAGE-011: Kost Create/Edit — FULLY SPECIFIED)
-  - 11 Super Admin pages — SUMMARIZED (PAGE-012: Submission Review — FULLY SPECIFIED)
-  - 8 Email templates — COMPLETE with content structure
+  - 6 Auth pages (Login, Register, OTP Verify, Forgot Password, Reset OTP, Set New Password) — FULLY SPECIFIED; Verify Email Modal (PAGE-006D) = 17th fully-specified spec
+  - 16 Tenant pages — 5 FULLY SPECIFIED (Dashboard, Rental Detail, Payment, Rental Create, Review Create) + 11 summarized
+  - 21 Admin pages — 1 FULLY SPECIFIED (PAGE-011: Kost Create/Edit) + 20 summarized
+  - 11 Super Admin pages — 1 FULLY SPECIFIED (PAGE-012: Submission Review) + 10 summarized
+  - 8 Email templates (EMAIL-001..008) — COMPLETE with content structure
+  - Total: 57 pages (17 fully specified + 40 summarized) + 8 emails = 65 interface specs
 
 ### Remaining Pages (Summarized Specifications)
+
+Sample summarizing the 40 remaining page specs (full enumeration tracked in TODO.md task breakdowns).
 
 **Admin Pages (21 total):**
 - Admin Dashboard (stats, pending verifications count) — `x-page-header`, `x-stat-card`, `x-callout` (§3.26/§3.31/§3.17)
@@ -1922,7 +1924,7 @@ Mark TASK Done
 
 > **Total Documentation:**
 > - DESIGN.md: 4340 lines (complete design system)
-> - PAGES.md: 1928 lines (17 fully specified page specs + summary + 8 emails)
+> - PAGES.md: 1928 lines (17 fully specified page specs + 40 summarized + 8 email templates = 65 specs)
 > - Combined: 6268 lines of comprehensive UI/UX documentation
 >
 > **Next:** Update AGENTS.md with references to DESIGN.md + PAGES.md

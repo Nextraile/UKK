@@ -900,26 +900,26 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
   </a>
 </article>
 
-> **Dark pair:** Kost Card di atas memakai token semantik (`dark:bg-surface-raised-dark`, `dark:text-text-strong-dark`, dll). Room Type Card & Rental Card: dark pair menyusul — ikuti pola yang sama (surface-raised / text-strong / text-dark / border-dark).
+> **Dark pairs:** Ketiga card di atas (Kost, Room Type, Rental) memakai token semantik + pasangan dark.
 ```
 
 #### Room Type Card
 ```html
-<div class="border border-gray-200 rounded-lg p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer">
+<div class="border border-border dark:border-border-dark bg-surface-raised dark:bg-surface-raised-dark rounded-lg p-5 hover:border-primary-300 hover:shadow-md transition-all cursor-pointer">
   <div class="flex justify-between items-start">
     <div class="flex-1">
-      <h4 class="font-semibold text-gray-900">Kamar Standard</h4>
-      <p class="text-sm text-gray-600 mt-1">3x4 meter • Max 2 orang</p>
+      <h4 class="font-semibold text-gray-900 dark:text-text-strong-dark">Kamar Standard</h4>
+      <p class="text-sm text-gray-600 mt-1 dark:text-text-dark">3x4 meter • Max 2 orang</p>
       
       <!-- Facilities -->
       <div class="mt-3 flex flex-wrap gap-2">
-        <span class="inline-flex items-center gap-1 text-xs text-gray-600">
+        <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-text-dark">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
           WiFi
         </span>
-        <span class="inline-flex items-center gap-1 text-xs text-gray-600">
+        <span class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-text-dark">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
@@ -934,12 +934,12 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
     </span>
   </div>
   
-  <div class="mt-4 pt-4 border-t border-gray-100 flex items-baseline justify-between">
+  <div class="mt-4 pt-4 border-t border-border dark:border-border-dark flex items-baseline justify-between">
     <div>
-      <span class="text-xl font-bold text-gray-900">Rp 1.5jt</span>
-      <span class="text-sm text-gray-500">/bulan</span>
+      <span class="text-xl font-bold text-gray-900 dark:text-text-strong-dark">Rp 1.5jt</span>
+      <span class="text-sm text-gray-500 dark:text-text-muted-dark">/bulan</span>
     </div>
-    <button class="px-4 py-2 text-sm font-semibold text-primary-600 hover:bg-primary-50 rounded-lg transition-all">
+    <button class="px-4 py-2 text-sm font-semibold text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-700/20 rounded-lg transition-all">
       Pilih Kamar
     </button>
   </div>
@@ -948,12 +948,12 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
 
 #### Rental Card (Tenant Dashboard)
 ```html
-<div class="bg-white border-l-4 border-warning rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow">
+<div class="bg-surface-raised dark:bg-surface-raised-dark border-l-4 border-warning rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow">
   <div class="flex justify-between items-start mb-3">
     <div class="flex-1">
-      <h3 class="font-semibold text-gray-900">Kost Mawar Indah - Kamar A1</h3>
-      <p class="text-sm text-gray-600 mt-1 flex items-center gap-2">
-        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <h3 class="font-semibold text-gray-900 dark:text-text-strong-dark">Kost Mawar Indah - Kamar A1</h3>
+      <p class="text-sm text-gray-600 mt-1 flex items-center gap-2 dark:text-text-dark">
+        <svg class="w-4 h-4 text-gray-400 dark:text-text-muted-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
         1 Jan 2026 - 31 Mar 2026
@@ -964,8 +964,8 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
     </span>
   </div>
   
-  <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-    <span class="text-sm text-gray-600">Deadline pembayaran:</span>
+  <div class="flex items-center justify-between pt-3 border-t border-border dark:border-border-dark">
+    <span class="text-sm text-gray-600 dark:text-text-dark">Deadline pembayaran:</span>
     <span class="text-sm font-semibold text-error-700">23 jam lagi</span>
   </div>
   
@@ -973,7 +973,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
     <a href="/rentals/123/payment" class="flex-1 px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg text-center hover:bg-primary-700 transition-all">
       Upload Bukti Bayar
     </a>
-    <button class="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-all">
+    <button class="px-4 py-2 border border-border dark:border-border-dark text-gray-700 dark:text-text-dark text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-all">
       Detail
     </button>
   </div>
@@ -1077,7 +1077,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
     aria-modal="true">
     
     <!-- Backdrop -->
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 dark:bg-overlay-dark transition-opacity" @click="open = false; $refs.trigger?.focus()"></div>
+    <div class="fixed inset-0 bg-gray-900/75 dark:bg-overlay-dark transition-opacity" @click="open = false; $refs.trigger?.focus()"></div>
     
     <!-- Modal Content -->
     <div class="flex min-h-full items-center justify-center p-4">
@@ -1111,7 +1111,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
         <!-- Body -->
         <div class="px-6 py-5">
           <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
+            <div class="shrink-0 w-12 h-12 rounded-full bg-error/10 flex items-center justify-center">
               <svg class="w-6 h-6 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
               </svg>
@@ -1526,7 +1526,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
 #### Full Page Loader
 ```html
 <!-- Teks utama dapat di-override per konteks melalui slot -->
-<div class="fixed inset-0 bg-white bg-opacity-90 z-50 flex items-center justify-center">
+<div class="fixed inset-0 bg-white/90 z-50 flex items-center justify-center">
   <div class="text-center">
     <svg class="animate-spin h-16 w-16 text-primary-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1558,7 +1558,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
     <div class="p-4">
       <div class="flex items-start">
         <!-- Icon (dynamic based on type) -->
-        <div class="flex-shrink-0">
+        <div class="shrink-0">
           <svg x-show="$store.toast.type === 'success'" class="h-6 w-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -1581,7 +1581,7 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
         <!-- Close Button -->
         <button @click="$store.toast.hide()" 
           aria-label="Tutup"
-          class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg">
+          class="ml-4 shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg">
           <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
@@ -2078,7 +2078,7 @@ Alpine.store('toast').show({
 ```html
 <!-- Info Callout -->
 <div class="flex items-start gap-3 p-4 bg-info-light border-l-4 border-info-700/30 rounded-lg">
-  <svg class="w-5 h-5 text-info-700 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+  <svg class="w-5 h-5 text-info-700 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
   </svg>
   <div class="flex-1">
@@ -2091,7 +2091,7 @@ Alpine.store('toast').show({
 
 <!-- Warning Callout -->
 <div class="flex items-start gap-3 p-4 bg-warning-light border-l-4 border-warning-700/30 rounded-lg">
-  <svg class="w-5 h-5 text-warning-700 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+  <svg class="w-5 h-5 text-warning-700 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
   </svg>
   <div class="flex-1">
@@ -2104,7 +2104,7 @@ Alpine.store('toast').show({
 
 <!-- Error/Rejection Callout -->
 <div class="flex items-start gap-3 p-4 bg-error-light border-l-4 border-error-700/30 rounded-lg">
-  <svg class="w-5 h-5 text-error-700 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+  <svg class="w-5 h-5 text-error-700 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
   </svg>
   <div class="flex-1">
@@ -2123,7 +2123,7 @@ Alpine.store('toast').show({
 
 <!-- Success Callout -->
 <div class="flex items-start gap-3 p-4 bg-success-light border-l-4 border-success-700/30 rounded-lg">
-  <svg class="w-5 h-5 text-success-700 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+  <svg class="w-5 h-5 text-success-700 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
   </svg>
   <div class="flex-1">
@@ -2163,7 +2163,7 @@ Modal untuk meminta user yang belum verified memverifikasi email saat mengakses 
     aria-labelledby="verify-email-modal-title">
 
     <!-- Backdrop -->
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 dark:bg-overlay-dark transition-opacity" @click="open = false; document.body.classList.remove('overflow-hidden')"></div>
+    <div class="fixed inset-0 bg-gray-900/75 dark:bg-overlay-dark transition-opacity" @click="open = false; document.body.classList.remove('overflow-hidden')"></div>
 
     <!-- Modal Content -->
     <div class="flex min-h-full items-center justify-center p-4">
@@ -2705,7 +2705,7 @@ Varian destructive modal (pola §3.18): overlay, ikon warning `text-error-700`, 
       else if (!$event.shiftKey && document.activeElement === last) first.focus();
     "
     class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="fixed inset-0 bg-gray-900 bg-opacity-75 dark:bg-overlay-dark transition-opacity" @click="open = false; $refs.trigger?.focus()"></div>
+    <div class="fixed inset-0 bg-gray-900/75 dark:bg-overlay-dark transition-opacity" @click="open = false; $refs.trigger?.focus()"></div>
 
     <div class="flex min-h-full items-center justify-center p-4">
       <div x-ref="panel" x-show="open"
@@ -3808,7 +3808,7 @@ Flow 4 langkah: **[Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → 
 
 ```html
 <div class="flex items-start gap-3 p-4 bg-error-light border-l-4 border-error-700/30 rounded-lg">
-  <svg class="w-5 h-5 text-error-700 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+  <svg class="w-5 h-5 text-error-700 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
   </svg>
   <div class="flex-1">
