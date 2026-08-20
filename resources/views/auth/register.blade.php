@@ -29,7 +29,7 @@
 
             <div class="relative mt-1">
                 <input id="password"
-                       class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm block w-full pr-10"
+                       class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password"
                        required
@@ -87,7 +87,7 @@
 
             <div class="relative mt-1">
                 <input id="password_confirmation"
-                       class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm block w-full pr-10"
+                       class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password_confirmation"
                        required
@@ -116,7 +116,7 @@
         <!-- Terms -->
         <div class="block mt-4">
             <label for="terms" class="inline-flex items-center">
-                <input id="terms" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="terms" required aria-describedby="terms-error" />
+                <input id="terms" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-xs focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="terms" required aria-describedby="terms-error" />
                 <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Setuju syarat dan ketentuan</span>
             </label>
             <x-input-error id="terms-error" :messages="$errors->get('terms')" class="mt-2" />

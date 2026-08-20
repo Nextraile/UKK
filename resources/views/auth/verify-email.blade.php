@@ -66,7 +66,7 @@
                             inputmode="numeric"
                             maxlength="1"
                             x-bind:aria-label="'Digit ' + (index + 1)"
-                            class="w-12 h-14 text-center text-2xl font-semibold text-gray-900 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-12 h-14 text-center text-2xl font-semibold text-gray-900 border-gray-300 rounded-md shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
                             x-bind:x-ref="'otp-' + index"
                             x-model="digits[index]"
                             @input="handleInput(index, $event)"

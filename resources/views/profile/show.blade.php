@@ -14,7 +14,7 @@
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
                 {{-- Avatar and name header --}}
                 <div class="px-4 py-6 sm:px-8 flex flex-col items-center sm:flex-row sm:items-center gap-6">
                     @if ($user->avatar_path)
