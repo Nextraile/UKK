@@ -450,7 +450,7 @@ fontFamily: {
 
 ---
 
-## 3. Component Library (38 Components)
+## 3. Component Library (39 Components)
 
 ### 3.0 Komponen & API Tunggal
 
@@ -495,6 +495,7 @@ Semua komponen UI dikonsumsi via **Blade component** `<x-nama-komponen>` (file d
 | **Visual (F4b-1)** | `<x-gallery-lightbox>`, `<x-map>`, `<x-rating>`, `<x-review-card>`, `<x-stat-card>`, `<x-mobile-filter-drawer>` | spec | display, input (rating); default (lainnya) | — | lightbox open/closed; rating chosen/hover | lightbox focus trap + Esc + restore; map fallback alamat + link; rating `aria-pressed` + label dinamis; drawer focus trap + scroll lock |
 | **Utility (F4b-2)** | `<x-sticky-action-bar>`, `<x-testimonial-slider>`, `<x-footer>`, `<x-search>`, `<x-tooltip>`, `<x-skeleton>` (extensions) | spec | top/bottom (tooltip); table/avatar/list (skeleton) | — | visible (scroll), open/closed (search), show/hide (tooltip) | bar CTA label eksplisit + `pb-[env(safe-area-inset-bottom)]`; slider `aria-live` + dots `aria-current` + pause hover; search combobox `aria-expanded` + listbox; tooltip `role="tooltip"` + `aria-describedby`; skeleton `role="status"` per grup |
 | **Domain Form (F4b-3)** | `<x-kost-form>`, `<x-kost-media>`, `<x-room-form>`, `<x-payment-proof>`, `<x-document-checklist>`, `<x-review-form>`, `<x-review-list>` | draft | — | — | — | spesifikasi menyusul F4b-3 |
+| Theme Toggle (§3.39) | `<x-theme-toggle>` | stable | default | — | light, dark | `:aria-pressed` + `aria-label`; ikon `aria-hidden`; touch target ≥44px (`min-w-11 min-h-11`); `focus-visible:ring-2 ring-primary-500` |
 
 > Komponen transaksi & auth **F4a** (§3.19–§3.26), komponen visual **F4b-1** (§3.27–§3.32), dan komponen utility **F4b-2** (§3.33–§3.38) sudah `spec` di tabel di atas. Komponen domain form **F4b-3** (kost form, media, room, payment proof, document checklist, review) masih rencana (`draft`); JANGAN diimplementasi sebelum DESIGN.md diperbarui.
 
@@ -3541,6 +3542,43 @@ Varian skeleton tambahan selain Skeleton Card §3.9 Loading States: **table rows
 
 ---
 
+### 3.39 Theme Toggle (x-theme-toggle)
+
+API tunggal: `<x-theme-toggle />` — dark/light theme switcher. Strategy class-based: toggle `.dark` di `<html>`, persist ke `localStorage.theme`, inisialisasi awal via no-FOUC inline script di layout head (baca `localStorage.theme`/prefers-color-scheme sebelum CSS/JS render) — konsisten strategi dark mode §2.1 (`@custom-variant dark`, class `.dark` di `<html>`). Implementasi: `resources/views/components/theme-toggle.blade.php`.
+
+```blade
+<x-theme-toggle />
+```
+
+Kelas dasar (sesuai implementasi):
+```html
+<button type="button"
+  x-data="{ dark: document.documentElement.classList.contains('dark') }"
+  @click="dark = !dark; document.documentElement.classList.toggle('dark', dark); localStorage.setItem('theme', dark ? 'dark' : 'light')"
+  :aria-pressed="dark ? 'true' : 'false'"
+  aria-label="Ganti tema"
+  class="inline-flex items-center justify-center p-2 min-w-11 min-h-11 rounded-lg text-text-muted dark:text-text-muted-dark hover:text-text-strong dark:hover:text-text-strong-dark hover:bg-surface-muted dark:hover:bg-surface-muted-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+  <!-- Sun (x-show="dark" x-cloak) — dark mode: klik → light -->
+  <!-- Moon (x-show="!dark" x-cloak) — light mode: klik → dark -->
+</button>
+```
+
+**Perilaku:**
+- State inisial dibaca dari class `.dark` di `<html>` saat ini (bukan asumsi default) — sinkron dengan no-FOUC script yang sudah men-set class sebelum Alpine load
+- Klik toggle class `.dark` + simpan `localStorage.theme` (`'dark'`/`'light'`); reload mempertahankan preferensi via no-FOUC script
+- Ikon sun tampil saat dark (klik → light), moon saat light (klik → dark) — arah aksi = tema yang dituju
+
+**A11y:**
+- `:aria-pressed` dinamis (`'true'` saat dark) — toggle button semantics; upgrade path label state-aware: `:aria-label="dark ? 'Ganti ke terang' : 'Ganti ke gelap'"` (implementasi saat ini label statis `aria-label="Ganti tema"`)
+- Ikon sun/moon `aria-hidden="true"` — dekoratif; `aria-label` tombol satu-satunya announce
+- Touch target ≥44px: `min-w-11 min-h-11` (+ `p-2`) — WCAG 2.5.5/2.5.8
+- `focus-visible:ring-2 ring-primary-500` — fokus keyboard terlihat (pola §3.1)
+- `x-cloak` di kedua ikon: cegah keduanya tampil sebelum Alpine init; dikombinasi no-FOUC script (class sudah benar sebelum paint) → tidak ada flash ikon salah
+
+**Dark pair:** warna pakai token semantik (`text-text-muted dark:text-text-muted-dark`, hover `text-text-strong`/`-dark`, hover bg `surface-muted`/`-dark`) — ikon terlihat kontras di kedua mode, tanpa hex mentah (aturan §2.1).
+
+---
+
 ## 4. Layout Patterns
 
 Pola layout per role akses — struktur halaman, breakpoints, dan kontainer maksimum. Semua layout memakai token §2 dan komponen §3.
@@ -4328,6 +4366,7 @@ Gunakan package optimasi gambar Laravel (mis. `spatie/laravel-image-optimizer`).
 | v1.5.0 | 2026-08-19 | Fase 4b-2: komponen utility — §3.33 `x-sticky-action-bar` (bar bawah mobile harga + CTA booking, muncul `scrollY > 400`, `pb-[env(safe-area-inset-bottom)]`, `lg:hidden`, upgrade path sidebar §3.23), §3.34 `x-testimonial-slider` (kartu aktif + prev/next `aria-label` + dots `aria-current` 24px hit area, `aria-live="polite"`, pause hover/focus, auto-rotate 5s + `destroy()`, ikon quote `aria-hidden`), §3.35 `x-footer` (brand + nav `aria-label="Tautan footer"` + kontak, bottom bar `{{ date('Y') }}`, keputusan `bg-gray-900` konsisten §4.2 — jelaskan di section), §3.36 `x-search` (combobox `aria-expanded` + `aria-controls` + listbox saran, shortcut `/` guard input, clear `aria-label`, Enter GET submit, mobile expandable), §3.37 `x-tooltip` (hover/focus trigger → panel `role="tooltip"` + `aria-describedby`, posisi top/bottom, Esc, fallback `<noscript>`), §3.38 skeleton extensions (table rows, avatar circle, list item; `role="status"` + `aria-label` per grup, token `bg-surface-muted dark:bg-surface-muted-dark`, konsisten §3.9). Inventory §3.0: F4b-2 utility → `spec` (38 section); domain form dipindah ke F4b-3 `draft`. | OpenCode |
 | v1.6.0 | 2026-08-19 | Fase 5: state machine kost lengkap — §5.1b tabel state→badge→action per role (Pemilik Kost/Super Admin; state sesuai DM-002: draft/pending_review/approved/active/rejected, tanpa inactive/archived/blocked — nonaktif via soft delete + `<x-confirm-dialog>` §3.25), submission stepper 4 langkah ([Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → [Review & Kirim]; varian `x-stepper` §3.11: done `bg-success-700`, active `bg-primary-600` + `aria-current="step"`, upcoming muted, validasi per langkah + prev/next), rejection flow (`<x-callout>` error + "Perbaiki & Kirim Ulang" → `draft` clear rejected_reason; approve → banner sukses + "Publikasikan Sekarang" → `active`). Inventory §3.0: Progress/Timeline tambah varian submission. | OpenCode |
 | v1.6.1 | 2026-08-20 | Fix referensi silang PAGE (PAGE-008→010, PAGE-002→003, PAGE-004→003, drawer→PAGE-002); sinkron count PAGES 57 halaman. | OpenCode |
+| v1.6.2 | 2026-08-20 | Registrasi `x-theme-toggle` §3.39 + inventory §3.0: dark/light theme switcher (class-based `.dark` di `<html>`, persist `localStorage.theme`, no-FOUC inline script layout head — selaras strategi §2.1); a11y `:aria-pressed`, ikon `aria-hidden`, touch target ≥44px, `focus-visible:ring-2`; dark pair token semantik. Implementasi: `resources/views/components/theme-toggle.blade.php`. | OpenCode |
 ---
 
 **END OF DESIGN.md**

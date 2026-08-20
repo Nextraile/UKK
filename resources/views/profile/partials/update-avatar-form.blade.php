@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
             {{ __('Foto Profil') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
             {{ __('Upload foto profil Anda. Format JPEG, PNG, atau WebP. Maksimal 2MB.') }}
         </p>
     </header>
@@ -13,9 +13,9 @@
         @if ($user->avatar_path)
             <img src="{{ asset('storage/' . $user->avatar_path) }}"
                  alt="Avatar"
-                 class="h-20 w-20 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700" />
+                 class="h-20 w-20 rounded-full object-cover border-2 border-border dark:border-border-dark" />
         @else
-            <div class="h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border-2 border-gray-200 dark:border-gray-700">
+            <div class="h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border-2 border-border dark:border-border-dark">
                 <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                     {{ strtoupper(substr($user->first_name, 0, 1)) }}
                 </span>
@@ -31,7 +31,7 @@
                     type="file"
                     name="avatar"
                     accept="image/jpeg,image/png,image/webp"
-                    class="block w-full text-sm text-gray-500 dark:text-gray-400
+                    class="block w-full text-sm text-text dark:text-text-muted-dark
                            file:mr-4 file:py-2 file:px-4
                            file:rounded-md file:border-0
                            file:text-sm file:font-semibold

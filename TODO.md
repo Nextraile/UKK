@@ -342,6 +342,7 @@ COMP-009 (parallel dengan COMP-002)
 | TASK-082 | Extend rental feature | Q-003 (PRD) | Won't | Explicit out of scope. Tenant harus buat rental baru |
 | TASK-083 | Multi-language support | §5.2 Out of Scope | Won't | MVP bahasa Indonesia/English only |
 | TASK-084 | WhatsApp/Push notification | §5.2 Out of Scope | Won't | Email notification cukup untuk MVP |
+| TASK-K1b | Landing branding penuh (PAGE-001) + public components (nav-public, kost-card, footer, testimonial-slider) | PAGE-001 | Should (post-MVP) | Ditunda keputusan user: landing memakai struktur branding sendiri (pola claude.ai/canva) setelah keseluruhan aspek MVP selesai. Theme infra + token-swap sudah dikerjakan (branch agt/theme-layout-landing) |
 
 ---
 

@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
             {{ __('Informasi Profil') }}
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
             {{ __('Perbarui informasi akun dan email Anda.') }}
         </p>
     </header>
@@ -40,7 +40,7 @@
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div class="mt-2">
-                    <p class="text-sm text-gray-800 dark:text-gray-200">
+                    <p class="text-sm text-text-strong dark:text-text-strong-dark">
                         {{ __('Email Anda belum terverifikasi.') }}
                     </p>
                     <a href="{{ route('verification.notice') }}"
