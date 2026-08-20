@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-text-strong dark:text-text-strong-dark leading-tight">
             {{ __('Profil Saya') }}
         </h2>
     </x-slot>
@@ -14,15 +14,15 @@
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg overflow-hidden">
+            <div class="bg-surface-raised dark:bg-surface-raised-dark shadow-sm sm:rounded-lg overflow-hidden">
                 {{-- Avatar and name header --}}
                 <div class="px-4 py-6 sm:px-8 flex flex-col items-center sm:flex-row sm:items-center gap-6">
                     @if ($user->avatar_path)
                         <img src="{{ asset('storage/' . $user->avatar_path) }}"
                              alt="Avatar"
-                             class="h-24 w-24 rounded-full object-cover border-4 border-indigo-100 dark:border-gray-700" />
+                             class="h-24 w-24 rounded-full object-cover border-4 border-indigo-100 dark:border-border-dark" />
                     @else
-                        <div class="h-24 w-24 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border-4 border-indigo-50 dark:border-gray-700">
+                        <div class="h-24 w-24 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border-4 border-indigo-50 dark:border-border-dark">
                             <span class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                                 {{ strtoupper(substr($user->first_name, 0, 1)) }}
                             </span>
@@ -30,10 +30,10 @@
                     @endif
 
                     <div class="text-center sm:text-left">
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        <h3 class="text-xl font-bold text-text-strong dark:text-text-strong-dark">
                             {{ $user->first_name }} {{ $user->last_name }}
                         </h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $user->email }}</p>
+                        <p class="text-sm text-text dark:text-text-muted-dark mt-1">{{ $user->email }}</p>
                         <span class="inline-flex items-center mt-2 px-3 py-1 rounded-full text-xs font-semibold
                             @if ($user->isSuperAdmin()) bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300
                             @elseif ($user->isAdmin()) bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300
@@ -51,12 +51,12 @@
                 </div>
 
                 {{-- Detail rows --}}
-                <div class="border-t border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="border-t border-border dark:border-border-dark divide-y divide-border dark:divide-border-dark">
                     {{-- Email --}}
                     <div class="px-4 sm:px-8 py-4 flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
-                            <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $user->email }}</p>
+                            <p class="text-sm font-medium text-text dark:text-text-muted-dark">Email</p>
+                            <p class="mt-1 text-sm text-text-strong dark:text-text-strong-dark">{{ $user->email }}</p>
                         </div>
                         @if ($user->email_verified_at)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
@@ -77,29 +77,29 @@
 
                     {{-- Phone --}}
                     <div class="px-4 sm:px-8 py-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Nomor Telepon</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                        <p class="text-sm font-medium text-text dark:text-text-muted-dark">Nomor Telepon</p>
+                        <p class="mt-1 text-sm text-text-strong dark:text-text-strong-dark">
                             {{ $user->phone ?: 'Belum diisi' }}
                         </p>
                     </div>
 
                     {{-- First Name --}}
                     <div class="px-4 sm:px-8 py-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Nama Depan</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ $user->first_name }}</p>
+                        <p class="text-sm font-medium text-text dark:text-text-muted-dark">Nama Depan</p>
+                        <p class="mt-1 text-sm text-text-strong dark:text-text-strong-dark">{{ $user->first_name }}</p>
                     </div>
 
                     {{-- Last Name --}}
                     <div class="px-4 sm:px-8 py-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Nama Belakang</p>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                        <p class="text-sm font-medium text-text dark:text-text-muted-dark">Nama Belakang</p>
+                        <p class="mt-1 text-sm text-text-strong dark:text-text-strong-dark">
                             {{ $user->last_name ?: 'Belum diisi' }}
                         </p>
                     </div>
                 </div>
 
                 {{-- Action --}}
-                <div class="px-4 sm:px-8 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+                <div class="px-4 sm:px-8 py-4 bg-surface dark:bg-surface-dark/50 border-t border-border dark:border-border-dark">
                     <a href="{{ route('profile.edit') }}"
                        class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition ease-in-out duration-150">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>

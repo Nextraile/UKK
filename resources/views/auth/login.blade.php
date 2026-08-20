@@ -18,7 +18,7 @@
 
             <div class="relative mt-1">
                 <input id="password"
-                       class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-xs block w-full pr-10"
+                       class="border-border-strong dark:border-border-dark dark:bg-surface-dark dark:text-text-dark focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password"
                        required
@@ -27,7 +27,7 @@
 
                 <button
                     type="button"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong dark:text-text-muted-dark dark:hover:text-text-strong-dark focus:outline-none"
                     @click="show = !show"
                     x-bind:aria-label="show ? 'Hide password' : 'Show password'"
                 >
@@ -47,8 +47,8 @@
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-xs focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Ingat saya</span>
+                <input id="remember_me" type="checkbox" class="rounded dark:bg-surface-dark border-border-strong dark:border-border-dark text-indigo-600 shadow-xs focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-surface-raised-dark" name="remember">
+                <span class="ms-2 text-sm text-text dark:text-text-muted-dark">Ingat saya</span>
             </label>
         </div>
 
@@ -68,7 +68,7 @@
             @endif
 
             @if (Route::has('register'))
-                <div class="text-gray-600 dark:text-gray-400">
+                <div class="text-text dark:text-text-muted-dark">
                     Belum punya akun?
                     <a class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300" href="{{ route('register') }}">
                         Daftar

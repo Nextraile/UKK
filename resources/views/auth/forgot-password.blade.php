@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+    <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
         {{ __('Lupa password? Tidak masalah. Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mengatur ulang password.') }}
     </div>
 
