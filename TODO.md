@@ -26,15 +26,15 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | Dokumen | Baris | Status | Konten |
 |---|---|---|---|
-| `PRD.md` | 791 | ✅ Complete | 130 FR, 29 NFR, 22 US, 4 persona |
-| `ARCHITECTURE.md` | 1,592 | ✅ Complete | 8 COMP, 23 ADR, data model, routes |
-| `DESIGN.md` | 2,585 | ✅ Complete | Design tokens, 35+ components, layout patterns, a11y |
-| `PAGES.md` | 1,449 | ✅ Complete | 57 page specs + 8 email templates |
-| `WORKFLOW.md` | 130 | ✅ Complete | 5-phase development process |
-| `AGENTS.md` | 180 | ✅ Complete | Operational instructions, UI/UX workflow |
-| `MANUAL.md` | 307 | ✅ Complete | 8-document map, methodology |
+| `PRD.md` | 792 | ✅ Complete | 130 FR, 29 NFR, 22 US, 4 persona |
+| `ARCHITECTURE.md` | 1,606 | ✅ Complete | 8 COMP, 21 ADR, data model, routes |
+| `DESIGN.md` | 4,340 | ✅ Complete | Design tokens, 38 components, layout patterns, a11y |
+| `PAGES.md` | 1,928 | ✅ Complete | 57 page specs + 8 email templates |
+| `WORKFLOW.md` | 133 | ✅ Complete | 5-phase development process |
+| `AGENTS.md` | 368 | ✅ Complete | Operational instructions, UI/UX workflow |
+| `MANUAL.md` | 314 | ✅ Complete | 8-document map, methodology |
 | `SKILL.md` | 135 | ✅ Complete | 19 skills registry |
-| **Total** | **7,492** | **All ready** | Complete project documentation |
+| **Total** | **9,842** | **All ready** | Complete project documentation |
 
 > **Catatan:** Saat implementasi TASK-xxx, baca `PAGES.md` untuk spec halaman dan `DESIGN.md` untuk komponen UI. Lihat workflow diagram di `AGENTS.md` §Documentation Sources.
 
