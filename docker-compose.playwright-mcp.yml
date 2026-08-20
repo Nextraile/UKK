@@ -1,0 +1,13 @@
+services:
+  playwright-mcp:
+    build: ./docker/playwright-mcp
+    container_name: sewakost-playwright-mcp
+    restart: unless-stopped
+    ports:
+      - "8931:8931"
+    networks:
+      - sewakost_sail
+
+networks:
+  sewakost_sail:
+    external: true
