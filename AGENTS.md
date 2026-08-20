@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > High-signal operational instructions for agents working in this Laravel 13 monolith.
-> For requirements → `PRD.md` (129 FR). For design → `ARCHITECTURE.md` (8 COMP, 21 ADR). For UI/UX → `DESIGN.md` (35+ components) + `PAGES.md` (54 pages). For tasks → `TODO.md` (78 tasks).
+> For requirements → `PRD.md` (129 FR). For design → `ARCHITECTURE.md` (8 COMP, 21 ADR). For UI/UX → `DESIGN.md` (38 components) + `PAGES.md` (57 pages). For tasks → `TODO.md` (78 tasks).
 
 | Field | Value |
 |---|---|
@@ -73,8 +73,8 @@ Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc l
 1. Read `TODO.md` for task acceptance criteria
 2. Read referenced `FR-xxx` in `PRD.md` for business context
 3. Read referenced `COMP-xxx` in `ARCHITECTURE.md` for technical design
-4. **Read `DESIGN.md` for UI/UX components and design tokens** (2588 lines, 35+ components)
-5. **Read `PAGES.md` for page-specific layout, data, and user flows** (1219 lines, 54 pages + 7 emails)
+4. **Read `DESIGN.md` for UI/UX components and design tokens** (4340 lines, 38 components)
+5. **Read `PAGES.md` for page-specific layout, data, and user flows** (1928 lines, 57 pages + 8 emails)
 6. Check `ARCHITECTURE.md` §3.1 for library official docs
 
 **If docs don't answer:** Create `Q-xxx` in `PRD.md` §13 — don't guess.
@@ -83,15 +83,15 @@ Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc l
 
 **DESIGN.md** — Design System & Component Library
 - **Design tokens:** Colors, typography, spacing, shadows (Tailwind CSS 4.0 compatible)
-- **35+ components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
+- **38 components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
 - **Layout patterns:** Public (marketplace), Admin (sidebar), Auth (centered card)
 - **Responsive design:** Mobile-first approach, breakpoints, touch targets
 - **Accessibility:** WCAG 2.1 AA guidelines, keyboard nav, screen reader support
 - **Implementation:** Blade + Alpine.js + Tailwind examples for every component
 
 **PAGES.md** — Page & Interface Specifications
-- **54 pages:** Public (3), Auth (6), Tenant (14), Admin (21), Super Admin (10)
-- **7 email templates:** OTP verification, payment/document notifications, rental status changes
+- **57 pages:** Public (3), Auth (6), Tenant (16), Admin (21), Super Admin (11)
+- **8 email templates:** OTP verification, payment/document notifications, rental status changes
 - **Each page spec includes:** URL, auth, layout structure, components used, data requirements, validation, user flows, edge cases, accessibility notes
 - **Use this for:** Understanding page-specific requirements when implementing Blade views
 
@@ -356,13 +356,13 @@ Current config in `opencode.json`:
 **Project status:** Environment ready. UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 78 tasks in TODO.md (~62 days, 12-14 weeks). Ready to start TASK-001 (User migration + OTP verification).
 
 **Documentation inventory:**
-- PRD.md (783 lines): 129 FR, 29 NFR, 22 US, 4 personas
-- ARCHITECTURE.md (1572 lines): 8 COMP, 21 ADR, data models, routes
-- DESIGN.md (2585 lines): Design system, 35+ components, layout patterns, accessibility guidelines
-- PAGES.md (1216 lines): 54 page specs + 7 email templates
-- TODO.md (321 lines): 78 tasks across 9 components
-- WORKFLOW.md (130 lines): 5-phase development process
+- PRD.md (792 lines): 129 FR, 29 NFR, 22 US, 4 personas
+- ARCHITECTURE.md (1606 lines): 8 COMP, 21 ADR, data models, routes
+- DESIGN.md (4340 lines): Design system, 38 components, layout patterns, accessibility guidelines
+- PAGES.md (1928 lines): 57 page specs + 8 email templates
+- TODO.md (361 lines): 78 tasks across 9 components
+- WORKFLOW.md (133 lines): 5-phase development process
 - AGENTS.md (this file): Operational instructions
-- MANUAL.md (307 lines): Development methodology
+- MANUAL.md (314 lines): Development methodology
 
-Total: 7,228 lines of documentation
+Total: 9,842 lines of documentation

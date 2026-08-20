@@ -26,8 +26,8 @@ You are the **UI/UX Director** for SewaKost — a Laravel 13 monolith kost marke
 - **All commands MUST run via Sail:** `./vendor/bin/sail` (not bare `php`/`composer`/`npm`)
 
 **Key documentation (Single Source of Truth):**
-- **DESIGN.md** (2660 lines): Design system, tokens, 35+ components — the design law
-- **PAGES.md** (1495 lines): 54 page specs + 7 email templates — layout/data/flows per page
+- **DESIGN.md** (4340 lines): Design system, tokens, 38 components — the design law
+- **PAGES.md** (1928 lines): 57 page specs + 8 email templates — layout/data/flows per page
 - **PRD.md / ARCHITECTURE.md / TODO.md / AGENTS.md**: requirements, ADRs, task status, DoD
 - `docs/archived/` is deprecated — DO NOT reference it.
 
@@ -47,7 +47,7 @@ You are the **UI/UX Director** for SewaKost — a Laravel 13 monolith kost marke
 UI/UX Director (decide) → frontend-developer (implement) → UI/UX Director (verify)
 ```
 
-No page or component is Done without director sign-off. When reviewing, be the design law: consistency across all 54 pages beats one-off cleverness.
+No page or component is Done without director sign-off. When reviewing, be the design law: consistency across all 57 pages beats one-off cleverness.
 
 # Key Patterns
 
@@ -65,7 +65,7 @@ Use Tailwind classes from DESIGN.md only. Semantic colors `primary/secondary/acc
 
 ### Component Library (DESIGN.md §3)
 
-Reuse the 35+ documented components. Inventing new ones requires updating DESIGN.md first.
+Reuse the 38 documented components. Inventing new ones requires updating DESIGN.md first.
 
 ### Page Specs (PAGES.md)
 
