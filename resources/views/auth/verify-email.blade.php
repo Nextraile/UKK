@@ -50,61 +50,60 @@
         @endif
 
         <div
-            x-data="otpForm({
-                expiresAt: @if(isset($expiresAt) && $expiresAt) '{{ $expiresAt->toIso8601String() }}' @else null @endif
-            })"
-            x-init="startCountdown()"
+            x-data="{
+                otpCode: '',
+                countdown: 60,
+                intervalId: null,
+                
+                init() {
+                    this.startCountdown();
+                },
+                
+                startCountdown() {
+                    this.intervalId = setInterval(() => {
+                        if (this.countdown > 0) {
+                            this.countdown--;
+                        } else {
+                            clearInterval(this.intervalId);
+                        }
+                    }, 1000);
+                }
+            }"
         >
-            <form method="POST" action="{{ route('verification.verify') }}" @submit="submitForm($event)">
+            <form method="POST" action="{{ route('verification.verify') }}" @submit="submitForm($event)" x-ref="form">
                 @csrf
 
-                {{-- 6 OTP digit inputs --}}
-                <div class="mb-4 flex justify-between gap-2" role="group" aria-label="Kode OTP">
-                    <template x-for="(digit, index) in 6" :key="index">
-                        <input
-                            type="text"
-                            inputmode="numeric"
-                            maxlength="1"
-                            x-bind:aria-label="'Digit ' + (index + 1)"
-                            class="w-12 h-14 text-center text-2xl font-semibold text-text-strong dark:text-text-strong-dark border-border-strong dark:border-border-dark rounded-md shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
-                            x-bind:x-ref="'otp-' + index"
-                            x-model="digits[index]"
-                            @input="handleInput(index, $event)"
-                            @keydown.backspace="handleBackspace(index, $event)"
-                            @paste="handlePaste($event)"
-                            @keydown.arrow-left="focusPrev(index)"
-                            @keydown.arrow-right="focusNext(index)"
-                            autocomplete="one-time-code"
-                        />
-                    </template>
+                {{-- Helper text --}}
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 text-center">
+                    Masukkan kode 6 digit
+                </p>
+
+                {{-- Single OTP input with letter spacing --}}
+                <div class="mb-4">
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="6"
+                        x-model="otpCode"
+                        @input="otpCode = $event.target.value.replace(/\D/g, '').slice(0, 6); if (otpCode.length === 6) { $nextTick(() => $refs.form.submit()); }"
+                        autocomplete="one-time-code"
+                        placeholder="● ● ● ● ● ●"
+                        aria-label="Kode OTP 6 digit"
+                        class="w-full max-w-sm mx-auto block h-14 px-4 text-center text-2xl font-semibold tracking-[0.75rem] 
+                               text-text-strong dark:text-text-strong-dark 
+                               bg-white dark:bg-gray-800 
+                               border-2 border-border-strong dark:border-border-dark 
+                               rounded-md shadow-xs 
+                               focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 
+                               placeholder:tracking-normal placeholder:text-gray-400"
+                    />
                 </div>
 
-                {{-- Hidden combined OTP code field --}}
-                <input type="hidden" name="otp_code" x-bind:value="combinedCode()" />
-
-                {{-- Submit button --}}
-                <div class="mt-6">
-                    <button
-                        type="submit"
-                        class="inline-flex w-full justify-center rounded-md bg-gray-800 dark:bg-gray-200 px-4 py-2 text-sm font-semibold text-white dark:text-gray-800 hover:bg-gray-700 dark:hover:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150"
-                        :disabled="!isComplete()"
-                    >
-                        Verifikasi
-                    </button>
-                </div>
+                {{-- Hidden field for form submission --}}
+                <input type="hidden" name="otp_code" x-bind:value="otpCode" />
             </form>
 
-            {{-- Countdown timer --}}
-            <div class="mt-4 text-center" aria-live="polite">
-                <p x-show="countdown > 0" x-cloak class="text-sm text-text dark:text-text-dark">
-                    Kode akan expired dalam <span x-text="formatTime(countdown)" class="font-medium text-text-strong dark:text-text-strong-dark"></span>
-                </p>
-                <p x-show="countdown <= 0" x-cloak class="text-sm text-red-600 dark:text-red-400 font-medium">
-                    Kode OTP telah expired
-                </p>
-            </div>
-
-            {{-- Resend link --}}
+            {{-- Resend OTP throttle --}}
             <div class="mt-4 text-center">
                 <form method="POST" action="{{ route('verification.send') }}">
                     @csrf
@@ -116,143 +115,15 @@
                     >
                         Kirim ulang OTP
                     </button>
-                    <span
-                        x-show="countdown > 0"
-                        x-cloak
-                        class="text-sm text-text-muted dark:text-text-muted-dark"
-                    >
-                        Kirim ulang OTP tersedia setelah countdown selesai
-                    </span>
+                    <p x-show="countdown > 0" x-cloak class="text-sm text-gray-500 dark:text-gray-400">
+                        Kirim ulang tersedia dalam <span x-text="countdown" class="font-medium"></span> detik
+                    </p>
                 </form>
             </div>
-        </div>
-
-        <div class="mt-6 border-t border-border dark:border-border-dark pt-4">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full text-sm text-text dark:text-text-dark hover:text-text-strong dark:hover:text-text-strong-dark underline text-center">
-                    Keluar
-                </button>
-            </form>
         </div>
     @endif
 
     <style>
         [x-cloak] { display: none !important; }
     </style>
-
-    <script>
-        function otpForm(data) {
-            return {
-                digits: ['', '', '', '', '', ''],
-                countdown: 0,
-                intervalId: null,
-
-                init() {
-                    if (data.expiresAt) {
-                        this.startCountdown();
-                    }
-                    this.$nextTick(() => {
-                        if (this.$refs['otp-0']) {
-                            this.$refs['otp-0'].focus();
-                        }
-                    });
-                },
-
-                startCountdown() {
-                    if (!data.expiresAt) {
-                        return;
-                    }
-                    const target = new Date(data.expiresAt).getTime();
-                    this.updateCountdown(target);
-                    this.intervalId = setInterval(() => {
-                        this.updateCountdown(target);
-                        if (this.countdown <= 0) {
-                            clearInterval(this.intervalId);
-                        }
-                    }, 1000);
-                },
-
-                updateCountdown(target) {
-                    const diff = Math.floor((target - Date.now()) / 1000);
-                    this.countdown = Math.max(0, diff);
-                },
-
-                formatTime(seconds) {
-                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-                    const s = (seconds % 60).toString().padStart(2, '0');
-                    return m + ':' + s;
-                },
-
-                handleInput(index, event) {
-                    const value = event.target.value.replace(/\D/g, '');
-                    this.digits[index] = value;
-                    if (value && index < 5) {
-                        this.focusNext(index);
-                    }
-                    if (this.isComplete()) {
-                        this.$nextTick(() => {
-                            event.target.form.requestSubmit();
-                        });
-                    }
-                },
-
-                handleBackspace(index, event) {
-                    if (event.target.value === '' && index > 0) {
-                        event.preventDefault();
-                        this.focusPrev(index);
-                    }
-                },
-
-                handlePaste(event) {
-                    event.preventDefault();
-                    const pasted = (event.clipboardData || window.clipboardData).getData('text');
-                    const cleaned = pasted.replace(/\D/g, '').slice(0, 6);
-                    for (let i = 0; i < 6; i++) {
-                        this.digits[i] = cleaned[i] || '';
-                    }
-                    const lastFilled = Math.min(cleaned.length, 5);
-                    this.$nextTick(() => {
-                        if (this.$refs['otp-' + lastFilled]) {
-                            this.$refs['otp-' + lastFilled].focus();
-                        }
-                    });
-                    if (this.isComplete()) {
-                        this.$nextTick(() => {
-                            const form = event.target.closest('form');
-                            form.requestSubmit();
-                        });
-                    }
-                },
-
-                focusNext(index) {
-                    if (index < 5) {
-                        const next = this.$refs['otp-' + (index + 1)];
-                        if (next) next.focus();
-                    }
-                },
-
-                focusPrev(index) {
-                    if (index > 0) {
-                        const prev = this.$refs['otp-' + (index - 1)];
-                        if (prev) prev.focus();
-                    }
-                },
-
-                combinedCode() {
-                    return this.digits.join('');
-                },
-
-                isComplete() {
-                    return this.digits.every(d => d !== '');
-                },
-
-                submitForm(event) {
-                    if (!this.isComplete()) {
-                        event.preventDefault();
-                    }
-                }
-            };
-        }
-    </script>
 </x-guest-layout>
