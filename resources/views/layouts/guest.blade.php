@@ -24,6 +24,11 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-text-strong dark:text-text-strong-dark antialiased">
+        <!-- Skip to main content link for keyboard navigation -->
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg transition-all">
+            Skip to main content
+        </a>
+
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-surface dark:bg-surface-dark relative">
             <div class="absolute top-4 right-4">
                 <x-theme-toggle />
@@ -31,15 +36,15 @@
             <div class="mb-6 text-center">
                 <a href="/">
                     <div class="flex items-center justify-center gap-2">
-                        <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
+                        <x-application-logo class="w-10 h-10 fill-current text-primary-600" />
                         <span class="text-2xl font-bold text-text-strong dark:text-text-strong-dark">SewaKost</span>
                     </div>
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md px-6 py-8 bg-surface-raised dark:bg-surface-raised-dark shadow-xl rounded-xl overflow-hidden">
+            <main id="main-content" class="w-full sm:max-w-md px-6 py-8 bg-surface-raised dark:bg-surface-raised-dark shadow-xl rounded-xl overflow-hidden">
                 {{ $slot }}
-            </div>
+            </main>
         </div>
     </body>
 </html>
