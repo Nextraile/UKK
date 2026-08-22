@@ -81,6 +81,29 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 ---
 
+### Komponen: FRONTEND DESIGN SYSTEM
+
+| ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
+|---|---|---|---|---|---|---|---|
+| TASK-DESIGN-001 | Button component fixes (primary/secondary/danger) | NFR-016 (accessibility), NFR-017 (brand consistency) | — | Must | Done | 0.75 hari | ✅ Breeze defaults → DESIGN.md §3.1 (primary-600, focus-visible, text-base, semantic tokens). 3 files: primary-button, secondary-button, danger-button. Eliminates gray-800/indigo focus, adds shadow elevation |
+| TASK-DESIGN-002 | Input component fixes (text-input/input-label/input-error) | NFR-016 (WCAG 2.1 AA) | — | Must | Done | 1 hari | ✅ CRITICAL: Error contrast 3.4:1 → 5.9:1 (text-red-600 → text-error-700). Semantic dark tokens (border-strong-dark, surface-dark, text-dark). Required field markers (*). Alert icon + role="alert". Primary focus rings |
+| TASK-DESIGN-003 | Layout accessibility (skip links, logo colors) | NFR-016 (WCAG 2.4.1 Level A) | — | Must | Done | 0.5 hari | ✅ Skip links added to app.blade.php + guest.blade.php. Main landmark id="main-content". Logo indigo → primary-600. Keyboard navigation compliant |
+| TASK-DESIGN-004 | Navigation & modal fixes (indigo → primary, ARIA) | NFR-016 (accessibility), NFR-017 (brand) | — | Must | Done | 0.75 hari | ✅ 26 indigo replacements across 4 files (nav-link, responsive-nav-link, modal, verify-email-modal). Modal ARIA: role="dialog", aria-modal="true". Semantic overlay/bg tokens. All focus-visible patterns |
+
+**Subtotal FRONTEND DESIGN SYSTEM:** 4 tasks, ~3 hari
+
+**Phase 1 Completion Status:**
+- ✅ All 88 tests passing (247 assertions)
+- ✅ PHPStan level 5: No errors
+- ✅ Laravel Pint: 67 files clean
+- ✅ Zero indigo color references in components/
+- ✅ Zero text-red-600 (WCAG contrast fixed)
+- ✅ 12 files modified (9 components, 2 layouts, 1 modal)
+- ✅ Brand consistency: Primary blue (#2563EB) on all CTAs
+- ✅ Accessibility: Skip links, WCAG AA contrast, ARIA attributes, required markers
+
+---
+
 ### Komponen: COMP-002 — Kost Publication Management
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
