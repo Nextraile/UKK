@@ -5,7 +5,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "http://localhost:20128/v1",
-        "apiKey": "sk-dbf3ec7c908059d5-swrftk-cd10077a",
+        "apiKey": "sk-fd12ea0a3e995cf5-ph9cdl-05897112",
         "timeout": 300000,
         "chunkTimeout": 30000
       },
@@ -19,6 +19,11 @@
     "playwright": {
       "type": "remote",
       "url": "http://localhost:8931/mcp",
+      "enabled": true
+    },
+    "codegraph": {
+      "type": "local",
+      "command": ["codegraph", "serve", "--mcp"],
       "enabled": true
     }
   },
