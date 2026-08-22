@@ -92,7 +92,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 **Subtotal FRONTEND DESIGN SYSTEM:** 4 tasks, ~3 hari
 
-**Phase 1 Completion Status:**
+**Phase 1 Completion Status (2026-08-22):**
 - ✅ All 88 tests passing (247 assertions)
 - ✅ PHPStan level 5: No errors
 - ✅ Laravel Pint: 67 files clean
@@ -101,6 +101,19 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 - ✅ 12 files modified (9 components, 2 layouts, 1 modal)
 - ✅ Brand consistency: Primary blue (#2563EB) on all CTAs
 - ✅ Accessibility: Skip links, WCAG AA contrast, ARIA attributes, required markers
+
+**Phase 2-3 DEFERRED (Backend-First Priority):**
+- **Decision Date:** 2026-08-22
+- **Rationale:** Focus on backend functionality (COMP-002—COMP-008) first. Comprehensive frontend redesign (welcome page, email templates, marketplace UI, 33 missing components) will resume after backend complete.
+- **Policy:** Frontend may remain simple as long as it does not violate mandatory requirements (WCAG 2.1 AA, semantic HTML, keyboard nav). Design tokens optional for rapid backend development.
+- **Deferred Scope:** 
+  - Welcome page redesign (29 hardcoded hex values → semantic tokens, DESIGN.md §4.1)
+  - Email template colors (18 hardcoded hex → primary tokens)
+  - Marketplace UI implementation (filter sidebar, kost cards, pagination per PAGE-002)
+  - 33 missing components (DESIGN.md §3: kost-card, status-badge, breadcrumbs, footer, etc.)
+  - Full PAGE-001—PAGE-057 implementation
+- **Estimated Effort:** 20-30 hours when resumed
+- **Timeline:** Resume after COMP-008 (Review Management) complete
 
 ---
 
