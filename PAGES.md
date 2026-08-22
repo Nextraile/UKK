@@ -725,7 +725,7 @@ public function authenticate()
 
 #### Purpose
 - Input 6-digit OTP code to verify email
-- Countdown timer showing OTP expiry
+- Countdown timer showing resend throttle (60 seconds)
 - Resend OTP functionality
 
 #### Layout Structure
@@ -733,14 +733,14 @@ public function authenticate()
 Centered card (max-w-md):
 - Email icon (large)
 - Instruction: "Kami telah mengirim kode OTP ke r***@gmail.com"
-- 6 OTP input boxes (auto-focus, auto-tab)
-- Countdown: "Kode akan expired dalam 14:32"
-- Resend link (disabled until 00:00)
-- [Verifikasi] button (or auto-submit)
+- Single OTP input field (letter-spacing visual, placeholder `● ● ● ● ● ●`)
+- Countdown: "Kirim ulang tersedia dalam 58 detik"
+- Resend link (disabled until countdown reaches 0)
+- Auto-submit on 6 digits (no manual submit button)
 ```
 
 #### Components Used
-- `<x-otp-input />` (6 digit boxes, auto-advance/backspace/paste, auto-submit) (§3.19)
+- `<x-otp-input />` (single input field, native paste/autofill, auto-submit) (§3.19)
 - `<x-countdown />` (Alpine.js, hh:mm:ss, `aria-live` + expired callback) (§3.20)
 - Resend link button
 
@@ -788,9 +788,9 @@ Centered card (max-w-md):
 7. Toast: "OTP baru telah dikirim"
 
 #### Accessibility Notes
-- Each OTP input: `aria-label="Digit 1"` through "Digit 6"
-- Countdown: `aria-live="polite"` announces changes
-- Paste support: Paste 6-digit code distributes across boxes
+- Single OTP input: `aria-label="Kode OTP"` + `inputmode="numeric"` + `autocomplete="one-time-code"`
+- Error message: `role="alert"` for screen reader announcement
+- Countdown: Shows resend throttle countdown (60 seconds)
 
 ---
 
@@ -918,13 +918,13 @@ Centered card (max-w-md):
 Centered card (max-w-md):
 - Email icon (large)
 - Instruction: "Kami telah mengirim kode OTP ke r***@gmail.com" (via User::maskedEmail())
-- 6 OTP input boxes (auto-focus, auto-tab — reuse komponen OTP PAGE-006)
-- Countdown: "Kode akan expired dalam 14:32"
-- [Verifikasi] button (atau auto-submit setelah digit ke-6)
+- Single OTP input field (reuse komponen OTP PAGE-006)
+- Countdown: "Kirim ulang tersedia dalam 58 detik"
+- Auto-submit on 6 digits (no manual submit button)
 ```
 
 #### Components Used
-- `<x-otp-input />` (6 digit boxes, auto-advance/backspace/paste, auto-submit) (§3.19) — sama dengan PAGE-006
+- `<x-otp-input />` (single input field, native paste/autofill, auto-submit) (§3.19) — sama dengan PAGE-006
 - `<x-countdown />` (Alpine.js, expired callback enable "Kirim ulang") (§3.20)
 - Alert untuk error/lockout
 
@@ -976,9 +976,9 @@ Centered card (max-w-md):
 - Session `password_reset_email` kosong → redirect `/forgot-password`
 
 #### Accessibility Notes
-- Setiap OTP input `aria-label="Digit 1"` s.d. "Digit 6"
-- Countdown `aria-live="polite"`
-- Paste support 6 digit
+- Single OTP input: `aria-label="Kode OTP"` + `inputmode="numeric"` + `autocomplete="one-time-code"`
+- Countdown: Shows resend throttle countdown (60 seconds)
+- Error message: `role="alert"` for screen reader announcement
 
 ---
 

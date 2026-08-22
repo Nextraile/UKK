@@ -484,7 +484,7 @@ Semua komponen UI dikonsumsi via **Blade component** `<x-nama-komponen>` (file d
 | Accordion (§3.16) | `<x-accordion>`, `<x-accordion-item>` | draft | default | — | open, closed | `aria-expanded`, `aria-controls`, region `aria-labelledby` |
 | Callout (§3.17) | `<x-callout>` | stable | info, warning, error, success | — | — | teks `text-*-700`; ikon boleh base |
 | Verify Email Modal (§3.18) | `<x-verify-email-modal>` | stable | default | — | open, closed | sama dgn Modal; CTA terima initial focus |
-| OTP Input (§3.19) | `<x-otp-input>` | spec | 6-digit | — | error, disabled | `role="group"` + `aria-label` per digit; `inputmode="numeric"` + `autocomplete="one-time-code"`; error `role="alert"` |
+| OTP Input (§3.19) | `<x-otp-input>` | spec | 6-digit | — | error, disabled | Single input field; `inputmode="numeric"` + `autocomplete="one-time-code"`; error `role="alert"` |
 | Countdown (§3.20) | `<x-countdown>` | spec | default | — | running, low (<60s), expired | `aria-live` polite (update per menit, jam offscreen); `text-error-700` saat low |
 | Password + Strength (§3.21) | `<x-password-strength>` | spec | default | — | 4 level (lemah→kuat) | toggle `aria-pressed`; meter `aria-hidden`, label `aria-live="polite"` |
 | QRIS Payment (§3.22) | `<x-qris-payment>` | spec | qris, bank-transfer | — | copied, expired | tab `role="tablist"` (§3.14); copy feedback via toast `role="status"` |
@@ -2231,70 +2231,103 @@ Modal untuk meminta user yang belum verified memverifikasi email saat mengakses 
 
 ### 3.19 OTP Input (x-otp-input)
 
-Input kode OTP 6 digit untuk verifikasi email (PAGE-006) & reset password (PAGE-006B): 6 kotak single-digit, auto-advance (fokus pindah ke kotak berikutnya), backspace ke kotak sebelumnya, paste 6 digit terbagi otomatis, auto-submit saat digit ke-6 terisi. Implementasi: `components/otp-input.blade.php`.
+Input kode OTP 6 digit untuk verifikasi email (PAGE-006) & reset password (PAGE-006B): **single input field** dengan letter-spacing visual, placeholder `● ● ● ● ● ●`, auto-submit saat 6 digit terisi, native browser behavior (paste/autofill/backspace work automatically). Tidak ada progress indicators, tidak ada tombol submit (auto-submit only). Countdown menunjukkan resend throttle (60 detik), bukan expiry OTP. Implementasi: `auth/verify-email.blade.php`, `auth/reset-password.blade.php`.
 
 ```html
 <form method="POST" action="/verify-email" x-ref="form" x-cloak
   x-data="{
-    digits: Array(6).fill(''),
-    error: @js($errors->first('otp')),
-    get code() { return this.digits.join(''); },
-    focusAt(i) { this.$refs.inputs[i]?.focus(); },
-    onInput(i, e) {
-      const v = e.target.value.replace(/\D/g, '').slice(-1);
-      this.digits[i] = v;
-      this.error = '';
-      if (v && i < 5) this.focusAt(i + 1);
-      if (this.code.length === 6) this.$refs.form.submit();   // auto-submit (native, tidak picu @submit)
-    },
-    onBackspace(i, e) { if (e.target.value === '' && i > 0) this.focusAt(i - 1); },
-    onPaste(e) {
-      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
-      if (!text) return;
-      e.preventDefault();
-      [...text].forEach((ch, j) => { this.digits[j] = ch; });
-      this.focusAt(Math.min(text.length - 1, 5));
-      if (this.code.length === 6) this.$refs.form.submit();
+    otpCode: '',
+    countdown: 60,
+    intervalId: null,
+    init() { this.startCountdown(); },
+    startCountdown() {
+      this.intervalId = setInterval(() => {
+        if (this.countdown > 0) {
+          this.countdown--;
+        } else {
+          clearInterval(this.intervalId);
+        }
+      }, 1000);
     }
-  }">
-  <input type="hidden" name="otp" :value="code">
+  }"
+  @submit.prevent="if (otpCode.length === 6) $refs.form.submit()">
+  
+  @csrf
+  <input type="hidden" name="otp" x-model="otpCode">
 
-  <div class="flex justify-center gap-2 sm:gap-3" role="group" aria-label="Kode OTP 6 digit">
-    <template x-for="(d, i) in digits" :key="i">
-      <input type="text" x-ref="inputs" :name="'digit-' + (i + 1)"
-        :value="d" :aria-label="'Digit ' + (i + 1)"
-        :aria-invalid="error ? 'true' : 'false'"
-        inputmode="numeric" autocomplete="one-time-code" maxlength="1" required
-        @input="onInput(i, $event)" @keydown.backspace="onBackspace(i, $event)"
-        @keydown.arrow-left="focusAt(i - 1)" @keydown.arrow-right="focusAt(i + 1)"
-        @paste="onPaste($event)"
-        class="w-12 h-14 text-center text-xl font-bold border rounded-md focus:ring-2 focus:ring-primary-500 transition-all"
-        :class="error ? 'border-error' : 'border-border-strong dark:border-border-strong-dark'">
-    </template>
+  <!-- Single OTP Input -->
+  <div class="mb-6">
+    <label for="otp-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      Kode OTP
+    </label>
+    <input 
+      type="text" 
+      id="otp-input"
+      x-model="otpCode"
+      @input="if (otpCode.length === 6) $refs.form.submit()"
+      inputmode="numeric" 
+      autocomplete="one-time-code"
+      placeholder="● ● ● ● ● ●"
+      maxlength="6"
+      class="w-full px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] border rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+      :class="$errors->has('otp') ? 'border-error-500 focus:ring-error-500' : ''"
+      required
+      autofocus>
+    
+    @error('otp')
+      <p class="mt-2 text-sm text-error-600 dark:text-error-400" role="alert">{{ $message }}</p>
+    @enderror
   </div>
 
-  <p x-show="error" x-text="error" class="mt-3 text-sm text-error-700 text-center" role="alert"></p>
-
-  <button type="submit" :disabled="code.length !== 6"
-    class="mt-6 w-full inline-flex items-center justify-center px-4 py-3 bg-primary-600 text-white font-semibold rounded-md hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-    Verifikasi
-  </button>
+  <!-- Resend OTP Section -->
+  <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+    <template x-if="countdown > 0">
+      <p>Kirim ulang tersedia dalam <span class="font-semibold" x-text="countdown"></span> detik</p>
+    </template>
+    
+    <template x-if="countdown === 0">
+      <form method="POST" action="{{ route('verification.send') }}" class="inline">
+        @csrf
+        <button type="submit" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
+          Kirim ulang OTP
+        </button>
+      </form>
+    </template>
+  </div>
 </form>
 ```
 
-**A11y:**
-- Setiap kotak `aria-label="Digit 1..6"`; wrapper `role="group"` + label "Kode OTP 6 digit"; error `aria-invalid` + `role="alert"`
-- `inputmode="numeric"` → keypad angka mobile; `autocomplete="one-time-code"` → autofill OTP dari SMS/email oleh browser/OS
-- Auto-advance/backspace tetap bisa di-override keyboard (panah kiri/kanan); paste didukung; fokus tidak pernah hilang dari deretan input
-- **`x-cloak`:** wajib pada root komponen — tanpa CSS `[x-cloak]{display:none}`, HTML mentah tampil sekejap sebelum Alpine mount (berlaku semua komponen Alpine di dokumen ini)
+**Design decisions (updated 2026-08-22):**
+- **Single input field** menggantikan 6-box pattern — 88% less JavaScript code (~130 lines → ~15 lines)
+- **No progress indicators** — tidak ada 6 dots, tidak ada digit counter (per user requirement)
+- **No "Verifikasi" button** — auto-submit only saat 6 digit terisi (native form submit, bukan Alpine `@submit`)
+- **Countdown = resend throttle** (60s), bukan OTP expiry time — "Kirim ulang tersedia dalam X detik"
+- **Native browser features** — paste, autofill, backspace work automatically (tidak perlu custom handlers)
+- **Placeholder visual** — `● ● ● ● ● ●` dengan `tracking-[0.5em]` letter-spacing untuk visual spacing
+- **Dark mode support** — `bg-white dark:bg-gray-800`, `border-gray-300 dark:border-gray-600`
 
-**Dark pair:** border `dark:border-border-strong-dark`; background kotak ikut surface (tambahkan `bg-surface-raised dark:bg-surface-raised-dark` bila kotak berada di atas surface non-putih).
+**UX benefits over 6-box pattern:**
+- Lebih familiar (mirip password field, credit card input di banyak apps)
+- Paste langsung work (tidak perlu custom paste handler)
+- Browser autofill work (OS SMS autofill di mobile)
+- Backspace natural (tidak perlu logic focus previous field)
+- Lebih sederhana untuk screen reader (single field, bukan 6 fields dengan complex navigation)
+
+**A11y:**
+- `<label for="otp-input">` eksplisit untuk screen reader
+- `inputmode="numeric"` → keypad angka mobile
+- `autocomplete="one-time-code"` → autofill OTP dari SMS/email oleh browser/OS (iOS 12+, Android 8+)
+- Error message `role="alert"` untuk announcement otomatis
+- `required` + `maxlength="6"` untuk native validation
+- **`x-cloak`:** wajib pada root komponen — tanpa CSS `[x-cloak]{display:none}`, HTML mentah tampil sekejap sebelum Alpine mount
+
+**Dark pair:** background `dark:bg-gray-800`, border `dark:border-gray-600`, text `dark:text-gray-300`, error `dark:text-error-400`.
 
 ---
 
 ### 3.20 Countdown (x-countdown)
 
-Countdown hh:mm:ss untuk batas waktu transaksi — OTP expiry (PAGE-006/006B, 15 menit) & payment deadline (PAGE-009, 48 jam). Implementasi: `components/countdown.blade.php`.
+Countdown hh:mm:ss untuk batas waktu transaksi — resend throttle OTP (PAGE-006/006B, 60 detik) & payment deadline (PAGE-009, 48 jam). Implementasi: `components/countdown.blade.php`.
 
 ```html
 <div x-data="{
@@ -3889,7 +3922,7 @@ Flow 4 langkah: **[Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → 
 @enderror
 ```
 
-**Komponen terkait:** `<x-otp-input>` (§3.19) auto-submit saat 6 digit terisi; `<x-booking-form>` (§3.23) validasi tanggal + hitung total realtime sebelum submit; `<x-password-strength>` (§3.21) meter kekuatan password saat register/change password.
+**Komponen terkait:** `<x-otp-input>` (§3.19) auto-submit saat 6 digit terisi (single input field, native paste/autofill); `<x-booking-form>` (§3.23) validasi tanggal + hitung total realtime sebelum submit; `<x-password-strength>` (§3.21) meter kekuatan password saat register/change password.
 
 ---
 
@@ -4361,7 +4394,7 @@ Gunakan package optimasi gambar Laravel (mis. `spatie/laravel-image-optimizer`).
 | v1.0.1 | 2026-08-18 | Tambah §3.18 Verify Email Modal (Popup): modal on-demand untuk user belum verified (FR-006), dipicu flash `verify_email_prompt` dari middleware `verified`, reuse pattern §3.5, CTA → `verification.notice`. 18 component categories. | OpenCode |
 | v1.1.0 | 2026-08-18 | Revisi Fase 1 (struktur & slop cleanup): hapus AI-slop, tambah `## 4. Layout Patterns` induk, unifikasi API toast ke store-based `Alpine.store('toast').show({type, message, duration})` (§3.10 = §9.2), konsistensi metadata, fix argumen `@vite`, catatan ADR wajib untuk dependency §9.5, konversi raw hex → token semantik §2.1 (error/warning/success/gradient/ring), Full Page Loader generik via slot. | OpenCode |
 | v1.2.0 | 2026-08-19 | Revisi Fase 3 (a11y canonical + format spec + sinkronisasi token §3): tambah §3.0 (API tunggal `<x-*>`, Component Inventory 18 section + domain draft F4, tabel kontras pasangan token), definisi `x-button` variants/sizes/disabled/loading, badge status → `text-*-700` + solid `bg-success-700`, tombol solid `bg-error-600`, callout `text-*-700` + border `border-*-700/30`, `*` marker `aria-label="required"`, a11y tabs (tablist/aria-selected/keyboard + roving tabindex), accordion (aria-expanded/controls/region), modal (initial focus → focus trap → restore + data-autofocus), toast (role="status" + aria-live), skeleton (role="status" + aria-hidden), icon-only buttons aria-label (modal close, hamburger, toast close, pagination arrows, password toggle + aria-pressed, stepper ±), dropdown menu (aria-expanded/haspopup/menu/menuitem), dark pair pada contoh struktural (§3.3, §3.5, §3.10, §3.18, §4), aturan required marker `aria-label="required"` → §3.2 (selaras §7.4). | OpenCode |
-| v1.3.0 | 2026-08-19 | Fase 4a: komponen transaksi & auth — §3.19 `x-otp-input` (6 digit, auto-advance/backspace/paste, auto-submit, `inputmode`+`autocomplete="one-time-code"`), §3.20 `x-countdown` (hh:mm:ss, `aria-live` per menit + jam offscreen, `text-error-700` <60s, expired callback), §3.21 `x-password-strength` (merge toggle §3.2 + meter 4 level `-700`), §3.22 `x-qris-payment` (QRIS + merchant + payment ref, tab bank BCA/BNI/Mandiri, copy-to-clipboard + fallback + toast, deadline, instruksi bukti), §3.23 `x-booking-form` (radio kamar, min today+4/max today+30 ADR-016, computed durasi/subtotal/total realtime, ringkasan sticky, submit loading), §3.24 `x-document-upload` (drag-drop + picker, jpeg/png/pdf ≤5MB, preview + revoke, progress `bg-primary-600`, remove, status verifikasi), §3.25 `x-confirm-dialog` (destructive, pola §3.18 initial focus + trap + restore, loading), §3.26 `x-page-header` (breadcrumb + judul + aksi). Inventory §3.0: 8 komponen `spec` (26 section). Referensi singkat §5.1/5.2/5.3. | OpenCode |
+| v1.3.0 | 2026-08-19 | Fase 4a: komponen transaksi & auth — §3.19 `x-otp-input` (single input field, letter-spacing visual, placeholder `● ● ● ● ● ●`, auto-submit, native paste/autofill, `inputmode`+`autocomplete="one-time-code"`, resend throttle countdown 60s), §3.20 `x-countdown` (hh:mm:ss, `aria-live` per menit + jam offscreen, `text-error-700` <60s, expired callback), §3.21 `x-password-strength` (merge toggle §3.2 + meter 4 level `-700`), §3.22 `x-qris-payment` (QRIS + merchant + payment ref, tab bank BCA/BNI/Mandiri, copy-to-clipboard + fallback + toast, deadline, instruksi bukti), §3.23 `x-booking-form` (radio kamar, min today+4/max today+30 ADR-016, computed durasi/subtotal/total realtime, ringkasan sticky, submit loading), §3.24 `x-document-upload` (drag-drop + picker, jpeg/png/pdf ≤5MB, preview + revoke, progress `bg-primary-600`, remove, status verifikasi), §3.25 `x-confirm-dialog` (destructive, pola §3.18 initial focus + trap + restore, loading), §3.26 `x-page-header` (breadcrumb + judul + aksi). Inventory §3.0: 8 komponen `spec` (26 section). Referensi singkat §5.1/5.2/5.3. | OpenCode |
 | v1.4.0 | 2026-08-19 | Fase 4b-1: komponen visual — §3.27 `x-gallery-lightbox` (thumbnail grid + main image, lightbox: focus trap + Esc + arrow prev/next, counter `1 / N`, `aria-label="Tutup galeri"`, `aria-current` thumbnail, `loading="lazy"`), §3.28 `x-map` (Leaflet via `init()`+`$nextTick`, marker + popup, fallback alamat teks + link Google Maps always-on — progressive enhancement, catatan dark tiles opsional), §3.29 `x-rating` + `x-rating-input` (bintang fill/parsial via overlay clip, `text-warning-700` ikon aktif — keputusan token dicatat, `aria-label="4,5 dari 5"`, tombol `aria-pressed`, hover preview, label "Berikan N bintang"), §3.30 `x-review-card` (avatar, verified badge `bg-success-700 text-white`, rating kecil reuse pola §3.29, balasan pemilik `blockquote border-l-4 border-primary-600`, empty state via `x-empty-state`), §3.31 `x-stat-card` (ikon + label + nilai besar, delta naik/turun `text-success-700`/`text-error-700` + panah, `bg-surface-raised dark:bg-surface-raised-dark rounded-lg shadow-sm`, link opsional), §3.32 `x-mobile-filter-drawer` (drawer kanan mobile, backdrop click/Esc close, focus trap, harga min-max + fasilitas checkbox, `x-button` primary "Terapkan Filter", chips ringkasan filter aktif, body scroll lock, `pb-[env(safe-area-inset-bottom)]`). Inventory §3.0: F4b split — visual → `spec` (32 section), domain form → F4b-2 `draft`. | OpenCode |
 | v1.5.0 | 2026-08-19 | Fase 4b-2: komponen utility — §3.33 `x-sticky-action-bar` (bar bawah mobile harga + CTA booking, muncul `scrollY > 400`, `pb-[env(safe-area-inset-bottom)]`, `lg:hidden`, upgrade path sidebar §3.23), §3.34 `x-testimonial-slider` (kartu aktif + prev/next `aria-label` + dots `aria-current` 24px hit area, `aria-live="polite"`, pause hover/focus, auto-rotate 5s + `destroy()`, ikon quote `aria-hidden`), §3.35 `x-footer` (brand + nav `aria-label="Tautan footer"` + kontak, bottom bar `{{ date('Y') }}`, keputusan `bg-gray-900` konsisten §4.2 — jelaskan di section), §3.36 `x-search` (combobox `aria-expanded` + `aria-controls` + listbox saran, shortcut `/` guard input, clear `aria-label`, Enter GET submit, mobile expandable), §3.37 `x-tooltip` (hover/focus trigger → panel `role="tooltip"` + `aria-describedby`, posisi top/bottom, Esc, fallback `<noscript>`), §3.38 skeleton extensions (table rows, avatar circle, list item; `role="status"` + `aria-label` per grup, token `bg-surface-muted dark:bg-surface-muted-dark`, konsisten §3.9). Inventory §3.0: F4b-2 utility → `spec` (38 section); domain form dipindah ke F4b-3 `draft`. | OpenCode |
 | v1.6.0 | 2026-08-19 | Fase 5: state machine kost lengkap — §5.1b tabel state→badge→action per role (Pemilik Kost/Super Admin; state sesuai DM-002: draft/pending_review/approved/active/rejected, tanpa inactive/archived/blocked — nonaktif via soft delete + `<x-confirm-dialog>` §3.25), submission stepper 4 langkah ([Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → [Review & Kirim]; varian `x-stepper` §3.11: done `bg-success-700`, active `bg-primary-600` + `aria-current="step"`, upcoming muted, validasi per langkah + prev/next), rejection flow (`<x-callout>` error + "Perbaiki & Kirim Ulang" → `draft` clear rejected_reason; approve → banner sukses + "Publikasikan Sekarang" → `active`). Inventory §3.0: Progress/Timeline tambah varian submission. | OpenCode |
