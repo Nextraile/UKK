@@ -1,12 +1,12 @@
 # AGENTS.md
 
 > High-signal operational instructions for agents working in this Laravel 13 monolith.
-> For requirements → `PRD.md` (129 FR). For design → `ARCHITECTURE.md` (8 COMP, 21 ADR). For UI/UX → `DESIGN.md` (38 components) + `PAGES.md` (57 pages). For tasks → `TODO.md` (78 tasks).
+> For requirements → `PRD.md` (130 FR). For design → `ARCHITECTURE.md` (9 COMP, 21 ADR). For UI/UX → `DESIGN.md` (38 components) + `PAGES.md` (57 pages). For tasks → `TODO.md` (84 tasks).
 
 | Field | Value |
 |---|---|
-| Versi Dokumen | `1.0.2` |
-| Terakhir Diperbarui | `2026-08-17` |
+| Versi Dokumen | `1.0.3` |
+| Terakhir Diperbarui | `2026-08-23` |
 
 ## Project Summary
 
@@ -364,16 +364,16 @@ docker compose -f docker-compose.playwright-mcp.yml down            # stop
 
 ---
 
-**Project status:** Environment ready. UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 78 tasks in TODO.md (~62 days, 12-14 weeks). Ready to start TASK-001 (User migration + OTP verification).
+**Project status:** Environment ready. UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 84 tasks in TODO.md (~66 days, 13-14 weeks). COMP-001 (Identity, 13 tasks) Done ✅. COMP-002 (Kost Publication, 10 tasks) Done ✅. Ready for COMP-003 (Kost Configuration).
 
 **Documentation inventory:**
-- PRD.md (792 lines): 129 FR, 29 NFR, 22 US, 4 personas
-- ARCHITECTURE.md (1606 lines): 8 COMP, 21 ADR, data models, routes
+- PRD.md (792 lines): 130 FR, 29 NFR, 22 US, 4 personas
+- ARCHITECTURE.md (1606 lines): 9 COMP, 21 ADR, data models, routes
 - DESIGN.md (4340 lines): Design system, 38 components, layout patterns, accessibility guidelines
 - PAGES.md (1928 lines): 57 page specs + 8 email templates
-- TODO.md (361 lines): 78 tasks across 9 components
+- TODO.md (405 lines): 84 tasks across 9 components
 - WORKFLOW.md (133 lines): 5-phase development process
 - AGENTS.md (this file): Operational instructions
 - MANUAL.md (314 lines): Development methodology
 
-Total: 9,842 lines of documentation
+Total: 9,886 lines of documentation

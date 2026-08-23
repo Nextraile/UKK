@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Domain\Kost\Models\Kost;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Route model binding for Super Admin kost submissions
+        Route::model('submission', Kost::class);
     }
 }

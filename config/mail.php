@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin Email
+    |--------------------------------------------------------------------------
+    |
+    | Email address for Super Admin notifications (e.g., new kost submissions).
+    | Set via SUPER_ADMIN_EMAIL in .env
+    |
+    */
+
+    'super_admin_email' => env('SUPER_ADMIN_EMAIL'),
+
 ];
