@@ -6,8 +6,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.1` |
-| Terakhir Diperbarui | `2026-08-18` |
+| Versi Dokumen | `1.0.2` |
+| Terakhir Diperbarui | `2026-08-23` |
 
 ---
 
@@ -27,7 +27,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | Dokumen | Baris | Status | Konten |
 |---|---|---|---|
 | `PRD.md` | 792 | ✅ Complete | 130 FR, 29 NFR, 22 US, 4 persona |
-| `ARCHITECTURE.md` | 1,606 | ✅ Complete | 8 COMP, 21 ADR, data model, routes |
+| `ARCHITECTURE.md` | 1,606 | ✅ Complete | 9 COMP, 21 ADR, data model, routes |
 | `DESIGN.md` | 4,340 | ✅ Complete | Design tokens, 38 components, layout patterns, a11y |
 | `PAGES.md` | 1,928 | ✅ Complete | 57 page specs + 8 email templates |
 | `WORKFLOW.md` | 133 | ✅ Complete | 5-phase development process |
@@ -121,16 +121,18 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-010 | Setup migration & model Kost (status lifecycle) | FR-014—FR-023 | TASK-001 | Must | Not Started | 0.5 hari | Kost model, status enum (draft/pending_review/approved/active/rejected), SoftDeletes |
-| TASK-011 | Admin create & update Kost Draft | FR-014, FR-015 | TASK-010, TASK-008 | Must | Not Started | 1 hari | Controller, form request, routes, views. Policy: hanya Admin owner |
-| TASK-012 | Action: SubmitKostForReview dengan validation data wajib | FR-016, FR-017 | TASK-011 | Must | Not Started | 1 hari | Action class, validasi nama/alamat/kategori/minimal 1 room type. State: draft → pending_review |
-| TASK-013 | SuperAdmin review & approve/reject submission | FR-018, FR-019 | TASK-012 | Must | Not Started | 1 hari | Action ApproveKost, RejectKost. Controller, views. Rejection reason wajib |
-| TASK-014 | Admin revise rejected kost | FR-020 | TASK-013 | Must | Not Started | 0.5 hari | Update kost → status kembali draft, clear rejected_reason |
-| TASK-015 | Admin publish approved kost | FR-021 | TASK-013 | Must | Not Started | 0.5 hari | Action PublishKost. Status: approved → active, set published_at |
-| TASK-016 | Prevent direct status change (enforce workflow) | FR-023 | TASK-012—TASK-015 | Must | Not Started | 0.5 hari | Validation di Action classes, disable manual status field di form |
-| TASK-017 | Unit & feature tests COMP-002 | FR-014—FR-023 | TASK-010—TASK-016 | Must | Not Started | 1 hari | Test state machine transitions, validation, authorization |
+| TASK-010 | Setup migration & model Kost (status lifecycle) | FR-014—FR-023 | TASK-001 | Must | Done | 0.5 hari | ✅ 5 migrations, Kost model, KostPolicy, 4 factories, 38 tests (24 KostPolicyTest, 14 KostBasicTest) |
+| TASK-011 | Admin create & update Kost Draft | FR-014, FR-015 | TASK-010, TASK-008 | Must | Done | 1 hari | ✅ Admin\KostController (7 RESTful), StoreKostRequest, UpdateKostRequest, 5 Blade views, 17 tests (AdminKostCrudTest) |
+| TASK-012 | Action: SubmitKostForReview dengan validation data wajib | FR-016, FR-017 | TASK-011 | Must | Done | 1 hari | ✅ SubmitKostForReview Action, InvalidKostSubmissionException, submit() route, UI button, 11 tests (KostSubmitWorkflowTest) |
+| TASK-013 | SuperAdmin review & approve/reject submission | FR-018, FR-019 | TASK-012 | Must | Done | 1 hari | ✅ ApproveKost/RejectKost Actions (12 unit tests), SuperAdmin\KostSubmissionController (4 routes), 2 views (index, show), 21 tests (19 KostSubmissionWorkflowTest + 2 email), 3 Mailables (KostSubmittedMail, KostApprovedMail, KostRejectedMail) |
+| TASK-014 | Admin revise rejected kost | FR-020 | TASK-013 | Must | Done | 0.5 hari | ✅ Auto-revert rejected → draft on update (implemented in KostController::update()) |
+| TASK-015 | Admin publish approved kost | FR-021 | TASK-013 | Must | Done | 0.5 hari | ✅ PublishKost Action (5 unit tests), publish() method in KostController, route, UI button, 6 feature tests, 4 policy tests |
+| TASK-016 | Prevent direct status change (enforce workflow) | FR-023 | TASK-012—TASK-015 | Must | Done | 0.5 hari | ✅ Status removed from $fillable, Actions use direct assignment, FormRequests validate status=prohibited, 9 tests (KostStatusProtectionTest 7 + KostModelTest 2) |
+| TASK-017 | Unit & feature tests COMP-002 | FR-014—FR-023 | TASK-010—TASK-016 | Must | Done | 1 hari | ✅ 117 Kost-related tests passing (469 total assertions): 45 unit, 72 feature. State machine, validation, authorization all covered |
+| TASK-089 | Admin cancel kost submission (UI + backend) | FR-016, FR-023 | TASK-012, TASK-013 | Should | Done | 2.5 jam | ✅ CancelKostSubmission Action, KostPolicy::cancel(), KostController::cancel(), route DELETE admin/kosts/{kost}/cancel, modal UI dengan Alpine.js (DESIGN.md §3.5), 21 tests (5 unit Action + 7 unit Policy + 9 feature workflow), migration add submitted_at timestamp |
+| TASK-090 | Fix SuperAdmin redirect after login | FR-007 | TASK-001 | Must | Done | 0.5 jam | ✅ User::dashboardRoute() fix (/superadmin/submissions → /super-admin/kost-submissions), AuthenticationTest coverage updated |
 
-**Subtotal COMP-002:** 8 tasks, ~6.5 hari
+**Subtotal COMP-002:** 10 tasks, ~9.5 hari
 
 ---
 
@@ -272,7 +274,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | Komponen | Total Task | Done | In Progress | Not Started | Ready | Estimasi Total |
 |---|---|---|---|---|---|---|
 | COMP-001 (Identity) | 13 | 13 | 0 | 0 | 0 | 8.75 hari |
-| COMP-002 (Kost Publication) | 8 | 0 | 0 | 8 | 0 | 6.5 hari |
+| COMP-002 (Kost Publication) | 10 | 10 | 0 | 0 | 0 | 9.5 hari |
 | COMP-003 (Kost Configuration) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
 | COMP-004 (Room Inventory) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
 | COMP-005 (Marketplace) | 10 | 0 | 0 | 10 | 0 | 7.5 hari |
@@ -281,11 +283,11 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
-| **TOTAL** | **82 tasks** | **13** | **0** | **69** | **0** | **~63.75 hari kerja** |
+| **TOTAL** | **84 tasks** | **15** | **0** | **69** | **0** | **~66.25 hari kerja** |
 
 **Catatan Estimasi:**
-- Total **~63.75 hari kerja** untuk 1 developer (solo work)
-- Equivalent **~12-14 minggu** (5 hari kerja per minggu)
+- Total **~66.25 hari kerja** untuk 1 developer (solo work)
+- Equivalent **~13-14 minggu** (5 hari kerja per minggu)
 - Sesuai timeline PRD: 12-18 minggu untuk MVP
 - Belum termasuk buffer untuk troubleshooting, review, deployment
 
@@ -311,7 +313,7 @@ COMP-009 (parallel dengan COMP-002)
 | FR-004 (OTP Verification) | COMP-001 | TASK-002, TASK-086, TASK-087 | Not Started |
 | FR-005 (Resend OTP) | COMP-001 | TASK-002 | Not Started |
 | FR-006 (Email Verification Required) | COMP-001 | TASK-005, TASK-086 | Not Started |
-| FR-007 (RBAC Role) | COMP-001 | TASK-003, TASK-008 | Not Started |
+| FR-007 (RBAC Role) | COMP-001, COMP-002 | TASK-003, TASK-008, TASK-090 | Done |
 | FR-008 (RBAC Ownership) | COMP-001 | TASK-008 | Not Started |
 | FR-009 (Profile View) | COMP-001 | TASK-006 | Not Started |
 | FR-010 (Profile Update) | COMP-001 | TASK-006 | Not Started |
@@ -319,16 +321,16 @@ COMP-009 (parallel dengan COMP-002)
 | FR-012 (Soft Delete) | COMP-001 | TASK-007 | Not Started |
 | FR-013 (Prevent Deleted Auth) | COMP-001 | TASK-007, TASK-088 | Not Started |
 | FR-130 (Password Reset OTP) | COMP-001 | TASK-085 | Not Started |
-| FR-014 (Create Kost Draft) | COMP-002 | TASK-010, TASK-011 | Not Started |
-| FR-015 (Update Draft) | COMP-002 | TASK-011 | Not Started |
-| FR-016 (Submit for Review) | COMP-002 | TASK-012 | Not Started |
-| FR-017 (Validate Before Submit) | COMP-002 | TASK-012 | Not Started |
-| FR-018 (Approve Submission) | COMP-002 | TASK-013 | Not Started |
-| FR-019 (Reject Submission) | COMP-002 | TASK-013 | Not Started |
-| FR-020 (Revise Rejected) | COMP-002 | TASK-014 | Not Started |
-| FR-021 (Publish Approved) | COMP-002 | TASK-015 | Not Started |
+| FR-014 (Create Kost Draft) | COMP-002 | TASK-010, TASK-011 | Done |
+| FR-015 (Update Draft) | COMP-002 | TASK-011 | Done |
+| FR-016 (Submit for Review) | COMP-002 | TASK-012, TASK-089 | Done |
+| FR-017 (Validate Required Data) | COMP-002 | TASK-012 | Done |
+| FR-018 (SA Review Submissions) | COMP-002 | TASK-013 | Done |
+| FR-019 (Reject Submission) | COMP-002 | TASK-013 | Done |
+| FR-020 (Revise Rejected) | COMP-002 | TASK-014 | Done |
+| FR-021 (Publish Approved) | COMP-002 | TASK-015 | Done |
 | FR-022 (Display Only Active) | COMP-002, COMP-005 | TASK-015, TASK-036 | Not Started |
-| FR-023 (Prevent Direct Status Change) | COMP-002 | TASK-016 | Not Started |
+| FR-023 (Prevent Direct Status Change) | COMP-002 | TASK-016, TASK-089 | Done |
 | FR-024 (Basic Info) | COMP-003 | TASK-019 | Not Started |
 | FR-025 (Address Config) | COMP-003 | TASK-019 | Not Started |
 | FR-026 (Upload Images) | COMP-003 | TASK-020 | Not Started |
@@ -354,7 +356,7 @@ COMP-009 (parallel dengan COMP-002)
 | NFR-004—NFR-010 (Security) | COMP-001, Cross-Cutting | TASK-008, TASK-076—TASK-078 | Not Started |
 | NFR-015 (Email Notification) | Cross-Cutting | TASK-074, TASK-075 | Not Started |
 
-**Coverage:** 130 FR → 81 TASK (100% Must-have FR covered)
+**Coverage:** 130 FR → 84 TASK (100% Must-have FR covered)
 
 ---
 
@@ -392,6 +394,9 @@ COMP-009 (parallel dengan COMP-002)
 | 0.4.0 | 2026-08-18 | TASK-086: On-Demand Email Verification (FR-003, FR-004, FR-006). Registrasi tanpa OTP → redirect /marketplace (stub). Lazy OTP pada /verify-email. Modal popup verifikasi via EnsureEmailIsVerified flash. 80 tasks, 11 Done. | OpenCode |
 | 0.4.1 | 2026-08-18 | TASK-087: Tombol Verifikasi Email di halaman profil (show+edit). Fix upload avatar 500 (ErrorException tempnam) — storage/ bootstrap/cache di-set group-writable untuk user runtime app. 81 tasks, 12 Done. | OpenCode |
 | 0.4.2 | 2026-08-18 | TASK-088: Pesan registrasi email sudah terpakai → 'Email tidak dapat digunakan.' (hilangkan dead-end 'silakan masuk' utk akun soft-deleted). 82 tasks, 13 Done. | OpenCode |
+| 1.0.0 | 2026-08-23 | COMP-002 complete (10/10 tasks Done, 9.5 hari). TASK-010 through TASK-017 (original 8 tasks), plus TASK-089/090 (cancel submission + redirect fix). All Kost Publication workflow tests passing (117 tests, 469 assertions). State machine, email notifications, policy authorization complete. | OpenCode |
+| 1.0.1 | 2026-08-23 | Pre-existing test failures fixed (ProfileTest avatar upload, RegistrationTest database isolation). Mail classes moved to domain folders (COMP-001 Identity, COMP-002 Kost). Structural consistency cleanup. 222/225 tests passing. | OpenCode |
+| 1.0.2 | 2026-08-23 | Documentation sync: Resolved TASK ID collision (COMP-002 improvement tasks renumbered TASK-089/090 to avoid conflict with COMP-003's pre-planned TASK-018/019). Updated traceability matrix (FR-016, FR-023, FR-007). Metadata: 84 tasks total, 15 Done (COMP-001 13 + COMP-002 2 new). Line count 361→405. | OpenCode |
 
 ---
 
