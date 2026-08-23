@@ -45,7 +45,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/admin/kosts');
     }
 
-    public function test_superadmin_is_redirected_to_superadmin_submissions(): void
+    public function test_superadmin_is_redirected_to_kost_submissions_list(): void
     {
         $user = User::factory()->superAdmin()->create();
 
@@ -55,7 +55,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect('/superadmin/submissions');
+        $response->assertRedirect('/super-admin/kost-submissions');
     }
 
     public function test_soft_deleted_user_cannot_login(): void

@@ -83,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function dashboardRoute(): string
     {
         return match ($this->role) {
-            'superadmin' => '/superadmin/submissions',
+            'superadmin' => '/super-admin/kost-submissions',
             'admin' => '/admin/kosts',
             default => '/rentals',
         };
