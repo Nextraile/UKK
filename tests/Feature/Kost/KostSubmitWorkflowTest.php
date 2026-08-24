@@ -8,6 +8,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Address;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Kost\Models\KostDocumentRequirement;
 use App\Domain\Kost\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,12 +20,21 @@ class KostSubmitWorkflowTest extends TestCase
     /** @test */
     public function test_admin_can_submit_complete_draft_kost_for_review(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->admin()->create();
         $category = Category::factory()->create();
-        $kost = Kost::factory()->for($admin, 'owner')->create(['status' => 'draft']);
-        Address::factory()->for($kost)->create();
-        RoomType::factory()->for($kost)->create();
+        $kost = Kost::factory()->for($admin, 'owner')->create([
+            'status' => 'draft',
+            'qris_image_path' => 'qris/test-qris.jpg', // COMP-003: QRIS wajib
+        ]);
+        Address::factory()->create(['kost_id' => $kost->id]);
+        RoomType::factory()->create(['kost_id' => $kost->id]);
         $kost->categories()->attach($category->id);
+        // COMP-003: Document requirements wajib (minimal 1)
+        KostDocumentRequirement::factory()->create([
+            'kost_id' => $kost->id,
+            'document_type' => 'ktp',
+            'is_required' => true,
+        ]);
 
         $response = $this->actingAs($admin)->post(route('admin.kosts.submit', $kost));
 

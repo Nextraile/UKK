@@ -9,12 +9,15 @@ use App\Domain\Kost\Actions\PublishKost;
 use App\Domain\Kost\Actions\SubmitKostForReview;
 use App\Domain\Kost\Exceptions\InvalidKostSubmissionException;
 use App\Domain\Kost\Exceptions\InvalidKostTransitionException;
+use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreKostRequest;
 use App\Http\Requests\Admin\UpdateKostRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -75,7 +78,7 @@ class KostController extends Controller
     {
         $this->authorize('view', $kost);
 
-        $kost->load('owner');
+        $kost->load(['owner', 'address', 'categories', 'kostImages', 'documentRequirements']);
 
         return view('admin.kosts.show', compact('kost'));
     }
@@ -86,6 +89,8 @@ class KostController extends Controller
     public function edit(Kost $kost): View
     {
         $this->authorize('update', $kost);
+
+        $kost->load('address');
 
         return view('admin.kosts.edit', compact('kost'));
     }
@@ -102,7 +107,23 @@ class KostController extends Controller
         // FR-020: Auto-revert rejected → draft on update
         $wasRejected = $kost->isRejected();
 
-        DB::transaction(function () use ($kost, $data, $wasRejected) {
+        // Handle fallback for JS-disabled clients
+        // If facilities_text or rules_text exists, parse line-by-line into array
+        if ($request->has('facilities_text') && ! $request->has('facilities')) {
+            $data['facilities'] = array_values(array_filter(
+                array_map('trim', explode("\n", $request->input('facilities_text', ''))),
+                fn ($line) => ! empty($line)
+            ));
+        }
+
+        if ($request->has('rules_text') && ! $request->has('rules')) {
+            $data['rules'] = array_values(array_filter(
+                array_map('trim', explode("\n", $request->input('rules_text', ''))),
+                fn ($line) => ! empty($line)
+            ));
+        }
+
+        DB::transaction(function () use ($kost, $data, $wasRejected, $request) {
             // Update fillable fields
             $kost->fill($data);
 
@@ -113,6 +134,23 @@ class KostController extends Controller
             }
 
             $kost->save();
+
+            // Update or create address if full_address is provided
+            if ($request->filled('full_address')) {
+                $kost->address()->updateOrCreate(
+                    ['kost_id' => $kost->id],
+                    $request->only([
+                        'full_address',
+                        'district',
+                        'city',
+                        'province',
+                        'postal_code',
+                        'country',
+                        'latitude',
+                        'longitude',
+                    ])
+                );
+            }
         });
 
         return redirect()
@@ -204,5 +242,102 @@ class KostController extends Controller
                 ->back()
                 ->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Show the form for editing kost categories.
+     *
+     * Displays category selection form with current assignments.
+     *
+     * @param  Kost  $kost  The kost to edit categories for
+     */
+    public function editCategories(Kost $kost): View
+    {
+        $this->authorize('update', $kost);
+
+        $categories = Category::orderBy('name')->get();
+        $kost->load('categories');
+
+        return view('admin.kosts.config.categories', compact('kost', 'categories'));
+    }
+
+    /**
+     * Update categories assigned to kost via junction table.
+     *
+     * Sync categories using category_kost junction table.
+     * Minimum 1 category required for submission.
+     */
+    public function updateCategories(Request $request, Kost $kost): RedirectResponse
+    {
+        $this->authorize('update', $kost);
+
+        $validated = $request->validate([
+            'category_ids' => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['exists:categories,id'],
+        ]);
+
+        $kost->categories()->sync($validated['category_ids']);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    /**
+     * Show the form for editing payment information.
+     *
+     * Displays QRIS image upload and bank account fields.
+     *
+     * @param  Kost  $kost  The kost to edit payment info for
+     */
+    public function editPayment(Kost $kost): View
+    {
+        $this->authorize('update', $kost);
+
+        return view('admin.kosts.config.payment', compact('kost'));
+    }
+
+    /**
+     * Update payment information (QRIS image and bank account).
+     *
+     * Handles QRIS image upload with auto-generated filename pattern:
+     * qris-kost-{id}-{Ymd-His}.{ext}
+     * Storage: storage/app/public/qris/
+     * Bank info displayed to tenants during payment.
+     */
+    public function updatePayment(Request $request, Kost $kost): RedirectResponse
+    {
+        $this->authorize('update', $kost);
+
+        $validated = $request->validate([
+            'qris_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'bank_name' => ['required_with:account_number', 'string', 'max:100'],
+            'account_number' => ['nullable', 'string', 'max:50'],
+            'account_holder_name' => ['required_with:account_number', 'string', 'max:150'],
+        ]);
+
+        // Upload QRIS image
+        if ($request->hasFile('qris_image')) {
+            // Delete old QRIS image if exists
+            if ($kost->qris_image_path) {
+                Storage::disk('public')->delete($kost->qris_image_path);
+            }
+
+            $filename = sprintf(
+                'qris-kost-%d-%s.%s',
+                $kost->id,
+                now()->format('Ymd-His'),
+                $request->file('qris_image')->guessExtension()
+            );
+
+            $path = $request->file('qris_image')->storeAs('qris', $filename, 'public');
+            $validated['qris_image_path'] = $path;
+        }
+
+        $kost->update($validated);
+
+        return redirect()
+            ->back()
+            ->with('success', 'Informasi pembayaran berhasil diperbarui.');
     }
 }

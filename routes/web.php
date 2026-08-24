@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\DocumentRequirementController;
 use App\Http\Controllers\Admin\KostController;
+use App\Http\Controllers\Admin\KostImageController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuperAdmin\CategoryController;
 use App\Http\Controllers\SuperAdmin\KostSubmissionController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +49,42 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->name('kosts.cancel');
     Route::post('kosts/{kost}/publish', [KostController::class, 'publish'])
         ->name('kosts.publish');
+
+    // Kost Image Management (COMP-003: Kost Configuration)
+    Route::post('kosts/{kost}/images', [KostImageController::class, 'store'])
+        ->name('kosts.images.store');
+    Route::delete('kosts/{kost}/images/{image}', [KostImageController::class, 'destroy'])
+        ->name('kosts.images.destroy');
+    Route::patch('kosts/{kost}/images/{image}/thumbnail', [KostImageController::class, 'setThumbnail'])
+        ->name('kosts.images.set-thumbnail');
+    Route::patch('kosts/{kost}/images/sort-order', [KostImageController::class, 'updateSortOrder'])
+        ->name('kosts.images.sort-order');
+    Route::get('kosts/{kost}/images', [KostImageController::class, 'index'])
+        ->name('kosts.images.index');
+
+    // Category assignment (COMP-003: Kost Configuration)
+    Route::get('kosts/{kost}/categories', [KostController::class, 'editCategories'])
+        ->name('kosts.categories.edit');
+    Route::patch('kosts/{kost}/categories', [KostController::class, 'updateCategories'])
+        ->name('kosts.categories.update');
+
+    // Payment information (QRIS + bank account)
+    Route::get('kosts/{kost}/payment', [KostController::class, 'editPayment'])
+        ->name('kosts.payment.edit');
+    Route::patch('kosts/{kost}/payment', [KostController::class, 'updatePayment'])
+        ->name('kosts.payment.update');
+
+    // Document Requirements (COMP-003: Kost Configuration)
+    Route::prefix('kosts/{kost}')->group(function () {
+        Route::get('document-requirements', [DocumentRequirementController::class, 'index'])
+            ->name('kosts.document-requirements.index');
+        Route::post('document-requirements', [DocumentRequirementController::class, 'store'])
+            ->name('kosts.document-requirements.store');
+        Route::patch('document-requirements/{requirement}', [DocumentRequirementController::class, 'update'])
+            ->name('kosts.document-requirements.update');
+        Route::delete('document-requirements/{requirement}', [DocumentRequirementController::class, 'destroy'])
+            ->name('kosts.document-requirements.destroy');
+    });
 });
 
 // Super Admin - Kost Submissions Review (COMP-002: Kost Publication)
@@ -58,6 +97,9 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('super-admin')->name('sup
         ->name('kost-submissions.approve');
     Route::post('/kost-submissions/{submission}/reject', [KostSubmissionController::class, 'reject'])
         ->name('kost-submissions.reject');
+
+    // Category Management (COMP-003: Kost Configuration)
+    Route::resource('categories', CategoryController::class);
 });
 
 require __DIR__.'/auth.php';
