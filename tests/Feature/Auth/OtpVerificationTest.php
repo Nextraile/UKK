@@ -174,7 +174,7 @@ class OtpVerificationTest extends TestCase
         $superResponse = $this->actingAs($superAdmin)->post('/verify-email', [
             'otp_code' => $superCode,
         ]);
-        $superResponse->assertRedirect('/superadmin/submissions');
+        $superResponse->assertRedirect('/super-admin/kost-submissions');
     }
 
     /**

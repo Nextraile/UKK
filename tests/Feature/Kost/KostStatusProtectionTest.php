@@ -97,6 +97,17 @@ class KostStatusProtectionTest extends TestCase
 
         RoomType::factory()->for($kost)->create();
 
+        // QRIS required for submission (FR-030, ADR-014)
+        $kost->qris_image_path = 'qris/test-qris-image.png';
+        $kost->save();
+
+        // Document requirement required for submission (FR-032, FR-033)
+        $kost->documentRequirements()->create([
+            'document_type' => 'ktp',
+            'is_required' => true,
+            'reason' => 'Verifikasi identitas penyewa',
+        ]);
+
         // Use Action class - should work
         app(SubmitKostForReview::class)->execute($kost);
 

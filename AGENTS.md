@@ -5,8 +5,8 @@
 
 | Field | Value |
 |---|---|
-| Versi Dokumen | `1.0.3` |
-| Terakhir Diperbarui | `2026-08-23` |
+| Versi Dokumen | `1.0.4` |
+| Terakhir Diperbarui | `2026-08-24` |
 
 ## Project Summary
 
@@ -177,6 +177,155 @@ A `TASK-xxx` is Done when:
 6. Updated `TODO.md` status to Done
 
 See `WORKFLOW.md` for full DoD checklist.
+
+## Test Troubleshooting
+
+Common test issues fixes. Run diagnostics before filing bug reports.
+
+### Storage Permission Errors
+
+**Symptom:** `FilesystemIterator::__construct(...): Permission denied` running tests `Storage::fake()`.
+
+**Root cause:** Test storage directories created wrong ownership (root:root instead sail:sail).
+
+**Fix:**
+```bash
+# Clean up test storage directories
+wsl ./vendor/bin/sail exec laravel.test rm -rf /var/www/html/storage/framework/testing/disks/public/avatars
+wsl ./vendor/bin/sail exec laravel.test rm -rf /var/www/html/storage/framework/testing/disks/public/kost-images
+wsl ./vendor/bin/sail exec laravel.test rm -rf /var/www/html/storage/framework/testing/disks/public/qris
+
+# Fix permissions (run after any permission errors)
+wsl ./vendor/bin/sail exec laravel.test chmod -R 775 /var/www/html/storage/framework/testing
+wsl ./vendor/bin/sail exec laravel.test chown -R sail:sail /var/www/html/storage/framework/testing
+```
+
+**Prevention:** Always run tests via `./vendor/bin/sail artisan test` (never root user).
+
+---
+
+### Database State Leaks
+
+**Symptom:** Tests expect X records but find Y (e.g., expects 1 user, finds 7). Database count assertions fail.
+
+**Root cause:** Test missing `RefreshDatabase` trait, causing data persist tests.
+
+**Fix:**
+```php
+// Add test class
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class YourTest extends TestCase
+{
+    use RefreshDatabase;  // ← Add this
+    
+    // ... tests
+}
+```
+
+**Verification:**
+```bash
+# Run single test in isolation
+wsl ./vendor/bin/sail artisan test --filter=YourTestName
+
+# If passes alone but fails in suite → state leak confirmed
+```
+
+---
+
+### Database Corruption
+
+**Symptom:** Migration errors like "Table already exists" or "Table doesn't exist" during test runs.
+
+**Root cause:** Corrupted `testing` database from interrupted migrations zombie test processes.
+
+**Fix:**
+```bash
+# Nuclear option: wipe and rebuild
+wsl ./vendor/bin/sail artisan db:wipe --database=mysql --force
+wsl ./vendor/bin/sail artisan migrate:fresh --seed
+wsl ./vendor/bin/sail artisan test
+```
+
+---
+
+### Hanging Tests
+
+**Symptom:** Test command runs but produces no output, times out after 3+ minutes.
+
+**Root cause:** Zombie PHPUnit processes consuming resources deadlocked operations.
+
+**Diagnosis:**
+```bash
+# Check for zombie processes
+wsl docker exec sewakost-app-1 ps aux | grep -E "phpunit|artisan test"
+```
+
+**Fix:**
+```bash
+# Kill all test processes
+wsl docker exec sewakost-app-1 pkill -f "phpunit"
+wsl docker exec sewakost-app-1 pkill -f "artisan test"
+
+# run tests again
+wsl ./vendor/bin/sail artisan test
+```
+
+---
+
+### PHPUnit Result Cache Permission
+
+**Symptom:** Warning `file_put_contents(.phpunit.result.cache): Permission denied` (non-blocking).
+
+**Fix:**
+```bash
+# Delete cache file, let PHPUnit recreate it
+wsl rm -f /home/nextraile/Workspaces/Code/SewaKost/.phpunit.result.cache
+```
+
+**Note:** warning doesn't affect test results, safe ignore.
+
+---
+
+### Test Execution Best Practices
+
+1. **Run full suite before marking task Done:**
+   ```bash
+   wsl ./vendor/bin/sail artisan test
+   ```
+
+2. **Run specific test debugging:**
+   ```bash
+   wsl ./vendor/bin/sail artisan test --filter=TestClassName::test_method_name
+   ```
+
+3. **Stop on first failure (faster feedback):**
+   ```bash
+   wsl ./vendor/bin/sail artisan test --stop-on-failure
+   ```
+
+4. **Check test coverage (if needed):**
+   ```bash
+   wsl ./vendor/bin/sail artisan test --coverage
+   ```
+
+5. **Never root** — always `./vendor/bin/sail` wrapper.
+
+6. **If tests hang >1 minute** kill processes retry "Hanging Tests" above).
+
+---
+
+### Recent Fixes (2026-08-24)
+
+**Issue:** 18 test failures (14 storage permissions, 2 DB leaks, 1 mismatch, 1 missing test data).
+
+**Resolution:**
+- Fixed storage permissions: `chmod 775` + `chown sail:sail` on test directories
+- Added `RefreshDatabase` trait to `KostPolicyTest`
+- Updated route assertion in `OtpVerificationTest`: `/superadmin/submissions` → `/super-admin/kost-submissions`
+- Added QRIS + document requirement setup in `KostStatusProtectionTest`
+
+**Current status:** ✅ 316/316 tests passing (771 assertions, ~15s execution time)
 
 ## Agent Coordination Strategy
 

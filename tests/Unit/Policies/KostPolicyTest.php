@@ -7,10 +7,12 @@ namespace Tests\Unit\Policies;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Policies\KostPolicy;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class KostPolicyTest extends TestCase
 {
+    use RefreshDatabase;
     private KostPolicy $policy;
 
     protected function setUp(): void
