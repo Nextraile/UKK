@@ -9,7 +9,7 @@
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
 | Versi Dokumen | `0.2.1` |
-| Terakhir Diperbarui | `2026-08-18` |
+| Terakhir Diperbarui | `2026-08-24` |
 | Baseline Arsitektur | **Laravel 13** — Modular Monolith, session-based auth, server-rendered web routes, containerized via **Docker (Laravel Sail untuk local/dev)** |
 
 ---
@@ -962,15 +962,22 @@ Semua container di atas dijalankan/diorkestrasi via docker-compose — untuk loc
 | `/admin/kosts/{kost}` | PATCH | `Admin\KostController@update` | `auth`, `role:admin` | FR-015, US-004 |
 | `/admin/kosts/{kost}/submit` | POST | `Admin\KostController@submit` | `auth`, `role:admin` | FR-016, US-005 |
 | `/admin/kosts/{kost}/publish` | POST | `Admin\KostController@publish` | `auth`, `role:admin` | FR-021, US-008 |
-| `/admin/kosts/{kost}/info` | PATCH | `Admin\KostConfigurationController@updateInfo` | `auth`, `role:admin` | FR-024 |
-| `/admin/kosts/{kost}/address` | PATCH | `Admin\KostConfigurationController@updateAddress` | `auth`, `role:admin` | FR-025 |
-| `/admin/kosts/{kost}/images` | POST | `Admin\KostConfigurationController@uploadImages` | `auth`, `role:admin` | FR-026 |
-| `/admin/kosts/{kost}/categories` | POST | `Admin\KostConfigurationController@assignCategories` | `auth`, `role:admin` | FR-027, US-009 |
-| `/admin/kosts/{kost}/facilities` | PATCH | `Admin\KostConfigurationController@updateFacilities` | `auth`, `role:admin` | FR-028 |
-| `/admin/kosts/{kost}/rules` | PATCH | `Admin\KostConfigurationController@updateRules` | `auth`, `role:admin` | FR-029 |
-| `/admin/kosts/{kost}/qris` | POST | `Admin\KostConfigurationController@uploadQris` | `auth`, `role:admin` | FR-030 |
-| `/admin/kosts/{kost}/bank-account` | PATCH | `Admin\KostConfigurationController@updateBankAccount` | `auth`, `role:admin` | FR-031 |
-| `/admin/kosts/{kost}/document-requirements` | POST | `Admin\KostConfigurationController@configureDocumentRequirements` | `auth`, `role:admin` | FR-032—FR-034 |
+| `/admin/kosts/{kost}/categories` | GET | `Admin\KostController@editCategories` | `auth`, `role:admin` | FR-027 |
+| `/admin/kosts/{kost}/categories` | PATCH | `Admin\KostController@updateCategories` | `auth`, `role:admin` | FR-027, US-009 |
+| `/admin/kosts/{kost}/payment` | GET | `Admin\KostController@editPayment` | `auth`, `role:admin` | FR-030, FR-031 |
+| `/admin/kosts/{kost}/payment` | PATCH | `Admin\KostController@updatePayment` | `auth`, `role:admin` | FR-030, FR-031 |
+| `/admin/kosts/{kost}/images` | GET | `Admin\KostImageController@index` | `auth`, `role:admin` | FR-026 |
+| `/admin/kosts/{kost}/images` | POST | `Admin\KostImageController@store` | `auth`, `role:admin` | FR-026 |
+| `/admin/kosts/{kost}/images/{image}` | DELETE | `Admin\KostImageController@destroy` | `auth`, `role:admin` | FR-026 |
+| `/admin/kosts/{kost}/images/{image}/thumbnail` | PATCH | `Admin\KostImageController@setThumbnail` | `auth`, `role:admin` | FR-026 |
+| `/admin/kosts/{kost}/images/sort-order` | PATCH | `Admin\KostImageController@updateSortOrder` | `auth`, `role:admin` | FR-026 |
+| `/admin/kosts/{kost}/document-requirements` | GET | `Admin\DocumentRequirementController@index` | `auth`, `role:admin` | FR-032, FR-033 |
+| `/admin/kosts/{kost}/document-requirements` | POST | `Admin\DocumentRequirementController@store` | `auth`, `role:admin` | FR-032, FR-033 |
+| `/admin/kosts/{kost}/document-requirements/{requirement}` | PATCH | `Admin\DocumentRequirementController@update` | `auth`, `role:admin` | FR-032, FR-033 |
+| `/admin/kosts/{kost}/document-requirements/{requirement}` | DELETE | `Admin\DocumentRequirementController@destroy` | `auth`, `role:admin` | FR-034 |
+
+> **Implementation note (COMP-003, 2026-08-24):** Original design in document referenced `Admin\KostConfigurationController` single controller all configuration endpoints. Actual implementation (TASK-018—TASK-026) split responsibilities: basic info/address/categories/payment handled by `Admin\KostController` RESTful methods (editCategories, updateCategories, editPayment, updatePayment), images by `Admin\KostImageController`, document requirements by `Admin\DocumentRequirementController`. Controller split improves separation concerns follows Laravel resource controller patterns. See `routes/web.php` lines 42-103 complete route definitions. Eager loading documented: `KostController::show()` loads address, categories, kostImages, documentRequirements prevent N+1 queries.
+
 | `/admin/kosts/{kost}/room-types/create` | GET | `Admin\RoomTypeController@create` | `auth`, `role:admin` | FR-036 |
 | `/admin/kosts/{kost}/room-types` | POST | `Admin\RoomTypeController@store` | `auth`, `role:admin` | FR-036, US-005 |
 | `/admin/room-types/{roomType}/edit` | GET | `Admin\RoomTypeController@edit` | `auth`, `role:admin` | FR-037 |
@@ -1597,10 +1604,11 @@ sewakost/
 
 | Versi | Tanggal | Perubahan | Oleh |
 |---|---|---|---|
-| 0.1.0 | 2026-08-12 | Draft awal ARCHITECTURE.md dibuat. Konsolidasi dari DDS v1.0.0 dengan penyederhanaan: (1) Hapus 10 tabel facility/rule scheme → JSON (ADR-013), (2) Payment Midtrans → QRIS statis + verifikasi manual (ADR-014), (3) Gabung kost+room review + JSON images → 1 tabel (ADR-015), (4) Room status 2 values (`available`, `unavailable`) + real-time occupancy calculation (ADR-017), (5) Room multi-occupancy support dengan `max_occupants` (ADR-018), (6) Cancel rental dari Active diperbolehkan (ADR-019), (7) Min start_date = today + 4 hari (ADR-016). Total 9 COMP, 16 DM (dari 29 di DDS), ~70 Web Routes, 19 ADR (12 baseline + 7 penyederhanaan/constraints). Baseline: Laravel 13 modular monolith, session-based auth, web routes, Docker (Sail dev + custom image prod), MySQL 8, Redis, Leaflet, Alpine.js. | Lauhul Ridwan + OpenCode |
-| 0.1.1 | 2026-08-13 | Environment setup & dependency sync: (1) Update §3 Tech Stack table: PHP 8.3+ → 8.5, tambah version numbers untuk Laravel (13.22.0), Sail (1.64.0), Breeze (2.4.2), (2) Update §3.1 Rujukan Dokumentasi: tambah Vite 8.2.1, Tailwind CSS 4.0.0, Alpine.js 3.14.x, PHPStan/Larastan, PHPUnit 12.5.12, Mailpit, Docker actual version (29.5.1/5.1.4), pin MySQL 8.0 & Redis 7-alpine di compose.yaml, (3) Tambah ADR-020 (PHP 8.5 rationale) & ADR-021 (PHPUnit vs Pest). Environment setup selesai: APP_KEY generated, DB credentials set, npm dependencies installed (Alpine.js, Leaflet.js), Laravel Breeze installed, PHPStan/Larastan installed, Mailpit service added, Sail containers running & verified, migrations executed, frontend assets built. | OpenCode |
-| 0.1.2 | 2026-08-18 | Tambah ADR-022 (Password Reset via OTP): OtpService multi-purpose (`password-reset`), alur 3 langkah, anti-enumeration, session guard, `password_reset_tokens` tidak dipakai. Update §6.1 routes auth (forgot/reset password), COMP-001 (FR-130). | OpenCode |
-| 0.1.3 | 2026-08-18 | Tambah ADR-023 (On-Demand Email Verification): registrasi tanpa OTP → redirect `/marketplace` (stub interim TASK-086), OTP lazy saat buka `/verify-email` (throttle:5,1) atau diminta fitur via middleware `verified` + modal popup. Update COMP-001, §6.1 routes (`/verify-email`, `/marketplace` stub). Total 23 ADR. | OpenCode |
+| 0.2.1 | 2026-08-24 | COMP-003 implementation complete: 13 routes added (categories GET/PATCH, payment GET/PATCH, images CRUD 5 routes, document requirements CRUD 4 routes). Controller architecture: `KostController` handles categories + payment methods (editCategories, updateCategories, editPayment, updatePayment), `KostImageController` handles image management (index, store, destroy, setThumbnail, updateSortOrder), `DocumentRequirementController` handles document config (index, store, update, destroy) — vs. planned single `KostConfigurationController`. §6.1 routes table updated reflect actual implementation 13 endpoints. Eager loading documented: `KostController::show()` loads address, categories, kostImages, documentRequirements. Data models: Address (embedded 1:1), KostImage (1:N thumbnail flag + sort_order), Category (M:N junction, auto-slug name), KostDocumentRequirement (1:N, config-based types). ADR-013 facilities/rules JSON storage implemented Alpine.js dynamic list + textarea fallback. | OpenCode |
 | 0.1.4 | 2026-08-18 | COMP-001: user unverified dapat memulai verifikasi dari tombol 'Verifikasi Email' di halaman profil. Catatan env: fix izin storage untuk user runtime (avatar upload 500). | OpenCode |
+| 0.1.3 | 2026-08-18 | Tambah ADR-023 (On-Demand Email Verification): registrasi tanpa OTP → redirect `/marketplace` (stub interim TASK-086), OTP lazy saat buka `/verify-email` (throttle:5,1) atau diminta fitur via middleware `verified` + modal popup. Update COMP-001, §6.1 routes (`/verify-email`, `/marketplace` stub). Total 23 ADR. | OpenCode |
+| 0.1.2 | 2026-08-18 | Tambah ADR-022 (Password Reset via OTP): OtpService multi-purpose (`password-reset`), alur 3 langkah, anti-enumeration, session guard, `password_reset_tokens` tidak dipakai. Update §6.1 routes auth (forgot/reset password), COMP-001 (FR-130). | OpenCode |
+| 0.1.1 | 2026-08-13 | Environment setup & dependency sync: (1) Update §3 Tech Stack table: PHP 8.3+ → 8.5, tambah version numbers untuk Laravel (13.22.0), Sail (1.64.0), Breeze (2.4.2), (2) Update §3.1 Rujukan Dokumentasi: tambah Vite 8.2.1, Tailwind CSS 4.0.0, Alpine.js 3.14.x, PHPStan/Larastan, PHPUnit 12.5.12, Mailpit, Docker actual version (29.5.1/5.1.4), pin MySQL 8.0 & Redis 7-alpine di compose.yaml, (3) Tambah ADR-020 (PHP 8.5 rationale) & ADR-021 (PHPUnit vs Pest). Environment setup selesai: APP_KEY generated, DB credentials set, npm dependencies installed (Alpine.js, Leaflet.js), Laravel Breeze installed, PHPStan/Larastan installed, Mailpit service added, Sail containers running & verified, migrations executed, frontend assets built. | OpenCode |
+| 0.1.0 | 2026-08-12 | Draft awal ARCHITECTURE.md dibuat. Konsolidasi dari DDS v1.0.0 dengan penyederhanaan: (1) Hapus 10 tabel facility/rule scheme → JSON (ADR-013), (2) Payment Midtrans → QRIS statis + verifikasi manual (ADR-014), (3) Gabung kost+room review + JSON images → 1 tabel (ADR-015), (4) Room status 2 values (`available`, `unavailable`) + real-time occupancy calculation (ADR-017), (5) Room multi-occupancy support dengan `max_occupants` (ADR-018), (6) Cancel rental dari Active diperbolehkan (ADR-019), (7) Min start_date = today + 4 hari (ADR-016). Total 9 COMP, 16 DM (dari 29 di DDS), ~70 Web Routes, 19 ADR (12 baseline + 7 penyederhanaan/constraints). Baseline: Laravel 13 modular monolith, session-based auth, web routes, Docker (Sail dev + custom image prod), MySQL 8, Redis, Leaflet, Alpine.js. | Lauhul Ridwan + OpenCode |
 
 ---
