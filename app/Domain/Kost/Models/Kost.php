@@ -175,6 +175,26 @@ class Kost extends Model
     }
 
     /**
+     * Get the images for this kost (1:N).
+     *
+     * @return HasMany<KostImage, $this>
+     */
+    public function kostImages(): HasMany
+    {
+        return $this->hasMany(KostImage::class);
+    }
+
+    /**
+     * Get the document requirements for this kost (1:N).
+     *
+     * @return HasMany<KostDocumentRequirement, $this>
+     */
+    public function documentRequirements(): HasMany
+    {
+        return $this->hasMany(KostDocumentRequirement::class);
+    }
+
+    /**
      * Check if kost is in draft status.
      */
     public function isDraft(): bool

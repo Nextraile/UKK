@@ -75,6 +75,18 @@ class SubmitKostForReview
             $missingFields[] = 'Tipe kamar (minimal 1)';
         }
 
+        // COMP-003: QRIS wajib untuk submit
+        if (empty($kost->qris_image_path)) {
+            $missingFields[] = 'Gambar QRIS pembayaran';
+        }
+
+        // COMP-003: Document requirements ≥1 wajib
+        if ($kost->documentRequirements()->count() === 0) {
+            $missingFields[] = 'Persyaratan dokumen penyewa (minimal 1)';
+        }
+
+        // Kost images optional (not blocking submit)
+
         if (! empty($missingFields)) {
             throw InvalidKostSubmissionException::missingRequiredData($missingFields);
         }

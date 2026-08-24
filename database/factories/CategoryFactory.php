@@ -27,12 +27,12 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->randomElement(['Putra', 'Putri', 'Campur']);
+        $name = fake()->unique()->words(2, true);
 
         return [
-            'name' => $name,
+            'name' => ucwords($name),
             'slug' => Str::slug($name),
-            'description' => 'Kost khusus '.strtolower($name),
+            'description' => fake()->sentence(),
         ];
     }
 }

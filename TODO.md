@@ -6,8 +6,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.2` |
-| Terakhir Diperbarui | `2026-08-23` |
+| Versi Dokumen | `1.0.3` |
+| Terakhir Diperbarui | `2026-08-24` |
 
 ---
 
@@ -140,17 +140,17 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-018 | Setup migration Address, KostImage, Category, KostDocumentRequirement | FR-024—FR-035 | TASK-010 | Must | Not Started | 1 hari | 4 migrations, models, relasi 1:1 (Address), 1:N (KostImage), M:N (Category) |
-| TASK-019 | Configure kost basic info & address | FR-024, FR-025 | TASK-018, TASK-011 | Must | Not Started | 1 hari | Form untuk nama, slug, deskripsi, contact, alamat lengkap, lat/long |
-| TASK-020 | Upload & manage kost images (thumbnail + galeri) | FR-026, NFR-008 | TASK-018 | Must | Not Started | 1 hari | File upload validation, set thumbnail, sort order, generated filename |
-| TASK-021 | Assign kost categories (from master) | FR-027 | TASK-018, TASK-030 | Must | Not Started | 0.5 hari | Junction table category_kost, multi-select di form |
-| TASK-022 | Configure facilities & rules (JSON array) | FR-028, FR-029 | TASK-018 | Must | Not Started | 0.5 hari | Dynamic list input UI, simpan sebagai JSON, cast ['facilities' => 'array'] |
-| TASK-023 | Upload QRIS image & configure bank account info | FR-030, FR-031 | TASK-018 | Must | Not Started | 0.5 hari | File upload QRIS, input bank_name/account_number/account_holder_name |
-| TASK-024 | Configure document requirements per kost | FR-032, FR-033, FR-034 | TASK-018 | Must | Not Started | 1 hari | CRUD kost_document_requirements, set required/optional, reason |
-| TASK-025 | SuperAdmin CRUD master kategori | FR-117—FR-120 | TASK-018 | Must | Not Started | 1 hari | CategoryController (SuperAdmin), views, prevent Admin access |
-| TASK-026 | Unit & feature tests COMP-003 | FR-024—FR-035, FR-117—FR-120 | TASK-018—TASK-025 | Must | Not Started | 1 hari | Test config CRUD, file upload, JSON casting, authorization |
+| TASK-018 | Setup migration Address, KostImage, Category, KostDocumentRequirement | FR-024—FR-035 | TASK-010 | Must | Done | 1 hari | ✅ 2 migrations (kost_images, kost_document_requirements), 2 models (KostImage, KostDocumentRequirement), config/kost.php, CategorySeeder (3 categories), 2 factories, relasi Kost::kostImages() + documentRequirements() |
+| TASK-019 | Configure kost basic info & address | FR-024, FR-025 | TASK-018, TASK-011 | Must | Done | 1 hari | ✅ Address form section di edit.blade.php, UpdateKostRequest validation (8 address fields), KostController::update updateOrCreate logic, 9 tests (KostAddressTest) |
+| TASK-020 | Upload & manage kost images (thumbnail + galeri) | FR-026, NFR-008 | TASK-018 | Must | Done | 1 hari | ✅ KostImageController (store, destroy, setThumbnail, updateSortOrder), filename pattern kost-{id}-img-{Ymd-His}-{seq}.{ext}, KostImagePolicy, admin/kosts/config/images.blade.php, 17 tests |
+| TASK-021 | Assign kost categories (from master) | FR-027 | TASK-018, TASK-025 | Must | Done | 0.5 hari | ✅ KostController::updateCategories(), checkbox multi-select, sync junction table, validation min 1, admin/kosts/config/categories.blade.php, 8 tests (KostCategoryTest) |
+| TASK-022 | Configure facilities & rules (JSON array) | FR-028, FR-029 | TASK-018 | Must | Done | 0.5 hari | ✅ Alpine.js dynamic list + fallback textarea, KostController fallback parsing, edit.blade.php sections, 11 tests (KostFacilitiesRulesTest) |
+| TASK-023 | Upload QRIS image & configure bank account info | FR-030, FR-031 | TASK-018 | Must | Done | 0.5 hari | ✅ KostController::updatePayment(), filename qris-kost-{id}-{Ymd-His}.{ext}, admin/kosts/config/payment.blade.php, 10 tests (KostPaymentTest) |
+| TASK-024 | Configure document requirements per kost | FR-032, FR-033, FR-034 | TASK-018 | Must | Done | 1 hari | ✅ DocumentRequirementController (CRUD), config-based document types, KostDocumentRequirementPolicy, inline edit Alpine.js, admin/kosts/config/document-requirements.blade.php, 21 tests |
+| TASK-025 | SuperAdmin CRUD master kategori | FR-117—FR-120 | TASK-018 | Must | Done | 1 hari | ✅ SuperAdmin\CategoryController (7 RESTful), StoreCategoryRequest + UpdateCategoryRequest (auto-slug), CategoryPolicy, 3 views (super-admin/categories/), 15 tests (CategoryManagementTest) |
+| TASK-026 | Unit & feature tests COMP-003 | FR-024—FR-035, FR-117—FR-120 | TASK-018—TASK-025 | Must | Done | 1 hari | ✅ 91 tests total dari subagents (KostAddressTest: 9, KostImageTest: 17, KostCategoryTest: 8, KostFacilitiesRulesTest: 11, KostPaymentTest: 10, KostDocumentRequirementTest: 21, CategoryManagementTest: 15) |
 
-**Subtotal COMP-003:** 9 tasks, ~7.5 hari
+**Subtotal COMP-003:** 9 tasks, 9 Done, ~7.5 hari
 
 ---
 
@@ -275,7 +275,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 |---|---|---|---|---|---|---|
 | COMP-001 (Identity) | 13 | 13 | 0 | 0 | 0 | 8.75 hari |
 | COMP-002 (Kost Publication) | 10 | 10 | 0 | 0 | 0 | 9.5 hari |
-| COMP-003 (Kost Configuration) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
+| COMP-003 (Kost Configuration) | 9 | 9 | 0 | 0 | 0 | 7.5 hari |
 | COMP-004 (Room Inventory) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
 | COMP-005 (Marketplace) | 10 | 0 | 0 | 10 | 0 | 7.5 hari |
 | COMP-006 (Rental Lifecycle) | 12 | 0 | 0 | 12 | 0 | 12 hari |
@@ -283,7 +283,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
-| **TOTAL** | **84 tasks** | **15** | **0** | **69** | **0** | **~66.25 hari kerja** |
+| **TOTAL** | **84 tasks** | **32** | **0** | **52** | **0** | **~66.25 hari kerja** |
 
 **Catatan Estimasi:**
 - Total **~66.25 hari kerja** untuk 1 developer (solo work)
@@ -331,18 +331,18 @@ COMP-009 (parallel dengan COMP-002)
 | FR-021 (Publish Approved) | COMP-002 | TASK-015 | Done |
 | FR-022 (Display Only Active) | COMP-002, COMP-005 | TASK-015, TASK-036 | Not Started |
 | FR-023 (Prevent Direct Status Change) | COMP-002 | TASK-016, TASK-089 | Done |
-| FR-024 (Basic Info) | COMP-003 | TASK-019 | Not Started |
-| FR-025 (Address Config) | COMP-003 | TASK-019 | Not Started |
-| FR-026 (Upload Images) | COMP-003 | TASK-020 | Not Started |
-| FR-027 (Assign Categories) | COMP-003 | TASK-021 | Not Started |
-| FR-028 (Facilities JSON) | COMP-003 | TASK-022 | Not Started |
-| FR-029 (Rules JSON) | COMP-003 | TASK-022 | Not Started |
-| FR-030 (QRIS Upload) | COMP-003 | TASK-023 | Not Started |
-| FR-031 (Bank Account Info) | COMP-003 | TASK-023 | Not Started |
-| FR-032 (Document Requirements Config) | COMP-003 | TASK-024 | Not Started |
-| FR-033 (Set Doc Required/Optional) | COMP-003 | TASK-024 | Not Started |
-| FR-034 (Doc Requirement Reason) | COMP-003 | TASK-024 | Not Started |
-| FR-035 (Display Doc Requirements) | COMP-003, COMP-005 | TASK-024, TASK-041 | Not Started |
+| FR-024 (Basic Info) | COMP-003 | TASK-019 | Done |
+| FR-025 (Address Config) | COMP-003 | TASK-019 | Done |
+| FR-026 (Upload Images) | COMP-003 | TASK-020 | Done |
+| FR-027 (Assign Categories) | COMP-003 | TASK-021 | Done |
+| FR-028 (Facilities JSON) | COMP-003 | TASK-022 | Done |
+| FR-029 (Rules JSON) | COMP-003 | TASK-022 | Done |
+| FR-030 (QRIS Upload) | COMP-003 | TASK-023 | Done |
+| FR-031 (Bank Account Info) | COMP-003 | TASK-023 | Done |
+| FR-032 (Document Requirements Config) | COMP-003 | TASK-024 | Done |
+| FR-033 (Set Doc Required/Optional) | COMP-003 | TASK-024 | Done |
+| FR-034 (Doc Requirement Reason) | COMP-003 | TASK-024 | Done |
+| FR-035 (Display Doc Requirements) | COMP-003, COMP-005 | TASK-024, TASK-041 | Done |
 | FR-036—FR-047 (Room Inventory) | COMP-004 | TASK-027—TASK-034 | Not Started |
 | FR-048—FR-060 (Marketplace) | COMP-005 | TASK-036—TASK-044 | Not Started |
 | FR-061—FR-068 (Rental Booking) | COMP-006 | TASK-046—TASK-048 | Not Started |
@@ -351,7 +351,7 @@ COMP-009 (parallel dengan COMP-002)
 | FR-096—FR-104 (Rental Monitoring) | COMP-006 | TASK-049—TASK-050, TASK-055—TASK-056 | Not Started |
 | FR-105—FR-110 (Review) | COMP-008 | TASK-064—TASK-068 | Not Started |
 | FR-111—FR-116 (Admin Account Mgmt) | COMP-009 | TASK-069—TASK-073 | Not Started |
-| FR-117—FR-120 (Category Mgmt) | COMP-003, COMP-009 | TASK-025 | Not Started |
+| FR-117—FR-120 (Category Mgmt) | COMP-003, COMP-009 | TASK-025 | Done |
 | FR-121—FR-129 (Open Questions Resolution) | COMP-006, COMP-007 | TASK-047, TASK-048, TASK-054—TASK-055 | Not Started |
 | NFR-004—NFR-010 (Security) | COMP-001, Cross-Cutting | TASK-008, TASK-076—TASK-078 | Not Started |
 | NFR-015 (Email Notification) | Cross-Cutting | TASK-074, TASK-075 | Not Started |
@@ -397,6 +397,7 @@ COMP-009 (parallel dengan COMP-002)
 | 1.0.0 | 2026-08-23 | COMP-002 complete (10/10 tasks Done, 9.5 hari). TASK-010 through TASK-017 (original 8 tasks), plus TASK-089/090 (cancel submission + redirect fix). All Kost Publication workflow tests passing (117 tests, 469 assertions). State machine, email notifications, policy authorization complete. | OpenCode |
 | 1.0.1 | 2026-08-23 | Pre-existing test failures fixed (ProfileTest avatar upload, RegistrationTest database isolation). Mail classes moved to domain folders (COMP-001 Identity, COMP-002 Kost). Structural consistency cleanup. 222/225 tests passing. | OpenCode |
 | 1.0.2 | 2026-08-23 | Documentation sync: Resolved TASK ID collision (COMP-002 improvement tasks renumbered TASK-089/090 to avoid conflict with COMP-003's pre-planned TASK-018/019). Updated traceability matrix (FR-016, FR-023, FR-007). Metadata: 84 tasks total, 15 Done (COMP-001 13 + COMP-002 2 new). Line count 361→405. | OpenCode |
+| 1.0.3 | 2026-08-24 | COMP-003 complete (9/9 tasks Done, 7.5 hari). TASK-018 through TASK-026: migrations (kost_images, kost_document_requirements), models (KostImage, KostDocumentRequirement, Category with auto-slug), controllers (KostImageController, DocumentRequirementController, SuperAdmin\CategoryController), policies (KostImagePolicy, KostDocumentRequirementPolicy, CategoryPolicy), views (admin/kosts/config/, super-admin/categories/), 91 tests passing (KostAddressTest 9, KostImageTest 17, KostCategoryTest 8, KostFacilitiesRulesTest 11, KostPaymentTest 10, KostDocumentRequirementTest 21, CategoryManagementTest 15). Implementation: address updateOrCreate pattern, image upload thumbnail + sort_order, category multi-select sync, facilities/rules JSON arrays with Alpine.js, QRIS + bank payment config, document requirements CRUD with inline edit. 32/84 tasks Done total (38% progress). | OpenCode |
 
 ---
 

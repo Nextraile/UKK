@@ -7,6 +7,10 @@ namespace App\Providers;
 use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Policies\UserPolicy;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Kost\Models\KostDocumentRequirement;
+use App\Domain\Kost\Models\KostImage;
+use App\Domain\Kost\Policies\KostDocumentRequirementPolicy;
+use App\Domain\Kost\Policies\KostImagePolicy;
 use App\Domain\Kost\Policies\KostPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -25,6 +29,8 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         User::class => UserPolicy::class,
         Kost::class => KostPolicy::class,
+        KostImage::class => KostImagePolicy::class,
+        KostDocumentRequirement::class => KostDocumentRequirementPolicy::class,
     ];
 
     /**

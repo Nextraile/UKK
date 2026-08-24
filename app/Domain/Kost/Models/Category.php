@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
@@ -20,15 +21,16 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  */
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Create a new factory instance for the model.
      *
-     * @return Factory<static>
+     * @return CategoryFactory
      */
     protected static function newFactory()
     {
@@ -45,7 +47,7 @@ class Category extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'name',

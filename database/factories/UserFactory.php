@@ -62,6 +62,14 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user is a tenant (regular user).
+     */
+    public function tenant(): static
+    {
+        return $this->state(fn (array $attributes) => ['role' => 'user']);
+    }
+
+    /**
      * Indicate that the user has been soft deleted.
      */
     public function deleted(): static

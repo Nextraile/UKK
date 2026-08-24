@@ -36,15 +36,30 @@ class UpdateKostRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:150', Rule::unique('kosts', 'slug')->ignore($kostId)],
             'description' => ['nullable', 'string'],
             'contact_number' => ['required', 'string', 'max:20'],
-            'facilities' => ['nullable', 'array'],
-            'facilities.*' => ['string', 'max:255'],
-            'rules' => ['nullable', 'array'],
-            'rules.*' => ['string', 'max:255'],
+            'facilities' => ['nullable', 'array', 'max:20'],
+            'facilities.*' => ['string', 'max:100', 'distinct'],
+            'rules' => ['nullable', 'array', 'max:20'],
+            'rules.*' => ['string', 'max:200', 'distinct'],
+
+            // Fallback for JS-disabled clients
+            'facilities_text' => ['nullable', 'string'],
+            'rules_text' => ['nullable', 'string'],
+
             'qris_image_path' => ['nullable', 'string', 'max:255'],
             'bank_name' => ['nullable', 'string', 'max:100'],
             'account_number' => ['nullable', 'string', 'max:50'],
             'account_holder_name' => ['nullable', 'string', 'max:150'],
             'status' => ['prohibited'], // FR-023: Status cannot be manually changed
+
+            // Address fields (optional for draft, required for submission)
+            'full_address' => ['nullable', 'string'],
+            'district' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'province' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:10'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ];
     }
 
@@ -58,12 +73,22 @@ class UpdateKostRequest extends FormRequest
         return [
             'name' => 'nama kost',
             'contact_number' => 'nomor kontak',
+            'facilities' => 'fasilitas kost',
             'facilities.*' => 'fasilitas',
+            'rules' => 'peraturan kost',
             'rules.*' => 'peraturan',
             'qris_image_path' => 'gambar QRIS',
             'bank_name' => 'nama bank',
             'account_number' => 'nomor rekening',
             'account_holder_name' => 'nama pemilik rekening',
+            'full_address' => 'alamat lengkap',
+            'district' => 'kecamatan',
+            'city' => 'kota',
+            'province' => 'provinsi',
+            'postal_code' => 'kode pos',
+            'country' => 'negara',
+            'latitude' => 'latitude',
+            'longitude' => 'longitude',
         ];
     }
 
