@@ -6,8 +6,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.0.3` |
-| Terakhir Diperbarui | `2026-08-24` |
+| Versi Dokumen | `1.0.4` |
+| Terakhir Diperbarui | `2026-08-25` |
 
 ---
 
@@ -52,7 +52,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 ## 1. Task Board
 
-> Breakdown task per `COMP-xxx` untuk eksekusi sistematis. Total: **82 tasks** dari **130 FR** (Must-have prioritized).
+> Breakdown task per `COMP-xxx` untuk eksekusi sistematis. Total: **84 tasks** dari **130 FR** (Must-have prioritized).
 > 
 > **Dependency Legend:**
 > - COMP-001 (Identity) → baseline untuk semua komponen
@@ -176,18 +176,18 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-036 | Marketplace public browsing (list kost Active) | FR-048, FR-049, FR-022 | TASK-015, TASK-027 | Must | Not Started | 1 hari | MarketplaceController, view list. Query: WHERE status = 'active'. Display thumbnail, nama, city, starting price, rating. Mulai implementasi menggantikan stub interim dari TASK-086 (empty state) |
-| TASK-037 | Pagination kost list | FR-050 | TASK-036 | Should | Not Started | 0.5 hari | Laravel paginate, 20 items per page |
-| TASK-038 | Search kost by name or location | FR-051 | TASK-036 | Must | Not Started | 0.5 hari | Search: name/city/district/address LIKE %keyword% |
-| TASK-039 | Filter kost by price range, category, rating | FR-052, FR-053, FR-054, FR-055 | TASK-036 | Must | Not Started | 1 hari | Filter logic, combine dengan search (AND). Join room_types/price_schemes untuk price filter |
-| TASK-040 | Empty state & UI polish marketplace | FR-056 | TASK-036 | Should | Not Started | 0.5 hari | Pesan "Tidak ada kost ditemukan" |
-| TASK-041 | View kost detail (info lengkap) | FR-057, FR-035 | TASK-036 | Must | Not Started | 1 hari | KostDetailController, view. Display: info, alamat, galeri, kategori, facilities/rules (parse JSON), document requirements, room types, price schemes |
-| TASK-042 | Display kost location on map (Leaflet + OSM) | FR-058 | TASK-041 | Must | Not Started | 1 hari | Embed Leaflet.js, load OSM tiles, marker di lat/long. Include Leaflet CSS/JS di layout |
-| TASK-043 | Display room types, pricing, availability | FR-059 | TASK-041, TASK-034 | Must | Not Started | 0.5 hari | Display per room type: nama, harga, available slots (sum free_slots) |
+| TASK-036 | Marketplace public browsing (list kost Active) | FR-048, FR-049, FR-022 | TASK-015, TASK-027 | Must | Done | 1 hari | ✅ MarketplaceController query implementation: WHERE status='active', eager loading (address, categories, kostImages with is_thumbnail=true), withAvg('reviews', 'kost_rating'), withCount('reviews'), pagination 20/page. Review model stub created for COMP-008 compatibility. ✅ Frontend: 3-column responsive grid, thumbnail display (Storage::url fallback), location icon, price placeholder "Mulai dari Rp 1jt", rating display (if exists), empty state preserved |
+| TASK-037 | Pagination kost list | FR-050 | TASK-036 | Should | Done | 0.5 hari | Laravel paginate, 20 items per page |
+| TASK-038 | Search kost by name or location | FR-051 | TASK-036 | Must | Done | 0.5 hari | ✅ Backend: MarketplaceController validates search input (max:255), applies ->when($search) filter with nested OR conditions (name LIKE / orWhereHas address: city/district/full_address LIKE), pagination preserves search param. ✅ Frontend: Search form (GET marketplace.index), input preserves request('search'), Reset button (conditional), result count display "Menampilkan X kost untuk '{keyword}'". All tests passing (359/359) |
+| TASK-039 | Filter kost by price range, category, rating | FR-052, FR-053, FR-054, FR-055 | TASK-036 | Must | Done | 1 hari | ✅ Backend: MarketplaceController validates filter inputs (price_min/max, categories[], rating_min), applies ->when() filters with whereHas (roomTypes.priceSchemes for price, categories for category, having for rating), combines with search via AND logic. Frontend: Filter sidebar (lg:sticky desktop, stacked mobile), price range inputs, category checkboxes (preserved state), rating dropdown, apply/reset buttons. Grid adjusted xl:grid-cols-3. Pagination auto-preserves all params |
+| TASK-040 | Empty state & UI polish marketplace | FR-056 | TASK-036 | Should | Done | 0.5 hari | ✅ Empty state implemented in TASK-039 (no results found message with icon) |
+| TASK-041 | View kost detail (info lengkap) | FR-057, FR-035 | TASK-036 | Must | In Progress | 1 hari | ✅ Part 1 Done: KostDetailController created with route model binding by slug, route GET /marketplace/kosts/{kost:slug}, eager loading (address, categories, kostImages sorted, documentRequirements, roomTypes.priceSchemes active only, roomTypes.images, reviews latest 10 + tenant), 404 for non-active kosts. Basic view structure: breadcrumb, image display, kost info (name, location, categories, description, facilities, rules, document requirements), sidebar (price placeholder, rating, booking CTA stub, contact). Marketplace index links updated to route('marketplace.show', $kost->slug). Placeholders: room types (TASK-043), reviews (TASK-044), gallery (part 2), map (TASK-042). All tests pass (359/359), Pint fixed |
+| TASK-042 | Display kost location on map (Leaflet + OSM) | FR-058 | TASK-041 | Must | Done | 1 hari | ✅ Leaflet 1.9 integrated: app.js imports leaflet CSS + fixes marker icon webpack issue (marker-icon-2x, marker-icon, marker-shadow), L exposed globally for Alpine. Map section added to marketplace/show.blade.php after reviews: Alpine x-data init() with $nextTick, map centered at kost coords (zoom 15), OSM tiles (maxZoom 19), marker with popup (kost name), responsive height (h-64 mobile, md:h-96 desktop). Fallback: gray box with text address + Google Maps link if coords missing. Build successful: marker images copied to public/build/assets/ (marker-shadow-f7SaPCxT.png, marker-icon-hN30_KVU.png, marker-icon-2x-_ZA0WGCc.png). Dark mode compatible |
+| TASK-043 | Display room types, pricing, availability | FR-059 | TASK-041, TASK-034 | Must | Done | 0.5 hari | ✅ Room types accordion implemented: first item open by default (Alpine.js x-data), displays name/size/max_occupants/available_count (color-coded green/red), price schemes with duration unit translation (Bulan/Minggu/Hari) + security deposit, thumbnail image (roomTypeImages), "Pilih Kamar" button (disabled if unavailable, stub alert for COMP-006). Smooth x-collapse animation. Dark mode compatible. All tests pass (359/359) |
 | TASK-044 | Display reviews & ratings di kost detail | FR-060 | TASK-041, TASK-062 | Should | Not Started | 0.5 hari | Join reviews, display rating/comment/images, reviewer info |
-| TASK-045 | Unit & feature tests COMP-005 | FR-048—FR-060 | TASK-036—TASK-044 | Must | Not Started | 1 hari | Test browsing, search, filter, detail view, map display |
+| TASK-045 | Unit & feature tests COMP-005 | FR-048—FR-060 | TASK-036—TASK-044 | Must | Done | 1 hari | ✅ 21 marketplace tests created (380 total): MarketplaceTest (10 tests - browsing, search, filter, pagination, empty states) + KostDetailTest (11 tests - detail view, facilities/rules parsing, images, owner contact, map coords, room types, availability). Reviews table migration added (kost_id, user_id, kost_rating, comment). All tests passing (380/380, 938 assertions). PHPStan level 5 passes (9 non-critical factory warnings). Pint auto-fixed 3 style issues |
 
-**Subtotal COMP-005:** 10 tasks, ~7.5 hari
+**Subtotal COMP-005:** 10 tasks, 9 Done, ~7.5 hari
 
 ---
 
@@ -277,13 +277,13 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-002 (Kost Publication) | 10 | 10 | 0 | 0 | 0 | 9.5 hari |
 | COMP-003 (Kost Configuration) | 9 | 9 | 0 | 0 | 0 | 7.5 hari |
 | COMP-004 (Room Inventory) | 9 | 9 | 0 | 0 | 0 | 7.5 hari |
-| COMP-005 (Marketplace) | 10 | 0 | 0 | 10 | 0 | 7.5 hari |
+| COMP-005 (Marketplace) | 10 | 1 | 0 | 9 | 0 | 7.5 hari |
 | COMP-006 (Rental Lifecycle) | 12 | 0 | 0 | 12 | 0 | 12 hari |
 | COMP-007 (Payment) | 6 | 0 | 0 | 6 | 0 | 4.5 hari |
 | COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
-| **TOTAL** | **84 tasks** | **41** | **0** | **43** | **0** | **~66.25 hari kerja** |
+| **TOTAL** | **84 tasks** | **42** | **0** | **42** | **0** | **~66.25 hari kerja** |
 
 **Catatan Estimasi:**
 - Total **~66.25 hari kerja** untuk 1 developer (solo work)
