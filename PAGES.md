@@ -399,11 +399,11 @@ public function show(Kost $kost)
     $kost->load([
         'address',
         'categories',
-        'images' => fn($q) => $q->orderBy('sort_order'),
+        'kostImages' => fn($q) => $q->orderBy('sort_order'),
         'documentRequirements',
         'roomTypes' => fn($q) => $q->with([
             'priceSchemes' => fn($q) => $q->where('is_active', true),
-            'images' => fn($q) => $q->where('is_thumbnail', true),
+            'roomTypeImages' => fn($q) => $q->where('is_thumbnail', true),
         ]),
         'reviews' => fn($q) => $q->latest()->with('tenant')->limit(10),
     ]);
@@ -429,10 +429,10 @@ public function show(Kost $kost)
 **Eager Loading:**
 - `address` (for map coordinates + full address display)
 - `categories` (display as tags)
-- `images` (gallery, sorted by sort_order)
+- `kostImages` (gallery, sorted by sort_order)
 - `documentRequirements` (checklist display)
 - `roomTypes.priceSchemes` (active only)
-- `roomTypes.images` (thumbnail)
+- `roomTypes.roomTypeImages` (thumbnail)
 - `reviews.tenant` (for reviewer name + avatar)
 
 #### User Flows
