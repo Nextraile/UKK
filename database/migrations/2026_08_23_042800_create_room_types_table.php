@@ -18,11 +18,19 @@ return new class extends Migration
             $table->foreignId('kost_id')->constrained('kosts')->onDelete('cascade');
             $table->string('name', 100);
             $table->string('slug', 100);
+            $table->text('description')->nullable();
+            $table->string('room_size', 50);
+            $table->tinyInteger('max_occupants')->unsigned();
+            $table->decimal('security_deposit', 12, 2);
+            $table->json('facilities')->nullable();
+            $table->json('rules')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             // Indexes
             $table->index('kost_id');
             $table->unique(['kost_id', 'slug']);
+            $table->index('deleted_at');
         });
     }
 

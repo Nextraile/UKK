@@ -13,6 +13,7 @@ use Tests\TestCase;
 class KostPolicyTest extends TestCase
 {
     use RefreshDatabase;
+
     private KostPolicy $policy;
 
     protected function setUp(): void

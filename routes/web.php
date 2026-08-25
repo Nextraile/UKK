@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\DocumentRequirementController;
 use App\Http\Controllers\Admin\KostController;
 use App\Http\Controllers\Admin\KostImageController;
+use App\Http\Controllers\Admin\PriceSchemeController;
+use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\RoomTypeController;
+use App\Http\Controllers\Admin\RoomTypeImageController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\CategoryController;
@@ -85,6 +89,38 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::delete('document-requirements/{requirement}', [DocumentRequirementController::class, 'destroy'])
             ->name('kosts.document-requirements.destroy');
     });
+
+    // Room Type Management (COMP-004: Room Inventory)
+    Route::resource('kosts/{kost}/room-types', RoomTypeController::class)
+        ->names('room-types');
+
+    // Room Type Image Deletion (manual cleanup only)
+    Route::delete('room-type-images/{roomTypeImage}', [RoomTypeImageController::class, 'destroy'])
+        ->name('room-type-images.destroy');
+
+    // Price Scheme Management (COMP-004: Room Inventory)
+    Route::get('room-types/{roomType}/price-schemes', [PriceSchemeController::class, 'index'])
+        ->name('price-schemes.index');
+    Route::post('room-types/{roomType}/price-schemes', [PriceSchemeController::class, 'store'])
+        ->name('price-schemes.store');
+    Route::put('room-types/{roomType}/price-schemes/{priceScheme}', [PriceSchemeController::class, 'update'])
+        ->name('price-schemes.update');
+    Route::delete('room-types/{roomType}/price-schemes/{priceScheme}', [PriceSchemeController::class, 'destroy'])
+        ->name('price-schemes.destroy');
+    Route::patch('room-types/{roomType}/price-schemes/{priceScheme}/toggle-active', [PriceSchemeController::class, 'toggleActive'])
+        ->name('price-schemes.toggle-active');
+
+    // Room Management (COMP-004: Room Inventory)
+    Route::get('kosts/{kost}/rooms', [RoomController::class, 'index'])
+        ->name('rooms.index');
+    Route::post('kosts/{kost}/rooms', [RoomController::class, 'store'])
+        ->name('rooms.store');
+    Route::put('kosts/{kost}/rooms/{room}', [RoomController::class, 'update'])
+        ->name('rooms.update');
+    Route::delete('kosts/{kost}/rooms/{room}', [RoomController::class, 'destroy'])
+        ->name('rooms.destroy');
+    Route::patch('kosts/{kost}/rooms/{room}/status', [RoomController::class, 'setStatus'])
+        ->name('rooms.set-status');
 });
 
 // Super Admin - Kost Submissions Review (COMP-002: Kost Publication)
