@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
@@ -18,19 +21,25 @@ use Illuminate\Support\Carbon;
  * @property int $kost_id
  * @property string $name
  * @property string $slug
+ * @property string|null $description
+ * @property string $room_size
+ * @property int $max_occupants
+ * @property string $security_deposit
+ * @property array|null $facilities
+ * @property array|null $rules
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Kost $kost
  */
 class RoomType extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Create a new factory instance for the model.
-     *
-     * @return Factory<static>
      */
-    protected static function newFactory()
+    protected static function newFactory(): RoomTypeFactory
     {
         return RoomTypeFactory::new();
     }
@@ -45,12 +54,18 @@ class RoomType extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'kost_id',
         'name',
         'slug',
+        'description',
+        'room_size',
+        'max_occupants',
+        'security_deposit',
+        'facilities',
+        'rules',
     ];
 
     /**
@@ -59,7 +74,9 @@ class RoomType extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        // Remove facilities cast as column doesn't exist yet
+        'facilities' => 'array',
+        'rules' => 'array',
+        'security_deposit' => 'decimal:2',
     ];
 
     /**
@@ -68,5 +85,37 @@ class RoomType extends Model
     public function kost(): BelongsTo
     {
         return $this->belongsTo(Kost::class);
+    }
+
+    /**
+     * Get room type images.
+     */
+    public function roomTypeImages(): HasMany
+    {
+        return $this->hasMany(RoomTypeImage::class);
+    }
+
+    /**
+     * Get thumbnail image.
+     */
+    public function thumbnailImage(): HasOne
+    {
+        return $this->hasOne(RoomTypeImage::class)->where('is_thumbnail', true);
+    }
+
+    /**
+     * Get price schemes for this room type.
+     */
+    public function priceSchemes(): HasMany
+    {
+        return $this->hasMany(PriceScheme::class);
+    }
+
+    /**
+     * Get rooms of this room type.
+     */
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
     }
 }

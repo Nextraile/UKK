@@ -195,6 +195,16 @@ class Kost extends Model
     }
 
     /**
+     * Get the rooms for this kost (1:N).
+     *
+     * @return HasMany<Room, $this>
+     */
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
+    }
+
+    /**
      * Check if kost is in draft status.
      */
     public function isDraft(): bool

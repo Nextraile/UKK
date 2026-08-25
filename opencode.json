@@ -19,7 +19,7 @@
     "playwright": {
       "type": "remote",
       "url": "http://localhost:8931/mcp",
-      "enabled": true
+      "enabled": false
     },
     "codegraph": {
       "type": "local",

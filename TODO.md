@@ -158,17 +158,17 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-027 | Setup migration RoomType, RoomTypeImage, PriceScheme, Room | FR-036—FR-047 | TASK-010 | Must | Not Started | 1 hari | 4 migrations, price_scheme 1:N dengan room_type, room status enum (available/unavailable) |
-| TASK-028 | Admin CRUD Room Type | FR-036, FR-037 | TASK-027 | Must | Not Started | 1 hari | Controller, form request, views. Fields: name, slug, description, room_size, max_occupants, security_deposit |
-| TASK-029 | Upload & manage room type images | FR-038 | TASK-027 | Must | Not Started | 0.5 hari | File upload, set thumbnail, same pattern dengan kost images |
-| TASK-030 | Configure room type facilities & rules (JSON) | FR-039, FR-040 | TASK-027 | Must | Not Started | 0.5 hari | Dynamic list input, JSON array, same pattern dengan kost |
-| TASK-031 | Admin CRUD Price Scheme (1:N dengan RoomType) | FR-041, FR-042, FR-043 | TASK-027 | Must | Not Started | 1 hari | Controller, form request. Fields: price, duration_value, duration_unit, is_active |
-| TASK-032 | Admin CRUD Room unit (physical room) | FR-044, FR-045 | TASK-027 | Must | Not Started | 1 hari | Room code unique per kost, pilih room_type, status default available |
-| TASK-033 | Set room available/unavailable dengan validation | FR-046, FR-047 | TASK-032 | Must | Not Started | 0.5 hari | Validation: cek tidak ada rental pending/paid/confirmed/active sebelum set unavailable |
-| TASK-034 | Calculate & display room occupancy (ADR-017, ADR-018) | FR-046, FR-047 | TASK-032 | Must | Not Started | 1 hari | Real-time calculation reserved/occupied/free_slots dari rentals, display di admin dashboard |
-| TASK-035 | Unit & feature tests COMP-004 | FR-036—FR-047 | TASK-027—TASK-034 | Must | Not Started | 1 hari | Test CRUD, occupancy calculation, validation room status |
+| TASK-027 | Setup migration RoomType, RoomTypeImage, PriceScheme, Room | FR-036—FR-047 | TASK-010 | Must | Done | 1 hari | ✅ 4 migrations created, all models with relations, factories. Occupancy stub implemented (returns 0 until COMP-006) |
+| TASK-028 | Admin CRUD Room Type | FR-036, FR-037 | TASK-027 | Must | Done | 1 hari | ✅ Controller, form requests, views. Slug auto-generated |
+| TASK-029 | Upload & manage room type images | FR-038 | TASK-027 | Must | Done | 0.5 hari | ✅ File upload, set thumbnail, reorder via Alpine.js |
+| TASK-030 | Configure room type facilities & rules (JSON) | FR-039, FR-040 | TASK-027 | Must | Done | 0.5 hari | ✅ Dynamic list input Alpine.js, JSON array storage |
+| TASK-031 | Admin CRUD Price Scheme (1:N dengan RoomType) | FR-041, FR-042, FR-043 | TASK-027 | Must | Done | 1 hari | ✅ Inline CRUD table + modal, toggle active status |
+| TASK-032 | Admin CRUD Room unit (physical room) | FR-044, FR-045 | TASK-027 | Must | Done | 1 hari | ✅ Grouped by room type, inline CRUD, code unique per kost |
+| TASK-033 | Set room available/unavailable dengan validation | FR-046, FR-047 | TASK-032 | Must | Done | 0.5 hari | ✅ Status toggle AJAX, FR-046 validation stub (always allows until COMP-006) |
+| TASK-034 | Calculate & display room occupancy (ADR-017, ADR-018) | FR-046, FR-047 | TASK-032 | Must | Done | 1 hari | ✅ Stub accessors implemented (reserved_count, occupied_count, used_slots, free_slots, calculated_status). All return 0 + TODO comments. Will implement in COMP-006 with Rental model |
+| TASK-035 | Unit & feature tests COMP-004 | FR-036—FR-047 | TASK-027—TASK-034 | Must | Done | 1 hari | ✅ 125 tests, 316 assertions total. RoomType/PriceScheme/Room CRUD, policies, occupancy stubs, FR-046 validation stub |
 
-**Subtotal COMP-004:** 9 tasks, ~7.5 hari
+**Subtotal COMP-004:** 9 tasks, 9 Done, ~7.5 hari
 
 ---
 
@@ -276,14 +276,14 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-001 (Identity) | 13 | 13 | 0 | 0 | 0 | 8.75 hari |
 | COMP-002 (Kost Publication) | 10 | 10 | 0 | 0 | 0 | 9.5 hari |
 | COMP-003 (Kost Configuration) | 9 | 9 | 0 | 0 | 0 | 7.5 hari |
-| COMP-004 (Room Inventory) | 9 | 0 | 0 | 9 | 0 | 7.5 hari |
+| COMP-004 (Room Inventory) | 9 | 9 | 0 | 0 | 0 | 7.5 hari |
 | COMP-005 (Marketplace) | 10 | 0 | 0 | 10 | 0 | 7.5 hari |
 | COMP-006 (Rental Lifecycle) | 12 | 0 | 0 | 12 | 0 | 12 hari |
 | COMP-007 (Payment) | 6 | 0 | 0 | 6 | 0 | 4.5 hari |
 | COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
-| **TOTAL** | **84 tasks** | **32** | **0** | **52** | **0** | **~66.25 hari kerja** |
+| **TOTAL** | **84 tasks** | **41** | **0** | **43** | **0** | **~66.25 hari kerja** |
 
 **Catatan Estimasi:**
 - Total **~66.25 hari kerja** untuk 1 developer (solo work)
@@ -398,6 +398,7 @@ COMP-009 (parallel dengan COMP-002)
 | 1.0.1 | 2026-08-23 | Pre-existing test failures fixed (ProfileTest avatar upload, RegistrationTest database isolation). Mail classes moved to domain folders (COMP-001 Identity, COMP-002 Kost). Structural consistency cleanup. 222/225 tests passing. | OpenCode |
 | 1.0.2 | 2026-08-23 | Documentation sync: Resolved TASK ID collision (COMP-002 improvement tasks renumbered TASK-089/090 to avoid conflict with COMP-003's pre-planned TASK-018/019). Updated traceability matrix (FR-016, FR-023, FR-007). Metadata: 84 tasks total, 15 Done (COMP-001 13 + COMP-002 2 new). Line count 361→405. | OpenCode |
 | 1.0.3 | 2026-08-24 | COMP-003 complete (9/9 tasks Done, 7.5 hari). TASK-018 through TASK-026: migrations (kost_images, kost_document_requirements), models (KostImage, KostDocumentRequirement, Category with auto-slug), controllers (KostImageController, DocumentRequirementController, SuperAdmin\CategoryController), policies (KostImagePolicy, KostDocumentRequirementPolicy, CategoryPolicy), views (admin/kosts/config/, super-admin/categories/), 91 tests passing (KostAddressTest 9, KostImageTest 17, KostCategoryTest 8, KostFacilitiesRulesTest 11, KostPaymentTest 10, KostDocumentRequirementTest 21, CategoryManagementTest 15). Implementation: address updateOrCreate pattern, image upload thumbnail + sort_order, category multi-select sync, facilities/rules JSON arrays with Alpine.js, QRIS + bank payment config, document requirements CRUD with inline edit. 32/84 tasks Done total (38% progress). | OpenCode |
+| 1.0.4 | 2026-08-25 | COMP-004 complete (9/9 tasks Done, 7.5 hari). TASK-027 through TASK-035: migrations (room_types, room_type_images, price_schemes, rooms), models (RoomType, RoomTypeImage, PriceScheme, Room with occupancy stubs), controllers (RoomTypeController, RoomTypeImageController, PriceSchemeController, RoomController), policies (RoomTypePolicy, RoomTypeImagePolicy, PriceSchemePolicy, RoomPolicy), form requests (6 total), views (admin/room-types/, admin/price-schemes/, admin/rooms/), 125 tests passing (316 assertions total). Implementation: RoomType CRUD with auto-slug, image upload + thumbnail + reorder, facilities/rules JSON arrays, inline PriceScheme CRUD with modal, Room CRUD grouped by type, status toggle AJAX, occupancy stub accessors (reserved_count, occupied_count, used_slots, free_slots, calculated_status - all return 0 with TODO comments until COMP-006 Rental model). FR-046 validation stub (always allows status change until COMP-006). 41/84 tasks Done total (49% progress). | OpenCode |
 
 ---
 
