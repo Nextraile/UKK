@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PriceSchemeController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\RoomTypeImageController;
+use App\Http\Controllers\KostDetailController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\CategoryController;
@@ -20,6 +21,9 @@ Route::get('/', function () {
 // Public marketplace — no auth required (users can browse unverified, FR-006).
 Route::get('/marketplace', [MarketplaceController::class, 'index'])
     ->name('marketplace.index');
+
+Route::get('/marketplace/kosts/{kost:slug}', [KostDetailController::class, 'show'])
+    ->name('marketplace.show');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

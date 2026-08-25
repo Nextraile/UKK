@@ -30,7 +30,7 @@ class KostFactory extends Factory
         return [
             'user_id' => User::factory()->admin(),
             'name' => fake()->company().' Kost',
-            'slug' => null, // Auto-generated in model boot()
+            // slug auto-generated in model boot() - don't set here
             'description' => fake()->paragraph(3),
             'contact_number' => fake()->numerify('08##########'),
             'facilities' => ['WiFi', 'AC', 'Kasur', 'Lemari'],

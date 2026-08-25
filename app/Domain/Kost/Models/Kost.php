@@ -205,6 +205,19 @@ class Kost extends Model
     }
 
     /**
+     * Get the reviews for this kost (1:N).
+     *
+     * Placeholder relationship for COMP-008 (Review & Rating).
+     * Returns empty collection until Review model is implemented.
+     *
+     * @return HasMany<Review, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
      * Check if kost is in draft status.
      */
     public function isDraft(): bool
