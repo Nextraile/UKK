@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Rental\Models\Rental;
+use App\Domain\Rental\Models\RentalDocument;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class RentalManagementController extends Controller
 {
@@ -47,6 +51,13 @@ class RentalManagementController extends Controller
             });
         }
 
+        // Filter payment verification status (FR-071)
+        if ($request->filled('payment_verification') && $request->payment_verification === 'pending') {
+            $query->whereHas('payment', function ($q) {
+                $q->whereNotNull('proof_of_payment_path');
+            });
+        }
+
         $rentals = $query->paginate(20);
 
         // Get admin's kosts for filter dropdown
@@ -75,5 +86,30 @@ class RentalManagementController extends Controller
         ]);
 
         return view('admin.rentals.show', compact('rental'));
+    }
+
+    /**
+     * Serve rental document file for admin review.
+     *
+     * FR-087: Admin view submitted documents before approval
+     *
+     * @param  RentalDocument  $document  The document to view
+     *
+     * @throws HttpException 404 if file not found
+     */
+    public function viewDocument(RentalDocument $document): BinaryFileResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $document->rental);
+
+        // Check if file exists on private disk
+        if (! Storage::disk('private')->exists($document->document_path)) {
+            abort(404, 'Document not found');
+        }
+
+        // Serve from private disk
+        return response()->file(
+            Storage::disk('private')->path($document->document_path)
+        );
     }
 }

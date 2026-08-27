@@ -26,7 +26,7 @@ class CompleteRentals extends Command
      *
      * @var string
      */
-    protected $description = 'Auto-complete rentals after their end_date';
+    protected $description = 'Auto-complete rentals on or after their end_date';
 
     /**
      * Execute the console command.
@@ -36,7 +36,7 @@ class CompleteRentals extends Command
         $this->info('Checking for rentals to complete...');
 
         $rentalsToComplete = Rental::where('status', 'active')
-            ->whereDate('end_date', '<', now()->toDateString())
+            ->whereDate('end_date', '<=', now()->toDateString())
             ->get();
 
         if ($rentalsToComplete->isEmpty()) {

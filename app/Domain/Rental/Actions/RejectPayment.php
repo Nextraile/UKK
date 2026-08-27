@@ -20,8 +20,11 @@ class RejectPayment
     /**
      * Execute payment rejection.
      *
+     * Updates payment with rejection reason, transitions rental to rejected,
+     * appends status history, and queues email notification.
+     *
      * @param  Payment  $payment  Payment to reject
-     * @param  string  $reason  Rejection reason (required)
+     * @param  string  $reason  Rejection reason (min 10 chars)
      * @param  User  $admin  Admin who is rejecting the payment
      */
     public function execute(Payment $payment, string $reason, User $admin): void

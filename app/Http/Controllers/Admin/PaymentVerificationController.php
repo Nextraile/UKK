@@ -21,9 +21,10 @@ class PaymentVerificationController extends Controller
      */
     public function approve(Payment $payment): RedirectResponse
     {
+        $this->authorize('verify', $payment);
+
         /** @var User $admin */
         $admin = auth()->user();
-        abort_if($payment->rental->room->roomType->kost->user_id !== $admin->id, 403);
 
         app(VerifyPayment::class)->execute($payment, $admin);
 
@@ -39,9 +40,10 @@ class PaymentVerificationController extends Controller
      */
     public function reject(RejectPaymentRequest $request, Payment $payment): RedirectResponse
     {
+        $this->authorize('verify', $payment);
+
         /** @var User $admin */
         $admin = auth()->user();
-        abort_if($payment->rental->room->roomType->kost->user_id !== $admin->id, 403);
 
         app(RejectPayment::class)->execute($payment, $request->validated('rejection_reason'), $admin);
 

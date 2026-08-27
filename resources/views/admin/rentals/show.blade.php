@@ -12,6 +12,23 @@
 
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <!-- Flash Messages -->
+            @if(session('success'))
+                <div class="mb-6 rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+                    <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                        {{ session('success') }}
+                    </p>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                    <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+                        {{ $errors->first() }}
+                    </p>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <!-- Left Column (2/3 width) -->
                 <div class="space-y-6 lg:col-span-2">
@@ -99,7 +116,7 @@
 
                             <div class="mb-4">
                                 <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Bukti Pembayaran:</p>
-                                <img src="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                <img src="{{ route('rentals.payment.proof', $rental) }}" 
                                      alt="Bukti pembayaran" 
                                      class="h-auto max-w-md rounded-lg border border-gray-300">
                             </div>
@@ -175,7 +192,7 @@
                     @endif
 
                     <!-- Document Verification Section (Stub) -->
-                    @if($rental->status === 'paid')
+                    @if($rental->status === 'paid' || $rental->status === 'documents_pending')
                         <x-card>
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
                                 Verifikasi Dokumen
@@ -190,24 +207,99 @@
                                     @php
                                         $document = $rental->rentalDocuments->firstWhere('document_type', $requirement->document_type);
                                     @endphp
-                                    <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                                        <div>
-                                            <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $requirement->document_type }}
-                                                @if($requirement->is_required)
-                                                    <span class="ml-1 text-red-600">*</span>
-                                                @endif
-                                            </p>
-                                            @if($document)
-                                                <p class="text-xs text-gray-600 dark:text-gray-400">
-                                                    Status: {{ ucfirst($document->verification_status) }}
+                                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="font-semibold text-gray-900 dark:text-gray-100">
+                                                    {{ $requirement->document_type }}
+                                                    @if($requirement->is_required)
+                                                        <span class="ml-1 text-red-600">*</span>
+                                                    @endif
                                                 </p>
-                                            @else
-                                                <p class="text-xs text-gray-500 italic">Belum diupload</p>
+                                                @if($document)
+                                                    <p class="text-xs text-gray-600 dark:text-gray-400">
+                                                        Status: {{ ucfirst($document->verification_status) }}
+                                                    </p>
+                                                @else
+                                                    <p class="text-xs text-gray-500 italic">Belum diupload</p>
+                                                @endif
+                                            </div>
+                                            @if($document && $document->verification_status === 'pending')
+                                                <div class="flex gap-2">
+                                                    <form method="POST" action="{{ route('admin.documents.approve', $document) }}" class="inline">
+                                                        @csrf
+                                                        <button type="submit" 
+                                                                class="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                                                                onclick="return confirm('Approve dokumen {{ $requirement->document_type }}?')">
+                                                            Approve
+                                                        </button>
+                                                    </form>
+                                                    <button type="button"
+                                                            x-data
+                                                            @click="$dispatch('open-modal', 'reject-document-{{ $document->id }}')"
+                                                            class="text-sm text-red-600 hover:text-red-700 font-medium">
+                                                        Reject
+                                                    </button>
+                                                </div>
                                             @endif
                                         </div>
+
+                                        @if($document)
+                                            <!-- Document Preview -->
+                                            <div class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+                                                @if(str_ends_with($document->document_path, '.pdf'))
+                                                    <a href="{{ route('admin.rentals.documents.show', $document) }}" 
+                                                       target="_blank" 
+                                                       class="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">
+                                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                        </svg>
+                                                        View PDF Document
+                                                    </a>
+                                                @else
+                                                    <img src="{{ route('admin.rentals.documents.show', $document) }}" 
+                                                         alt="{{ $requirement->document_type }}" 
+                                                         class="max-w-xs rounded border border-gray-300 dark:border-gray-600">
+                                                @endif
+                                            </div>
+                                        @endif
+
                                         @if($document && $document->verification_status === 'pending')
-                                            <button class="text-sm text-primary-600 hover:text-primary-700">Verifikasi</button>
+                                            <!-- Reject Document Modal -->
+                                            <x-modal name="reject-document-{{ $document->id }}" focusable>
+                                                <form method="POST" action="{{ route('admin.documents.reject', $document) }}" class="p-6">
+                                                    @csrf
+                                                    
+                                                    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                                        Reject Dokumen: {{ $requirement->document_type }}
+                                                    </h2>
+                                                    
+                                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                                        Berikan alasan penolakan dokumen (minimal 10 karakter).
+                                                    </p>
+                                                    
+                                                    <div class="mt-6">
+                                                        <x-input-label for="rejection_reason_{{ $document->id }}" value="Alasan Penolakan" />
+                                                        <textarea id="rejection_reason_{{ $document->id }}" 
+                                                                  name="rejection_reason" 
+                                                                  rows="4" 
+                                                                  required
+                                                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                                                  placeholder="Contoh: Foto KTP tidak jelas / Data tidak sesuai / ..."></textarea>
+                                                        <x-input-error :messages="$errors->get('rejection_reason')" class="mt-2" />
+                                                    </div>
+                                                    
+                                                    <div class="mt-6 flex justify-end space-x-3">
+                                                        <x-secondary-button x-on:click="$dispatch('close')">
+                                                            Batal
+                                                        </x-secondary-button>
+                                                        
+                                                        <x-danger-button type="submit">
+                                                            Reject Document
+                                                        </x-danger-button>
+                                                    </div>
+                                                </form>
+                                            </x-modal>
                                         @endif
                                     </div>
                                 @endforeach

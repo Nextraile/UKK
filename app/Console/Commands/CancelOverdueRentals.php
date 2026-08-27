@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Domain\Rental\Mail\RentalCancelledMail;
+use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalStatusHistory;
 use Illuminate\Console\Command;
@@ -26,7 +27,7 @@ class CancelOverdueRentals extends Command
      *
      * @var string
      */
-    protected $description = 'Auto-cancel rentals in pending status for more than 7 days';
+    protected $description = 'Auto-cancel rentals with expired payment deadline (48 hours)';
 
     /**
      * Execute the console command.
@@ -35,12 +36,13 @@ class CancelOverdueRentals extends Command
     {
         $this->info('Checking for overdue pending rentals...');
 
-        $sevenDaysAgo = now()->subDays(7);
-        $overdueRentals = Rental::where('status', 'pending')
-            ->where('created_at', '<=', $sevenDaysAgo)
+        // FR-076: Check payment.expired_at (48h deadline)
+        $overduePayments = Payment::where('status', 'pending')
+            ->where('expired_at', '<', now())
+            ->with('rental.user')
             ->get();
 
-        if ($overdueRentals->isEmpty()) {
+        if ($overduePayments->isEmpty()) {
             $this->info('No overdue pending rentals found.');
 
             return self::SUCCESS;
@@ -49,14 +51,21 @@ class CancelOverdueRentals extends Command
         $successCount = 0;
         $errorCount = 0;
 
-        foreach ($overdueRentals as $rental) {
+        foreach ($overduePayments as $payment) {
+            $rental = $payment->rental;
+
+            // Skip if rental already cancelled (idempotency)
+            if ($rental->status === 'cancelled') {
+                continue;
+            }
+
             try {
                 DB::transaction(function () use ($rental) {
                     // Update rental status
                     $rental->update([
                         'status' => 'cancelled',
                         'cancelled_at' => now(),
-                        'cancelled_reason' => 'Auto-cancelled: Payment not received within 7 days',
+                        'cancelled_reason' => 'Auto-cancelled: Payment not received within 48 hours (deadline expired)',
                     ]);
 
                     // Record status history
@@ -64,7 +73,7 @@ class CancelOverdueRentals extends Command
                         'rental_id' => $rental->id,
                         'status' => 'cancelled',
                         'changed_by' => 1, // System user
-                        'internal_notes' => 'Auto-cancelled: Payment not received within 7 days',
+                        'internal_notes' => 'Auto-cancelled: Payment not received within 48 hours (deadline expired)',
                     ]);
 
                     // Queue email notification
@@ -84,7 +93,7 @@ class CancelOverdueRentals extends Command
             }
         }
 
-        $this->info("Processed {$overdueRentals->count()} overdue rentals: {$successCount} cancelled, {$errorCount} errors.");
+        $this->info("Processed {$overduePayments->count()} overdue rentals: {$successCount} cancelled, {$errorCount} errors.");
 
         return self::SUCCESS;
     }

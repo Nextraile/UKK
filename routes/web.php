@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Rental\Models\Payment;
 use App\Http\Controllers\Admin\DocumentRequirementController;
 use App\Http\Controllers\Admin\DocumentVerificationController;
 use App\Http\Controllers\Admin\KostController;
@@ -18,6 +19,11 @@ use App\Http\Controllers\SuperAdmin\KostSubmissionController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\RentalController;
 use Illuminate\Support\Facades\Route;
+
+// Route model bindings with eager loading (VULN-002 fix)
+Route::bind('payment', function ($value) {
+    return Payment::with('rental.room.roomType.kost')->findOrFail($value);
+});
 
 Route::get('/', function () {
     return view('welcome');
@@ -62,9 +68,19 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
     Route::get('/rentals/{rental}/payment', [PaymentController::class, 'show'])->name('rentals.payment.show');
     Route::post('/rentals/{rental}/payment/upload', [PaymentController::class, 'uploadProof'])->name('rentals.payment.upload');
 
+    // Payment proof and QRIS download with authorization (VULN-003 fix)
+    Route::get('/rentals/{rental}/payment/proof', [PaymentController::class, 'downloadProof'])
+        ->name('rentals.payment.proof');
+    Route::get('/rentals/{rental}/payment/qris', [PaymentController::class, 'downloadQris'])
+        ->name('rentals.payment.qris');
+
     // Document upload (TASK-053)
     Route::post('/rentals/{rental}/documents', [RentalController::class, 'uploadDocument'])
         ->name('rentals.documents.upload');
+
+    // Document download with authorization (VULN-001 fix)
+    Route::get('/rentals/documents/{document}/download', [RentalController::class, 'downloadDocument'])
+        ->name('rentals.documents.download');
 
     // Rental cancellation (TASK-054)
     Route::get('/rentals/{rental}/cancel', [RentalController::class, 'cancelForm'])
@@ -170,6 +186,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->name('documents.approve');
     Route::post('documents/{document}/reject', [DocumentVerificationController::class, 'reject'])
         ->name('documents.reject');
+
+    // Document Viewing (FR-087: Admin view submitted documents)
+    Route::get('rentals/documents/{document}', [RentalManagementController::class, 'viewDocument'])
+        ->name('rentals.documents.show');
 });
 
 // Super Admin - Kost Submissions Review (COMP-002: Kost Publication)

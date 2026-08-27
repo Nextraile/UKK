@@ -29,7 +29,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_tenant_can_upload_document_for_paid_rental(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -69,7 +69,7 @@ class DocumentVerificationTest extends TestCase
         ]);
 
         $document = $rental->rentalDocuments()->first();
-        $this->assertTrue(Storage::disk('public')->exists($document->document_path));
+        $this->assertTrue(Storage::disk('private')->exists($document->document_path));
     }
 
     /**
@@ -77,7 +77,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_first_document_upload_transitions_status_to_documents_pending(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -120,7 +120,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_tenant_cannot_upload_document_for_pending_rental(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -157,7 +157,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_tenant_can_reupload_rejected_document(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -208,7 +208,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_upload_validates_document_type_against_requirements(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -540,7 +540,7 @@ class DocumentVerificationTest extends TestCase
      */
     public function test_tenant_cannot_upload_document_for_other_rental(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant1 = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $tenant2 = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);

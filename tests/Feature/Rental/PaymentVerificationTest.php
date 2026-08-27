@@ -163,4 +163,80 @@ class PaymentVerificationTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    /**
+     * Test tenant can view payment page with QRIS and bank info.
+     *
+     * Covers: FR-069 (Display QRIS + Bank Info)
+     */
+    public function test_tenant_can_view_payment_page_with_qris_and_bank_info(): void
+    {
+        Storage::fake('private');
+
+        $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        // Create kost with payment config
+        $kost = Kost::factory()->create([
+            'user_id' => $admin->id,
+            'status' => 'active',
+            'qris_image_path' => UploadedFile::fake()->image('qris.png')->store('qris', 'private'),
+            'bank_name' => 'Bank BCA',
+            'account_number' => '1234567890',
+            'account_holder_name' => 'John Doe',
+        ]);
+
+        $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
+        $room = Room::factory()->create(['room_type_id' => $roomType->id]);
+
+        $rental = Rental::factory()->create([
+            'user_id' => $tenant->id,
+            'room_id' => $room->id,
+            'status' => 'pending',
+        ]);
+
+        // Act: Tenant views payment page
+        $response = $this->actingAs($tenant)->get(route('rentals.payment.show', $rental));
+
+        // Assert: Page displays payment info
+        $response->assertOk()
+            ->assertSee('Rp '.number_format($rental->grand_total, 0, ',', '.'))
+            ->assertSee('QRIS')
+            ->assertSee('Bank BCA')
+            ->assertSee('1234567890')
+            ->assertSee('John Doe');
+    }
+
+    /**
+     * Test tenant can view payment rejection reason.
+     *
+     * Covers: FR-074 (Reject Bukti Pembayaran - tenant notification)
+     */
+    public function test_tenant_can_view_payment_rejection_reason(): void
+    {
+        $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $kost = Kost::factory()->create(['user_id' => $admin->id, 'status' => 'active']);
+        $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
+        $room = Room::factory()->create(['room_type_id' => $roomType->id]);
+
+        $rental = Rental::factory()->create([
+            'user_id' => $tenant->id,
+            'room_id' => $room->id,
+            'status' => 'pending',
+        ]);
+
+        // Admin rejects payment with reason
+        $rental->payment->update([
+            'rejection_reason' => 'Bukti tidak jelas, mohon upload ulang dengan kualitas lebih baik',
+        ]);
+
+        // Act: Tenant views payment page
+        $response = $this->actingAs($tenant)->get(route('rentals.payment.show', $rental));
+
+        // Assert: Rejection reason displayed
+        $response->assertOk()
+            ->assertSee('Bukti tidak jelas, mohon upload ulang dengan kualitas lebih baik');
+    }
 }

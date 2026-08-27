@@ -37,16 +37,22 @@ class RentalLifecycleJobsTest extends TestCase
     }
 
     /**
-     * Test auto-cancel overdue pending rentals (>7 days).
+     * Test auto-cancel overdue pending rentals (payment expired).
      */
     public function test_cancel_overdue_pending_rentals(): void
     {
         Mail::fake();
 
-        // Setup: Create rental in pending status, created 8 days ago
+        // Setup: Create rental in pending status with expired payment
         $rental = Rental::factory()->create([
             'status' => 'pending',
             'created_at' => now()->subDays(8),
+        ]);
+
+        // Set payment expired (48 hours from rental creation passed)
+        $rental->payment->update([
+            'expired_at' => now()->subDay(),
+            'status' => 'pending',
         ]);
 
         // Act: Run command
@@ -58,7 +64,7 @@ class RentalLifecycleJobsTest extends TestCase
         // Assert: Rental cancelled
         $this->assertEquals('cancelled', $rental->fresh()->status);
         $this->assertNotNull($rental->fresh()->cancelled_at);
-        $this->assertEquals('Auto-cancelled: Payment not received within 7 days', $rental->fresh()->cancelled_reason);
+        $this->assertStringContainsString('48 hours', $rental->fresh()->cancelled_reason);
 
         // Assert: Status history recorded
         $this->assertDatabaseHas('rental_status_histories', [
@@ -74,14 +80,20 @@ class RentalLifecycleJobsTest extends TestCase
     }
 
     /**
-     * Test command does not cancel rentals created <7 days ago.
+     * Test command does not cancel rentals with non-expired payment.
      */
     public function test_does_not_cancel_recent_pending_rentals(): void
     {
-        // Setup: Create rental 6 days ago (not yet overdue)
+        // Setup: Create rental with payment not yet expired (expires in 1 day)
         $rental = Rental::factory()->create([
             'status' => 'pending',
             'created_at' => now()->subDays(6),
+        ]);
+
+        // Set payment not yet expired
+        $rental->payment->update([
+            'expired_at' => now()->addDay(),
+            'status' => 'pending',
         ]);
 
         // Act: Run command
@@ -109,6 +121,51 @@ class RentalLifecycleJobsTest extends TestCase
         // Assert: Rental still paid
         $this->assertEquals('paid', $rental->fresh()->status);
         $this->assertNull($rental->fresh()->cancelled_at);
+    }
+
+    /**
+     * Test rental auto-cancelled when payment deadline expires (FR-076).
+     */
+    public function test_rental_auto_cancelled_when_payment_deadline_expires(): void
+    {
+        Mail::fake();
+
+        // Arrange: Create rental with expired payment (expired 1 hour ago)
+        $tenant = User::factory()->create(['role' => 'user']);
+        $rental = Rental::factory()->create([
+            'user_id' => $tenant->id,
+            'status' => 'pending',
+        ]);
+
+        // Set payment expired 1 hour ago (48 hours from rental creation passed)
+        $rental->payment->update([
+            'expired_at' => now()->subHour(),
+            'status' => 'pending',
+        ]);
+
+        // Act: Run command
+        $exitCode = Artisan::call('rentals:cancel-overdue');
+
+        // Assert: Command successful
+        $this->assertEquals(0, $exitCode);
+
+        // Assert: Rental cancelled
+        $rental->refresh();
+        $this->assertEquals('cancelled', $rental->status);
+        $this->assertNotNull($rental->cancelled_at);
+        $this->assertStringContainsString('48 hours', $rental->cancelled_reason);
+
+        // Assert: Status history recorded
+        $this->assertDatabaseHas('rental_status_histories', [
+            'rental_id' => $rental->id,
+            'status' => 'cancelled',
+            'changed_by' => 1, // System user
+        ]);
+
+        // Assert: Email sent
+        Mail::assertQueued(RentalCancelledMail::class, function ($mail) use ($rental) {
+            return $mail->hasTo($rental->user->email);
+        });
     }
 
     /**
@@ -192,7 +249,7 @@ class RentalLifecycleJobsTest extends TestCase
     }
 
     /**
-     * Test auto-complete active rentals after end_date.
+     * Test auto-complete active rentals on or after end_date.
      */
     public function test_complete_active_rentals_after_end_date(): void
     {
@@ -204,6 +261,44 @@ class RentalLifecycleJobsTest extends TestCase
             'status' => 'active',
             'start_date' => now()->subMonths(1)->startOfDay(),
             'end_date' => $yesterday,
+        ]);
+
+        // Act: Run command
+        $exitCode = Artisan::call('rentals:complete');
+
+        // Assert: Command successful
+        $this->assertEquals(0, $exitCode);
+
+        // Assert: Rental completed
+        $this->assertEquals('completed', $rental->fresh()->status);
+        $this->assertNotNull($rental->fresh()->completed_at);
+
+        // Assert: Status history recorded
+        $this->assertDatabaseHas('rental_status_histories', [
+            'rental_id' => $rental->id,
+            'status' => 'completed',
+            'changed_by' => 1,
+        ]);
+
+        // Assert: Email sent
+        Mail::assertQueued(RentalCompletedMail::class, function ($mail) use ($rental) {
+            return $mail->hasTo($rental->user->email);
+        });
+    }
+
+    /**
+     * Test auto-complete active rentals on end_date (today).
+     */
+    public function test_complete_active_rentals_on_end_date(): void
+    {
+        Mail::fake();
+
+        // Setup: Create active rental with end_date=today
+        $today = now()->startOfDay();
+        $rental = Rental::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subMonths(1)->startOfDay(),
+            'end_date' => $today,
         ]);
 
         // Act: Run command
@@ -276,11 +371,19 @@ class RentalLifecycleJobsTest extends TestCase
      */
     public function test_cancel_processes_multiple_rentals_in_batch(): void
     {
-        // Setup: Create 5 overdue pending rentals
+        // Setup: Create 5 overdue pending rentals with expired payments
         $rentals = Rental::factory()->count(5)->create([
             'status' => 'pending',
             'created_at' => now()->subDays(10),
         ]);
+
+        // Set all payments expired
+        foreach ($rentals as $rental) {
+            $rental->payment->update([
+                'expired_at' => now()->subHours(2),
+                'status' => 'pending',
+            ]);
+        }
 
         // Act: Run command
         Artisan::call('rentals:cancel-overdue');
@@ -319,10 +422,16 @@ class RentalLifecycleJobsTest extends TestCase
      */
     public function test_cancel_command_is_idempotent(): void
     {
-        // Setup: Create overdue pending rental
+        // Setup: Create overdue pending rental with expired payment
         $rental = Rental::factory()->create([
             'status' => 'pending',
             'created_at' => now()->subDays(10),
+        ]);
+
+        // Set payment expired
+        $rental->payment->update([
+            'expired_at' => now()->subHours(3),
+            'status' => 'pending',
         ]);
 
         // Act: Run command twice
