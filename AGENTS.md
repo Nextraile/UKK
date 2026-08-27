@@ -5,8 +5,8 @@
 
 | Field | Value |
 |---|---|
-| Versi Dokumen | `1.0.4` |
-| Terakhir Diperbarui | `2026-08-24` |
+| Versi Dokumen | `1.0.6` |
+| Terakhir Diperbarui | `2026-08-27` |
 
 ## Project Summary
 
@@ -20,24 +20,24 @@
 
 ```bash
 # Start environment (first time or after reboot)
-./vendor/bin/sail up -d
+wsl ./vendor/bin/sail up -d
 
 # Run tests (Definition of Done requirement)
-./vendor/bin/sail artisan test                                   # PHPUnit (NOT Pest)
-./vendor/bin/sail php vendor/bin/phpstan analyse                 # level 5 (via sail, bukan docker exec root)
-./vendor/bin/sail pint                                           # auto-fix style
+wsl ./vendor/bin/sail artisan test                                   # PHPUnit (NOT Pest)
+wsl ./vendor/bin/sail php vendor/bin/phpstan analyse                 # level 5 (via sail, bukan docker exec root)
+wsl ./vendor/bin/sail pint                                           # auto-fix style
 
 # Database
-./vendor/bin/sail artisan migrate
-./vendor/bin/sail artisan migrate:fresh --seed                   # WARNING: destroys data
+wsl ./vendor/bin/sail artisan migrate
+wsl ./vendor/bin/sail artisan migrate:fresh --seed                   # WARNING: destroys data
 
 # Create files
-./vendor/bin/sail artisan make:model Domain/XXX/ModelName -mf   # migration + factory
-./vendor/bin/sail artisan make:controller Admin/XXXController --resource
+wsl ./vendor/bin/sail artisan make:model Domain/XXX/ModelName -mf   # migration + factory
+wsl ./vendor/bin/sail artisan make:controller Admin/XXXController --resource
 
 # Install dependencies
-./vendor/bin/sail composer require vendor/package
-./vendor/bin/sail npm install package-name
+wsl ./vendor/bin/sail composer require vendor/package
+wsl ./vendor/bin/sail npm install package-name
 
 # Access
 # http://localhost (app)
@@ -49,7 +49,7 @@
 ## Architecture Quick Reference
 
 - **Structure:** Modular monolith. Domain logic in `app/Domain/<Component>/`, controllers in `app/Http/Controllers/<Role>/`, views in `resources/views/<role>/`.
-- **Auth:** Laravel Breeze (session-based). **Customization required:** OTP email verification (6-digit, 15min expiry) instead of default link-based. NOT implemented yet — see COMP-001 in TODO.md.
+- **Auth:** Laravel Breeze (session-based). **Customization required:** OTP email verification (6-digit, 15min expiry) instead of default link-based.
 - **State machines:** Use Action classes for lifecycle transitions (Kost: draft→pending_review→approved→active, Rental: pending→paid→confirmed→active→completed). NO generic `$model->update(['status' => ...])` — see ADR-009.
 - **JSON fields:** Facilities/rules stored as JSON arrays (`['facilities' => 'array']` cast). Document requirements, review images also JSON — see ADR-013, ADR-015.
 - **Room availability:** Calculated real-time from rentals (`max_occupants - used_slots`), not denormalized in `rooms.status` — see ADR-017, ADR-018.
@@ -73,8 +73,8 @@ Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc l
 1. Read `TODO.md` for task acceptance criteria
 2. Read referenced `FR-xxx` in `PRD.md` for business context
 3. Read referenced `COMP-xxx` in `ARCHITECTURE.md` for technical design
-4. **Read `DESIGN.md` for UI/UX components and design tokens** (4340 lines, 38 components)
-5. **Read `PAGES.md` for page-specific layout, data, and user flows** (1928 lines, 57 pages + 8 emails)
+4. Read `DESIGN.md` for UI/UX components and design tokens (±38 components)
+5. Read `PAGES.md` for page-specific layout, data, and user flows (±57 pages & ±8 emails)
 6. Check `ARCHITECTURE.md` §3.1 for library official docs
 
 **If docs don't answer:** Create `Q-xxx` in `PRD.md` §13 — don't guess.
@@ -83,15 +83,15 @@ Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc l
 
 **DESIGN.md** — Design System & Component Library
 - **Design tokens:** Colors, typography, spacing, shadows (Tailwind CSS 4.0 compatible)
-- **38 components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
+- **±38 components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
 - **Layout patterns:** Public (marketplace), Admin (sidebar), Auth (centered card)
 - **Responsive design:** Mobile-first approach, breakpoints, touch targets
 - **Accessibility:** WCAG 2.1 AA guidelines, keyboard nav, screen reader support
 - **Implementation:** Blade + Alpine.js + Tailwind examples for every component
 
 **PAGES.md** — Page & Interface Specifications
-- **57 pages:** Public (3), Auth (6), Tenant (16), Admin (21), Super Admin (11)
-- **8 email templates:** OTP verification, payment/document notifications, rental status changes
+- **±57 pages:** Public (3), Auth (6), Tenant (16), Admin (21), Super Admin (11)
+- **±8 email templates:** OTP verification, payment/document notifications, rental status changes
 - **Each page spec includes:** URL, auth, layout structure, components used, data requirements, validation, user flows, edge cases, accessibility notes
 - **Use this for:** Understanding page-specific requirements when implementing Blade views
 
@@ -200,7 +200,7 @@ wsl ./vendor/bin/sail exec laravel.test chmod -R 775 /var/www/html/storage/frame
 wsl ./vendor/bin/sail exec laravel.test chown -R sail:sail /var/www/html/storage/framework/testing
 ```
 
-**Prevention:** Always run tests via `./vendor/bin/sail artisan test` (never root user).
+**Prevention:** Always run tests via `wsl ./vendor/bin/sail artisan test` (never root user).
 
 ---
 
@@ -315,18 +315,6 @@ wsl rm -f /home/nextraile/Workspaces/Code/SewaKost/.phpunit.result.cache
 
 ---
 
-### Recent Fixes (2026-08-24)
-
-**Issue:** 18 test failures (14 storage permissions, 2 DB leaks, 1 mismatch, 1 missing test data).
-
-**Resolution:**
-- Fixed storage permissions: `chmod 775` + `chown sail:sail` on test directories
-- Added `RefreshDatabase` trait to `KostPolicyTest`
-- Updated route assertion in `OtpVerificationTest`: `/superadmin/submissions` → `/super-admin/kost-submissions`
-- Added QRIS + document requirement setup in `KostStatusProtectionTest`
-
-**Current status:** ✅ 316/316 tests passing (771 assertions, ~15s execution time)
-
 ## Agent Coordination Strategy
 
 ### Format Response
@@ -385,32 +373,6 @@ Invoke with `@agent-name` or delegate via Task tool. See individual agent specs 
 - **UI/UX AI guidance:** `taste-skill` (design-taste-frontend v2 — anti-slop frontend rules, complements DESIGN.md)
 
 See `SKILL.md` §1 for full descriptions and trigger keywords. Use `skill-architect` before creating new skills.
-
-## Code Intelligence (codegraph MCP)
-
-**codegraph v1.5.0** — Pre-indexed code knowledge graph for faster agent context (44% lower cost, 62% fewer tokens, 88% fewer tool calls per benchmark).
-
-**Index stats:** 230 files · 4,754 nodes · 13,565 edges · 22.5 MB SQLite (auto-syncs on file changes)
-
-**Available MCP tools:**
-- `codegraph_explore <query>` — Find relevant symbols + source code + call paths in one shot (PREFERRED over grep+Read)
-- `codegraph_node <name>` — Get one symbol's source + caller/callee trail
-- `codegraph_query <search>` — Full-text search for symbols across codebase
-- `codegraph_files` — Show project file structure from index
-
-**When to use:**
-- "Find the User model" → `codegraph_explore "User model"`
-- "What calls this method?" → `codegraph_node "MethodName"`
-- "Where is OTP verification?" → `codegraph_query "OTP"`
-- Before refactoring: check blast radius (what depends on this symbol)
-- Faster than grep + multiple Read calls — one query returns full context
-
-**CLI commands** (terminal, not MCP):
-- `codegraph status` — Check index health + sync status
-- `codegraph explore "<query>"` — CLI exploration
-- `codegraph sync` — Manual sync (rarely needed, auto-sync default ON)
-
-**Index location:** `.codegraph/` (gitignored, regenerate with `codegraph init`)
 
 ## Browser Automation (playwright-mcp)
 
@@ -513,7 +475,7 @@ docker compose -f docker-compose.playwright-mcp.yml down            # stop
 
 ---
 
-**Project status:** Environment ready. UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 84 tasks in TODO.md (~66 days, 13-14 weeks). COMP-001 (Identity, 13 tasks) Done ✅. COMP-002 (Kost Publication, 10 tasks) Done ✅. Ready for COMP-003 (Kost Configuration).
+**Project status:** Environment ready. Technical debt cleanup complete (26 issues fixed, v1.0.6). UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 84 tasks in TODO.md (~66 days, 13-14 weeks). COMP-001 (Identity, 13 tasks) Done ✅. COMP-002 (Kost Publication, 10 tasks) Done ✅. COMP-003 (Kost Configuration, 7 tasks) Done ✅. COMP-004 (Booking, 9 tasks) Done ✅. COMP-005 (Rental Management, 11 tasks) Done ✅. COMP-006 (Document Verification, 9 tasks) Done ✅. Ready for COMP-007 (Payment Management).
 
 **Documentation inventory:**
 - PRD.md (792 lines): 130 FR, 29 NFR, 22 US, 4 personas
@@ -531,7 +493,7 @@ Total: 9,886 lines of documentation
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
-When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+use the installed graphify skill or instructions before doing anything else.
 
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
