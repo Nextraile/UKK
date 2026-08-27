@@ -60,7 +60,7 @@ class Kost extends Model
      * Note: 'status' is intentionally excluded (TASK-016, ADR-009).
      * Status can only be changed via Action classes using direct assignment.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'user_id',
@@ -86,6 +86,8 @@ class Kost extends Model
      * Create a new factory instance for the model.
      *
      * @return Factory<static>
+     *
+     * @phpstan-return KostFactory
      */
     protected static function newFactory()
     {

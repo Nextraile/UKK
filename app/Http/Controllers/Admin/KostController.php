@@ -108,20 +108,7 @@ class KostController extends Controller
         $wasRejected = $kost->isRejected();
 
         // Handle fallback for JS-disabled clients
-        // If facilities_text or rules_text exists, parse line-by-line into array
-        if ($request->has('facilities_text') && ! $request->has('facilities')) {
-            $data['facilities'] = array_values(array_filter(
-                array_map('trim', explode("\n", $request->input('facilities_text', ''))),
-                fn ($line) => ! empty($line)
-            ));
-        }
-
-        if ($request->has('rules_text') && ! $request->has('rules')) {
-            $data['rules'] = array_values(array_filter(
-                array_map('trim', explode("\n", $request->input('rules_text', ''))),
-                fn ($line) => ! empty($line)
-            ));
-        }
+        $data = $this->parseFacilitiesAndRules($request, $data);
 
         DB::transaction(function () use ($kost, $data, $wasRejected, $request) {
             // Update fillable fields
@@ -156,6 +143,36 @@ class KostController extends Controller
         return redirect()
             ->route('admin.kosts.show', $kost)
             ->with('success', 'Kost berhasil diperbarui.');
+    }
+
+    /**
+     * Parse facilities and rules from text input for JS-disabled clients.
+     *
+     * Converts newline-separated text into arrays for facilities and rules.
+     *
+     * @param  UpdateKostRequest  $request  The form request
+     * @param  array<string, mixed>  $validated  Validated data array
+     * @return array<string, mixed> Modified validated data with parsed facilities/rules
+     */
+    private function parseFacilitiesAndRules(UpdateKostRequest $request, array $validated): array
+    {
+        // If facilities_text exists but facilities doesn't, parse line-by-line
+        if ($request->has('facilities_text') && ! $request->has('facilities')) {
+            $validated['facilities'] = array_values(array_filter(
+                array_map('trim', explode("\n", $request->input('facilities_text', ''))),
+                fn ($line) => ! empty($line)
+            ));
+        }
+
+        // If rules_text exists but rules doesn't, parse line-by-line
+        if ($request->has('rules_text') && ! $request->has('rules')) {
+            $validated['rules'] = array_values(array_filter(
+                array_map('trim', explode("\n", $request->input('rules_text', ''))),
+                fn ($line) => ! empty($line)
+            ));
+        }
+
+        return $validated;
     }
 
     /**

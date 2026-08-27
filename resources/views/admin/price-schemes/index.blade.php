@@ -77,7 +77,6 @@
                     alert('Gagal mengubah status paket harga');
                 }
             } catch (error) {
-                console.error('Error:', error);
                 alert('Terjadi kesalahan saat mengubah status');
             }
         }

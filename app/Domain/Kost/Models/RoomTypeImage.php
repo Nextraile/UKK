@@ -31,6 +31,8 @@ class RoomTypeImage extends Model
      * Create a new factory instance for the model.
      *
      * @return Factory<static>
+     *
+     * @phpstan-return RoomTypeImageFactory
      */
     protected static function newFactory()
     {
