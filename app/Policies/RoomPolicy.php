@@ -54,9 +54,7 @@ class RoomPolicy
      * Determine if admin can set room to unavailable.
      *
      * FR-046: Room can only be set unavailable if no active/reserved rentals exist.
-     *
-     * TODO: COMP-006 - Implement proper validation after Rental model exists.
-     * Current: Stub always returns true (no validation until rentals exist).
+     * ADR-017: Room occupancy calculated real-time from rentals.
      */
     public function setUnavailable(User $user, Room $room): bool
     {
@@ -64,7 +62,6 @@ class RoomPolicy
             return false;
         }
 
-        // TODO: COMP-006 - Add validation: return $room->used_slots === 0;
-        return true; // Stub: always allow until COMP-006
+        return $room->used_slots === 0;
     }
 }

@@ -7,6 +7,7 @@ namespace Tests\Unit\Policies;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\Room;
+use App\Domain\Rental\Models\Rental;
 use App\Policies\RoomPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -124,19 +125,28 @@ class RoomPolicyTest extends TestCase
         $this->assertFalse($this->policy->delete($admin, $room));
     }
 
-    /** @test */
-    public function set_unavailable_stub_always_passes_for_admin(): void
+    /**
+     * SetUnavailable policy blocks when room has active or reserved rentals.
+     *
+     * FR-046: Room can only be set unavailable if no active/reserved rentals exist.
+     * ADR-017: Room occupancy calculated real-time from rentals.
+     */
+    public function test_set_unavailable_blocks_when_room_has_rentals(): void
     {
         $admin = User::factory()->admin()->create();
         $kost = Kost::factory()->create(['user_id' => $admin->id]);
-        $room = Room::factory()->create(['kost_id' => $kost->id]);
+        $room = Room::factory()->create(['kost_id' => $kost->id, 'status' => 'available']);
 
-        // Until COMP-006: stub always returns true
-        $this->assertTrue($this->policy->setUnavailable($admin, $room));
+        // Create active rental (blocks setUnavailable)
+        Rental::factory()->active()->create(['room_id' => $room->id]);
+
+        $this->assertFalse($this->policy->setUnavailable($admin, $room));
     }
 
-    /** @test */
-    public function set_unavailable_fails_for_non_owner(): void
+    /**
+     * SetUnavailable fails for non-owner admin.
+     */
+    public function test_set_unavailable_fails_for_non_owner(): void
     {
         $admin = User::factory()->admin()->create();
         $otherAdmin = User::factory()->admin()->create();

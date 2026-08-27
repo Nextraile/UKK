@@ -78,18 +78,22 @@ class RoomController extends Controller
      * Set room status (available/unavailable).
      *
      * FR-046: Room can only be set unavailable if no active rentals.
-     * TODO: COMP-006 - Validation stub (always allows until Rental model exists).
+     * ADR-009: Authorization enforced via RoomPolicy::setUnavailable().
      */
     public function setStatus(Request $request, Kost $kost, Room $room): RedirectResponse
     {
-        $this->authorize('update', $room);
-
         $validated = $request->validate([
             'status' => ['required', 'in:available,unavailable'],
         ]);
 
-        // FR-046: Stub validation - always allows (no rentals exist yet)
-        // TODO: When COMP-006 implemented, check if used_slots == 0
+        // Policy enforcement: setUnavailable checks used_slots === 0
+        if ($validated['status'] === 'unavailable') {
+            $this->authorize('setUnavailable', $room);
+        } else {
+            $this->authorize('update', $room);
+        }
+
+        // Double-check validation (redundant with policy, but defensive)
         if ($validated['status'] === 'unavailable' && $room->used_slots > 0) {
             return redirect()
                 ->route('admin.rooms.index', $kost)

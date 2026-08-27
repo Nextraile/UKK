@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\DocumentRequirementController;
+use App\Http\Controllers\Admin\DocumentVerificationController;
 use App\Http\Controllers\Admin\KostController;
 use App\Http\Controllers\Admin\KostImageController;
+use App\Http\Controllers\Admin\PaymentVerificationController;
 use App\Http\Controllers\Admin\PriceSchemeController;
+use App\Http\Controllers\Admin\RentalManagementController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\RoomTypeImageController;
@@ -12,6 +15,8 @@ use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\CategoryController;
 use App\Http\Controllers\SuperAdmin\KostSubmissionController;
+use App\Http\Controllers\Tenant\PaymentController;
+use App\Http\Controllers\Tenant\RentalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,6 +49,28 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// COMP-006: Rental Lifecycle Management
+Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
+    Route::get('/rentals', [RentalController::class, 'index'])->name('rentals.index');
+    Route::get('/rentals/create', [RentalController::class, 'create'])->name('rentals.create');
+    Route::post('/rentals', [RentalController::class, 'store'])->name('rentals.store');
+    Route::get('/rentals/{rental}', [RentalController::class, 'show'])->name('rentals.show');
+
+    // Payment upload (TASK-051)
+    Route::get('/rentals/{rental}/payment', [PaymentController::class, 'show'])->name('rentals.payment.show');
+    Route::post('/rentals/{rental}/payment/upload', [PaymentController::class, 'uploadProof'])->name('rentals.payment.upload');
+
+    // Document upload (TASK-053)
+    Route::post('/rentals/{rental}/documents', [RentalController::class, 'uploadDocument'])
+        ->name('rentals.documents.upload');
+
+    // Rental cancellation (TASK-054)
+    Route::get('/rentals/{rental}/cancel', [RentalController::class, 'cancelForm'])
+        ->name('rentals.cancel.form');
+    Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel'])
+        ->name('rentals.cancel');
 });
 
 // Admin Kost Management (COMP-002: Kost Publication)
@@ -125,6 +152,24 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->name('rooms.destroy');
     Route::patch('kosts/{kost}/rooms/{room}/status', [RoomController::class, 'setStatus'])
         ->name('rooms.set-status');
+
+    // Rental Management (COMP-006: Rental Lifecycle)
+    Route::get('rentals', [RentalManagementController::class, 'index'])
+        ->name('rentals.index');
+    Route::get('rentals/{rental}', [RentalManagementController::class, 'show'])
+        ->name('rentals.show');
+
+    // Payment Verification (TASK-051)
+    Route::post('payments/{payment}/approve', [PaymentVerificationController::class, 'approve'])
+        ->name('payments.approve');
+    Route::post('payments/{payment}/reject', [PaymentVerificationController::class, 'reject'])
+        ->name('payments.reject');
+
+    // Document Verification (TASK-053)
+    Route::post('documents/{document}/approve', [DocumentVerificationController::class, 'approve'])
+        ->name('documents.approve');
+    Route::post('documents/{document}/reject', [DocumentVerificationController::class, 'reject'])
+        ->name('documents.reject');
 });
 
 // Super Admin - Kost Submissions Review (COMP-002: Kost Publication)

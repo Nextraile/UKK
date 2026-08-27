@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Address;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
@@ -13,7 +14,6 @@ use App\Domain\Kost\Models\PriceScheme;
 use App\Domain\Kost\Models\Room;
 use App\Domain\Kost\Models\RoomType;
 use App\Domain\Kost\Models\RoomTypeImage;
-use App\Domain\Identity\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -23,6 +23,7 @@ class KostSeeder extends Seeder
      * Image counter for sequential image assignment.
      */
     protected int $kostImageCounter = 1;
+
     protected int $roomImageCounter = 1;
 
     /**
@@ -68,8 +69,9 @@ class KostSeeder extends Seeder
 
         $superAdmin = User::where('email', 'superadmin@sewakost.com')->first();
 
-        if (!$superAdmin) {
+        if (! $superAdmin) {
             $this->command->error('❌ SuperAdmin not found. Run UserSeeder first.');
+
             return;
         }
 
@@ -144,8 +146,8 @@ class KostSeeder extends Seeder
             'rules' => $this->generateRules(),
             'bank_name' => $this->randomBankName(),
             'account_number' => $this->generateAccountNumber(),
-            'account_holder_name' => $admin->first_name . ' ' . $admin->last_name,
-            'qris_image_path' => "kost-images/qris-seed-placeholder.jpg",
+            'account_holder_name' => $admin->first_name.' '.$admin->last_name,
+            'qris_image_path' => 'kost-images/qris-seed-placeholder.jpg',
             'status' => 'active',
             'submitted_at' => now()->subDays(rand(10, 15)),
             'approved_at' => now()->subDays(rand(5, 10)),
@@ -218,7 +220,7 @@ class KostSeeder extends Seeder
             'user_id' => $admin->id,
             'name' => $location['name'],
             'slug' => $slug,
-            'description' => $this->generateDescription($location['name']) . ' (Masih dalam tahap penyusunan)',
+            'description' => $this->generateDescription($location['name']).' (Masih dalam tahap penyusunan)',
             'contact_number' => $admin->phone ?? '081234567890',
             'facilities' => $this->generateFacilities(6),
             'rules' => $this->generateRules(2),
@@ -282,7 +284,7 @@ class KostSeeder extends Seeder
             'rules' => $this->generateRules(),
             'bank_name' => $this->randomBankName(),
             'account_number' => $this->generateAccountNumber(),
-            'account_holder_name' => $admin->first_name . ' ' . $admin->last_name,
+            'account_holder_name' => $admin->first_name.' '.$admin->last_name,
             'qris_image_path' => 'kost-images/qris-seed-placeholder.jpg',
             'status' => 'pending_review',
             'submitted_at' => now()->subDays(rand(1, 3)),
@@ -333,7 +335,7 @@ class KostSeeder extends Seeder
             'rules' => $this->generateRules(),
             'bank_name' => $this->randomBankName(),
             'account_number' => $this->generateAccountNumber(),
-            'account_holder_name' => $admin->first_name . ' ' . $admin->last_name,
+            'account_holder_name' => $admin->first_name.' '.$admin->last_name,
             'qris_image_path' => 'kost-images/qris-seed-placeholder.jpg',
             'status' => 'approved',
             'submitted_at' => now()->subDays(rand(5, 10)),
@@ -481,12 +483,12 @@ class KostSeeder extends Seeder
 
         // Create 5 rooms per room type (unique codes using counter)
         static $roomCodeCounter = 1;
-        
+
         for ($i = 0; $i < 5; $i++) {
             Room::create([
                 'kost_id' => $kost->id,
                 'room_type_id' => $roomType->id,
-                'code' => 'R-' . str_pad((string)$roomCodeCounter, 3, '0', STR_PAD_LEFT),
+                'code' => 'R-'.str_pad((string) $roomCodeCounter, 3, '0', STR_PAD_LEFT),
                 'status' => $i < 4 ? 'available' : 'unavailable', // 80% available, 20% unavailable
             ]);
             $roomCodeCounter++;
@@ -499,10 +501,10 @@ class KostSeeder extends Seeder
     protected function generateDescription(string $name): string
     {
         $descriptions = [
-            "Kost nyaman dan strategis dekat dengan kampus dan pusat kota. Lingkungan aman dengan akses mudah ke transportasi umum.",
-            "Hunian kost eksklusif dengan fasilitas lengkap dan modern. Cocok untuk mahasiswa dan pekerja profesional.",
-            "Kost bersih dan terawat dengan suasana kekeluargaan. Dekat dengan minimarket, warung makan, dan fasilitas umum.",
-            "Tempat tinggal ideal untuk Anda yang mencari kenyamanan dan keamanan. Area strategis dengan akses 24 jam.",
+            'Kost nyaman dan strategis dekat dengan kampus dan pusat kota. Lingkungan aman dengan akses mudah ke transportasi umum.',
+            'Hunian kost eksklusif dengan fasilitas lengkap dan modern. Cocok untuk mahasiswa dan pekerja profesional.',
+            'Kost bersih dan terawat dengan suasana kekeluargaan. Dekat dengan minimarket, warung makan, dan fasilitas umum.',
+            'Tempat tinggal ideal untuk Anda yang mencari kenyamanan dan keamanan. Area strategis dengan akses 24 jam.',
         ];
 
         return $descriptions[array_rand($descriptions)];
@@ -531,6 +533,7 @@ class KostSeeder extends Seeder
         ];
 
         shuffle($allFacilities);
+
         return array_slice($allFacilities, 0, $count);
     }
 
@@ -551,6 +554,7 @@ class KostSeeder extends Seeder
         ];
 
         shuffle($allRules);
+
         return array_slice($allRules, 0, $count);
     }
 
@@ -571,6 +575,7 @@ class KostSeeder extends Seeder
         ];
 
         shuffle($facilities);
+
         return array_slice($facilities, 0, 5);
     }
 
@@ -587,6 +592,7 @@ class KostSeeder extends Seeder
         ];
 
         shuffle($rules);
+
         return array_slice($rules, 0, 3);
     }
 
@@ -596,6 +602,7 @@ class KostSeeder extends Seeder
     protected function randomBankName(): string
     {
         $banks = ['BCA', 'Mandiri', 'BNI', 'BRI'];
+
         return $banks[array_rand($banks)];
     }
 

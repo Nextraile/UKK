@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Identity\Models;
 
+use App\Domain\Kost\Models\Kost;
+use App\Domain\Rental\Models\Rental;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -115,5 +117,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function otpVerifications(): HasMany
     {
         return $this->hasMany(OtpVerification::class);
+    }
+
+    /**
+     * Get the rentals created by this user (tenant).
+     *
+     * @return HasMany<Rental, $this>
+     */
+    public function rentals(): HasMany
+    {
+        return $this->hasMany(Rental::class);
+    }
+
+    /**
+     * Get the kosts owned by this user (admin).
+     *
+     * @return HasMany<Kost, $this>
+     */
+    public function kosts(): HasMany
+    {
+        return $this->hasMany(Kost::class);
     }
 }
