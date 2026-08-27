@@ -139,7 +139,7 @@ class UserSeeder extends Seeder
             ]
         );
 
-        if (!$deletedUser->trashed()) {
+        if (! $deletedUser->trashed()) {
             $deletedUser->delete();
         }
 

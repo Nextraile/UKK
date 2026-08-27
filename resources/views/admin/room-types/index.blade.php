@@ -62,7 +62,7 @@
                             {{ $roomType->max_occupants }} orang
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            Rp {{ number_format($roomType->security_deposit, 0, ',', '.') }}
+                            Rp {{ number_format((float) $roomType->security_deposit, 0, ',', '.') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $roomType->roomTypeImages->count() }}

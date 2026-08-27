@@ -21,17 +21,19 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database with comprehensive demo data.
      *
      * Execution order respects FK constraints:
-     * 1. CategorySeeder - Independent master data
-     * 2. UserSeeder - Independent identity data
-     * 3. DevSampleImageSeeder - Download images from picsum.photos
-     * 4. KostSeeder - Depends on users, categories, images
+     * 1. SystemUserSeeder - System user (id=1) for automated operations
+     * 2. CategorySeeder - Independent master data
+     * 3. UserSeeder - Independent identity data
+     * 4. DevSampleImageSeeder - Download images from picsum.photos
+     * 5. KostSeeder - Depends on users, categories, images
      */
     public function run(): void
     {
         // Environment check
-        if (!app()->environment(['local', 'testing'])) {
+        if (! app()->environment(['local', 'testing'])) {
             $this->command->warn('⚠️  Comprehensive seeding only runs in local/testing environments');
-            $this->command->info('Current environment: ' . app()->environment());
+            $this->command->info('Current environment: '.app()->environment());
+
             return;
         }
 
@@ -40,6 +42,7 @@ class DatabaseSeeder extends Seeder
 
         // Execution order (respect FK constraints)
         $this->call([
+            SystemUserSeeder::class,       // System user (id=1)
             CategorySeeder::class,        // Independent (master data)
             UserSeeder::class,             // Independent (identity)
             DevSampleImageSeeder::class,   // Download images first

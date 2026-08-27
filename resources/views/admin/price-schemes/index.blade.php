@@ -162,7 +162,7 @@
                                                 @endif
                                             </td>
                                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                                Rp {{ number_format($priceScheme->price, 0, ',', '.') }}
+                                                Rp {{ number_format((float) $priceScheme->price, 0, ',', '.') }}
                                             </td>
                                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                                 {{ $priceScheme->duration_value }} 

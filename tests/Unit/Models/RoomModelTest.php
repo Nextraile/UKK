@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
+use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\Room;
 use App\Domain\Kost\Models\RoomType;
+use App\Domain\Rental\Models\Rental;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,8 +16,10 @@ class RoomModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function room_belongs_to_kost(): void
+    /**
+     * Room belongs to a Kost.
+     */
+    public function test_room_belongs_to_kost(): void
     {
         $kost = Kost::factory()->create();
         $room = Room::factory()->create(['kost_id' => $kost->id]);
@@ -24,8 +28,10 @@ class RoomModelTest extends TestCase
         $this->assertEquals($kost->id, $room->kost->id);
     }
 
-    /** @test */
-    public function room_belongs_to_room_type(): void
+    /**
+     * Room belongs to a RoomType.
+     */
+    public function test_room_belongs_to_room_type(): void
     {
         $roomType = RoomType::factory()->create();
         $room = Room::factory()->create(['room_type_id' => $roomType->id]);
@@ -34,67 +40,107 @@ class RoomModelTest extends TestCase
         $this->assertEquals($roomType->id, $room->roomType->id);
     }
 
-    /** @test */
-    public function reserved_count_returns_zero_until_comp_006(): void
+    /**
+     * Reserved count returns zero until COMP-006 implemented.
+     */
+    public function test_reserved_count_returns_zero_until_comp_006(): void
     {
         $room = Room::factory()->create();
 
         $this->assertEquals(0, $room->reserved_count);
     }
 
-    /** @test */
-    public function occupied_count_returns_zero_until_comp_006(): void
+    /**
+     * Occupied count returns zero until COMP-006 implemented.
+     */
+    public function test_occupied_count_returns_zero_until_comp_006(): void
     {
         $room = Room::factory()->create();
 
         $this->assertEquals(0, $room->occupied_count);
     }
 
-    /** @test */
-    public function used_slots_sums_reserved_and_occupied(): void
+    /**
+     * Used slots sums reserved and occupied rentals.
+     *
+     * FR-046: Room occupancy calculated from active rentals.
+     * ADR-018: used_slots = pending + paid + confirmed + active.
+     */
+    public function test_used_slots_sums_reserved_and_occupied(): void
     {
-        $room = Room::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $kost = Kost::factory()->create(['user_id' => $admin->id]);
+        $roomType = RoomType::factory()->create(['kost_id' => $kost->id, 'max_occupants' => 5]);
+        $room = Room::factory()->create(['kost_id' => $kost->id, 'room_type_id' => $roomType->id]);
 
-        // Until COMP-006: both are 0, so used_slots = 0
-        $this->assertEquals(0, $room->used_slots);
+        // Create rentals in different states (pending, paid, confirmed = reserved; active = occupied)
+        Rental::factory()->pending()->create(['room_id' => $room->id]);
+        Rental::factory()->paid()->create(['room_id' => $room->id]);
+        Rental::factory()->confirmed()->create(['room_id' => $room->id]);
+        Rental::factory()->active()->create(['room_id' => $room->id]);
+
+        $room->refresh();
+
+        // used_slots should count all: pending(1) + paid(1) + confirmed(1) + active(1) = 4
+        $this->assertEquals(4, $room->used_slots);
     }
 
-    /** @test */
-    public function free_slots_calculated_from_max_occupants(): void
+    /**
+     * Free slots calculated from max_occupants minus used_slots.
+     *
+     * FR-046: Room availability based on max_occupants and current rentals.
+     * ADR-018: free_slots = max_occupants - used_slots.
+     */
+    public function test_free_slots_calculated_from_max_occupants(): void
     {
-        $roomType = RoomType::factory()->create(['max_occupants' => 3]);
-        $room = Room::factory()->create(['room_type_id' => $roomType->id]);
+        $admin = User::factory()->admin()->create();
+        $kost = Kost::factory()->create(['user_id' => $admin->id]);
+        $roomType = RoomType::factory()->create(['kost_id' => $kost->id, 'max_occupants' => 3]);
+        $room = Room::factory()->create(['kost_id' => $kost->id, 'room_type_id' => $roomType->id]);
 
-        // Until COMP-006: used_slots = 0, so free_slots = max_occupants
-        $this->assertEquals(3, $room->free_slots);
+        // Create 1 active rental (uses 1 slot)
+        Rental::factory()->active()->create(['room_id' => $room->id]);
+
+        $room->refresh();
+
+        // free_slots = max_occupants(3) - used_slots(1) = 2
+        $this->assertEquals(2, $room->free_slots);
     }
 
-    /** @test */
-    public function calculated_status_returns_available_until_comp_006(): void
+    /**
+     * Calculated status returns available until COMP-006.
+     */
+    public function test_calculated_status_returns_available_until_comp_006(): void
     {
         $room = Room::factory()->create();
 
         $this->assertEquals('available', $room->calculated_status);
     }
 
-    /** @test */
-    public function room_status_defaults_to_available(): void
+    /**
+     * Room status defaults to available.
+     */
+    public function test_room_status_defaults_to_available(): void
     {
         $room = Room::factory()->create(['status' => 'available']);
 
         $this->assertEquals('available', $room->status);
     }
 
-    /** @test */
-    public function room_can_be_unavailable(): void
+    /**
+     * Room can be set to unavailable status.
+     */
+    public function test_room_can_be_unavailable(): void
     {
         $room = Room::factory()->create(['status' => 'unavailable']);
 
         $this->assertEquals('unavailable', $room->status);
     }
 
-    /** @test */
-    public function room_uses_soft_deletes(): void
+    /**
+     * Room uses soft deletes.
+     */
+    public function test_room_uses_soft_deletes(): void
     {
         $room = Room::factory()->create();
         $id = $room->id;

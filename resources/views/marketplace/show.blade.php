@@ -215,13 +215,12 @@
                                         @endif
                                         
                                         <!-- Action Button -->
-                                        <button 
-                                            onclick="alert('Booking akan tersedia di COMP-006')"
-                                            class="w-full px-4 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors {{ $roomType->available_count === 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                                            {{ $roomType->available_count === 0 ? 'disabled' : '' }}
+                                        <a 
+                                            href="{{ route('rentals.create', ['kost_id' => $kost->id, 'room_type_id' => $roomType->id]) }}"
+                                            class="block w-full px-4 py-2 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors {{ $roomType->available_count === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
                                         >
                                             {{ $roomType->available_count > 0 ? 'Pilih Kamar Ini' : 'Tidak Tersedia' }}
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             @endforeach
@@ -353,6 +352,11 @@
                                             .addTo(this.map)
                                             .bindPopup('{{ $kost->name }}');
                                     });
+                                    this.$cleanup(() => {
+                                        if (this.map) {
+                                            this.map.remove();
+                                        }
+                                    });
                                 }
                             }"
                             class="mb-4"
@@ -407,12 +411,12 @@
                         </div>
                     @endif
                     
-                    <button 
-                        onclick="alert('Rental creation akan tersedia di COMP-006')"
-                        class="w-full px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+                    <a 
+                        href="{{ route('rentals.create', ['kost_id' => $kost->id]) }}"
+                        class="block w-full px-6 py-3 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors"
                     >
                         Booking Sekarang
-                    </button>
+                    </a>
                     
                     <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Kontak</h4>
