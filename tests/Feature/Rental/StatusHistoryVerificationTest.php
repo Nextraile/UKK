@@ -24,6 +24,7 @@ use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -463,8 +464,8 @@ class StatusHistoryVerificationTest extends TestCase
         $pendingHistory = $rental->statusHistories()->where('status', 'pending')->first();
         $this->assertNotNull($pendingHistory->created_at);
 
-        // Small delay to ensure different timestamps
-        sleep(1);
+        // Use deterministic time control instead of sleep
+        Carbon::setTestNow(now()->addSecond());
 
         app(VerifyPayment::class)->execute($rental->payment, $this->admin);
 
@@ -474,6 +475,9 @@ class StatusHistoryVerificationTest extends TestCase
 
         // Timestamps should be sequential (paid after pending)
         $this->assertTrue($paidHistory->created_at->greaterThanOrEqualTo($pendingHistory->created_at));
+
+        // Reset real time
+        Carbon::setTestNow();
     }
 
     /**

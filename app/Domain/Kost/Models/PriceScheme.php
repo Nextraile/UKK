@@ -36,6 +36,8 @@ class PriceScheme extends Model
      * Create a new factory instance for the model.
      *
      * @return Factory<static>
+     *
+     * @phpstan-return PriceSchemeFactory
      */
     protected static function newFactory()
     {
@@ -52,7 +54,7 @@ class PriceScheme extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'room_type_id',

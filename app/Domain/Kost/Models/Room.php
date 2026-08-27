@@ -42,6 +42,8 @@ class Room extends Model
      * Create a new factory instance for the model.
      *
      * @return Factory<static>
+     *
+     * @phpstan-return RoomFactory
      */
     protected static function newFactory()
     {
@@ -58,7 +60,7 @@ class Room extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'kost_id',

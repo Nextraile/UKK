@@ -70,8 +70,7 @@
                     alert(data.message || 'Gagal mengubah status kamar');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat mengubah status');
+                alert('Terjadi kesalahan saat mengubah status kamar');
             }
         }
     }">

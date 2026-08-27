@@ -35,6 +35,8 @@ class Address extends Model
      * Create a new factory instance for the model.
      *
      * @return Factory<static>
+     *
+     * @phpstan-return AddressFactory
      */
     protected static function newFactory()
     {
@@ -51,7 +53,7 @@ class Address extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'kost_id',

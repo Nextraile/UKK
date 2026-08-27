@@ -25,6 +25,12 @@ services:
     depends_on:
       - mysql
       - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   mysql:
     image: "mysql:8.0"
@@ -72,6 +78,12 @@ services:
       - "${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
     networks:
       - sail
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   sail:

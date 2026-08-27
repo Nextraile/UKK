@@ -50,13 +50,13 @@ class UploadDocument
         }
 
         // Find existing document of same type for this rental
+        /** @var RentalDocument|null $existingDoc */
         $existingDoc = $rental->rentalDocuments()
             ->where('document_type', $documentType)
             ->first();
 
         if ($existingDoc) {
             // Delete old file if exists
-            // @phpstan-ignore-next-line (document_path always set on RentalDocument)
             if ($existingDoc->document_path && Storage::disk('public')->exists($existingDoc->document_path)) {
                 Storage::disk('public')->delete($existingDoc->document_path);
             }
@@ -71,7 +71,9 @@ class UploadDocument
                 'verified_by' => null,
             ]);
 
-            return $existingDoc->fresh() ?? $existingDoc;
+            $existingDoc->refresh();
+
+            return $existingDoc;
         }
 
         // Create new document record
