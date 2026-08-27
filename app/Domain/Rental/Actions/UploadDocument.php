@@ -57,13 +57,13 @@ class UploadDocument
 
         if ($existingDoc) {
             // Delete old file if exists
-            if ($existingDoc->document_path && Storage::disk('public')->exists($existingDoc->document_path)) {
-                Storage::disk('public')->delete($existingDoc->document_path);
+            if ($existingDoc->document_path && Storage::disk('private')->exists($existingDoc->document_path)) {
+                Storage::disk('private')->delete($existingDoc->document_path);
             }
 
             // Reset verification status (allow re-upload)
             $existingDoc->update([
-                'document_path' => $file->store('rental-documents', 'public'),
+                'document_path' => $file->store('rental-documents', 'private'),
                 'uploaded_at' => now(),
                 'verification_status' => 'pending',
                 'rejection_reason' => null,
@@ -79,7 +79,7 @@ class UploadDocument
         // Create new document record
         $document = $rental->rentalDocuments()->create([
             'document_type' => $documentType,
-            'document_path' => $file->store('rental-documents', 'public'),
+            'document_path' => $file->store('rental-documents', 'private'),
             'uploaded_at' => now(),
             'verification_status' => 'pending',
         ]);

@@ -53,19 +53,35 @@
                 @if($rental->payment->qris_image_path)
                     <div class="mb-4 text-center">
                         <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Scan QRIS:</p>
-                        <img src="{{ Storage::url($rental->payment->qris_image_path) }}" 
+                        <img src="{{ route('rentals.payment.qris', $rental) }}" 
                              alt="QRIS Payment" 
                              class="mx-auto h-64 w-auto rounded-lg border border-gray-300">
                     </div>
                 @endif
 
-                <!-- Bank Info (stub - from kost config) -->
-                <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Atau transfer ke rekening:</p>
-                    <p class="mt-2 text-base font-semibold text-gray-900 dark:text-gray-100">
-                        (Info bank dari kost config - to be implemented)
-                    </p>
-                </div>
+                <!-- Bank Info (from kost config - FR-069) -->
+                @php
+                    $kost = $rental->room->roomType->kost;
+                @endphp
+                @if($kost->bank_name && $kost->account_number)
+                    <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Atau transfer ke rekening:</p>
+                        <div class="mt-2 space-y-1">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Bank</p>
+                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->bank_name }}</p>
+                        </div>
+                        <div class="mt-2 space-y-1">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">No. Rekening</p>
+                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->account_number }}</p>
+                        </div>
+                        @if($kost->account_holder_name)
+                            <div class="mt-2 space-y-1">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Atas Nama</p>
+                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->account_holder_name }}</p>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </x-card>
 
             <!-- Upload Proof Section -->
@@ -93,7 +109,7 @@
                         <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">
                             Bukti pembayaran sudah diupload. Menunggu verifikasi admin.
                         </p>
-                        <img src="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                        <img src="{{ route('rentals.payment.proof', $rental) }}" 
                              alt="Bukti Pembayaran" 
                              class="mt-2 h-48 w-auto rounded-lg border border-gray-300">
                     </div>

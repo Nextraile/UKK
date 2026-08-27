@@ -16,7 +16,9 @@ use App\Domain\Kost\Models\RoomTypeImage;
 use App\Domain\Kost\Policies\KostDocumentRequirementPolicy;
 use App\Domain\Kost\Policies\KostImagePolicy;
 use App\Domain\Kost\Policies\KostPolicy;
+use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
+use App\Policies\PaymentPolicy;
 use App\Policies\PriceSchemePolicy;
 use App\Policies\RentalPolicy;
 use App\Policies\RoomPolicy;
@@ -46,6 +48,7 @@ class AuthServiceProvider extends ServiceProvider
         Room::class => RoomPolicy::class,
         PriceScheme::class => PriceSchemePolicy::class,
         Rental::class => RentalPolicy::class,
+        Payment::class => PaymentPolicy::class,
     ];
 
     /**

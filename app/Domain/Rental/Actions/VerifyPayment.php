@@ -23,6 +23,9 @@ class VerifyPayment
     /**
      * Execute payment verification.
      *
+     * Updates payment status to verified, transitions rental to paid,
+     * appends status history, and queues email notification.
+     *
      * @param  Payment  $payment  Payment to verify
      * @param  User  $admin  Admin who is verifying
      */

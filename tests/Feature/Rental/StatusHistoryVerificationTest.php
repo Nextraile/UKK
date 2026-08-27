@@ -331,7 +331,7 @@ class StatusHistoryVerificationTest extends TestCase
             'qris_image_path' => 'qris/test.png',
             'amount' => 1500000,
             'status' => 'pending',
-            'expired_at' => now()->addHours(48),
+            'expired_at' => now()->subHours(2), // Payment expired 2 hours ago
         ]);
 
         // Create initial status history manually
@@ -341,9 +341,9 @@ class StatusHistoryVerificationTest extends TestCase
             'internal_notes' => 'Rental created by tenant',
         ]);
 
-        // Verify rental is overdue
+        // Verify rental is overdue (payment expired)
         $this->assertEquals('pending', $rental->status);
-        $this->assertTrue($rental->created_at->lessThanOrEqualTo(now()->subDays(7)));
+        $this->assertTrue($rental->payment->expired_at->lessThan(now()));
 
         // Run command
         $this->artisan(CancelOverdueRentals::class)->assertSuccessful();
@@ -357,7 +357,7 @@ class StatusHistoryVerificationTest extends TestCase
         $this->assertNotNull($cancelledHistory);
         $this->assertEquals('cancelled', $cancelledHistory->status);
         $this->assertEquals(1, $cancelledHistory->changed_by); // System user
-        $this->assertStringContainsString('Auto-cancelled: Payment not received within 7 days', $cancelledHistory->internal_notes);
+        $this->assertStringContainsString('48 hours', $cancelledHistory->internal_notes);
     }
 
     /**

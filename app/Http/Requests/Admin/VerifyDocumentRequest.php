@@ -26,10 +26,15 @@ class VerifyDocumentRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'approved' => 'required|boolean',
-            'rejection_reason' => 'required_if:approved,false|nullable|string|max:500',
-        ];
+        // Reject route requires rejection_reason
+        if ($this->routeIs('admin.documents.reject')) {
+            return [
+                'rejection_reason' => 'required|string|min:10|max:500',
+            ];
+        }
+
+        // Approve route requires nothing
+        return [];
     }
 
     /**
@@ -40,9 +45,8 @@ class VerifyDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'approved.required' => 'Status persetujuan harus ditentukan.',
-            'approved.boolean' => 'Status persetujuan harus bernilai true atau false.',
-            'rejection_reason.required_if' => 'Alasan penolakan wajib diisi jika dokumen ditolak.',
+            'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
+            'rejection_reason.min' => 'Alasan penolakan minimal 10 karakter.',
             'rejection_reason.max' => 'Alasan penolakan maksimal 500 karakter.',
         ];
     }

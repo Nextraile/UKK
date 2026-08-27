@@ -186,29 +186,223 @@
                         </div>
                     @endif
 
-                    <!-- Document Section (Stub) -->
-                    @if($rental->status === 'paid')
-                        <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                    <!-- Document Section -->
+                    @if($rental->status === 'paid' || $rental->status === 'documents_pending')
+                        <div id="document-section" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800"
+                            x-data="{
+                                docs: @js($rental->room->roomType->kost->documentRequirements->map(function($req) use ($rental) {
+                                    $doc = $rental->rentalDocuments->firstWhere('document_type', $req->document_type);
+                                    return [
+                                        'key' => $req->document_type,
+                                        'label' => $req->document_type,
+                                        'required' => $req->is_required,
+                                        'reason' => $req->reason,
+                                        'status' => $doc ? $doc->verification_status : 'pending',
+                                        'rejection_reason' => $doc ? $doc->rejection_reason : null
+                                    ];
+                                })),
+                                uploads: {},
+                                progress: {},
+                                uploading: false,
+                                dragOver: false,
+                                accept: ['image/jpeg', 'image/png', 'application/pdf'],
+                                maxSize: 5 * 1024 * 1024,
+                                validate(file) {
+                                    return this.accept.includes(file.type) && file.size <= this.maxSize;
+                                },
+                                pick(key, e) {
+                                    this.add(key, e.target.files[0]);
+                                    e.target.value = '';
+                                },
+                                add(key, file) {
+                                    if (!file) return;
+                                    if (!this.validate(file)) {
+                                        this.showError('File harus JPEG/PNG/PDF dan maksimal 5MB');
+                                        return;
+                                    }
+                                    this.uploads[key] = {
+                                        name: file.name,
+                                        size: file.size,
+                                        type: file.type,
+                                        file: file,
+                                        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+                                    };
+                                    // Auto-upload removed - files stay in preview until uploadAll() called
+                                },
+                                uploadFile(key) {
+                                    return new Promise((resolve, reject) => {
+                                        const formData = new FormData();
+                                        formData.append('document_type', key);
+                                        formData.append('file', this.uploads[key].file);
+                                        
+                                        this.progress[key] = 0;
+                                        
+                                        const xhr = new XMLHttpRequest();
+                                        
+                                        xhr.upload.addEventListener('progress', (e) => {
+                                            if (e.lengthComputable) {
+                                                this.progress[key] = Math.round((e.loaded / e.total) * 100);
+                                            }
+                                        });
+                                        
+                                        xhr.addEventListener('load', () => {
+                                            if (xhr.status === 200 || xhr.status === 302) {
+                                                resolve();
+                                            } else {
+                                                this.showError(`Upload ${this.uploads[key].name} gagal. Silakan coba lagi.`);
+                                                delete this.uploads[key];
+                                                delete this.progress[key];
+                                                reject(new Error('Upload failed'));
+                                            }
+                                        });
+                                        
+                                        xhr.addEventListener('error', () => {
+                                            this.showError(`Terjadi kesalahan pada ${this.uploads[key].name}. Silakan coba lagi.`);
+                                            delete this.uploads[key];
+                                            delete this.progress[key];
+                                            reject(new Error('Network error'));
+                                        });
+                                        
+                                        xhr.open('POST', '{{ route('rentals.documents.upload', $rental) }}');
+                                        xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                                        xhr.send(formData);
+                                    });
+                                },
+                                async uploadAll() {
+                                    this.uploading = true;
+                                    const keys = Object.keys(this.uploads);
+                                    
+                                    try {
+                                        for (const key of keys) {
+                                            await this.uploadFile(key);
+                                        }
+                                        // All uploads complete
+                                        window.location.reload();
+                                    } catch (error) {
+                                        // Error already shown in uploadFile, just stop uploading
+                                        this.uploading = false;
+                                    }
+                                },
+                                remove(key) {
+                                    if (this.uploads[key]?.preview) {
+                                        URL.revokeObjectURL(this.uploads[key].preview);
+                                    }
+                                    delete this.uploads[key];
+                                    delete this.progress[key];
+                                },
+                                showError(msg) {
+                                    alert(msg);
+                                }
+                            }"
+                            x-cloak>
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Dokumen Administrasi</h3>
                             <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
                                 Upload dokumen yang diperlukan untuk melengkapi proses rental
                             </p>
                             
-                            <div class="space-y-2">
-                                @foreach($rental->room->roomType->kost->documentRequirements as $requirement)
-                                    <div class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                                        <div>
-                                            <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $requirement->document_type }}
-                                                @if($requirement->is_required)
-                                                    <span class="ml-1 text-red-600">*</span>
-                                                @endif
-                                            </p>
-                                            <p class="text-xs text-gray-600 dark:text-gray-400">{{ $requirement->reason }}</p>
+                            <div class="space-y-4">
+                                <template x-for="d in docs" :key="d.key">
+                                    <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="d.label"></p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                    <span x-text="d.required ? 'Wajib' : 'Opsional'"></span> · JPEG/PNG/PDF ≤ 5MB
+                                                </p>
+                                                <template x-if="d.reason">
+                                                    <p class="mt-1 text-xs text-gray-600 dark:text-gray-400" x-text="d.reason"></p>
+                                                </template>
+                                            </div>
+                                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                                :class="{
+                                                    'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200': d.status === 'approved',
+                                                    'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200': d.status === 'rejected',
+                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200': d.status === 'pending'
+                                                }"
+                                                x-text="d.status === 'approved' ? 'Disetujui' : d.status === 'rejected' ? 'Ditolak' : 'Menunggu'"></span>
                                         </div>
-                                        <button class="text-sm text-primary-600 hover:text-primary-700">Upload</button>
+
+                                        <!-- File preview (when uploading) -->
+                                        <template x-if="uploads[d.key]">
+                                            <div class="mt-3 flex items-center gap-3">
+                                                <img x-show="uploads[d.key].preview" :src="uploads[d.key].preview" alt="" class="h-14 w-14 rounded-md border border-gray-200 object-cover dark:border-gray-700">
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100" x-text="uploads[d.key].name"></p>
+                                                    <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" 
+                                                        role="progressbar" 
+                                                        :aria-valuenow="progress[d.key] ?? 100" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="100">
+                                                        <div class="h-full bg-primary-600 transition-all" :style="`width: ${progress[d.key] ?? 100}%`"></div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" 
+                                                    @click="remove(d.key)" 
+                                                    :aria-label="`Hapus ${d.label}`"
+                                                    class="rounded-md p-2 text-gray-400 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </template>
+
+                                        <!-- Upload zone (when no file uploading) -->
+                                        <template x-if="!uploads[d.key]">
+                                            <label class="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed p-4 text-center transition-all"
+                                                :class="dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 hover:border-primary-400 dark:border-gray-600'"
+                                                @dragover.prevent="dragOver = true" 
+                                                @dragleave.prevent="dragOver = false"
+                                                @drop.prevent="dragOver = false; add(d.key, $event.dataTransfer.files[0])">
+                                                <input type="file" 
+                                                    :name="d.key" 
+                                                    accept="image/jpeg,image/png,application/pdf" 
+                                                    class="sr-only" 
+                                                    @change="pick(d.key, $event)">
+                                                <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                                </svg>
+                                                <span class="mt-2 text-sm font-semibold text-primary-600">Upload file</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">atau drag & drop</span>
+                                            </label>
+                                        </template>
+
+                                        <!-- Rejection reason -->
+                                        <p x-show="d.status === 'rejected' && d.rejection_reason" 
+                                            class="mt-2 text-xs text-red-700 dark:text-red-400">
+                                            Ditolak: <span x-text="d.rejection_reason ?? 'file tidak terbaca'"></span> — silakan upload ulang.
+                                        </p>
                                     </div>
-                                @endforeach
+                                </template>
+
+                                <!-- Empty state -->
+                                <template x-if="docs.length === 0 && Object.keys(uploads).length === 0">
+                                    <div class="rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-900">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Tidak ada dokumen yang diperlukan untuk rental ini.</p>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Batch Upload Button -->
+                            <div x-show="Object.keys(uploads).length > 0" 
+                                x-cloak
+                                class="mt-6 flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    <span x-text="Object.keys(uploads).length"></span> dokumen siap diupload
+                                </p>
+                                <button type="button" 
+                                    @click="uploadAll()" 
+                                    :disabled="uploading"
+                                    class="inline-flex items-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <svg x-show="uploading" 
+                                        class="h-5 w-5 animate-spin" 
+                                        fill="none" 
+                                        viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span x-text="uploading ? 'Mengupload...' : 'Upload Semua Dokumen'"></span>
+                                </button>
                             </div>
                         </div>
                     @endif
@@ -224,8 +418,10 @@
                                 <a href="#" class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
                                     Upload Bukti Bayar
                                 </a>
-                            @elseif($rental->status === 'paid')
-                                <button class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
+                            @elseif($rental->status === 'paid' || $rental->status === 'documents_pending')
+                                <button 
+                                    @click="document.querySelector('#document-section')?.scrollIntoView({ behavior: 'smooth' })"
+                                    class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
                                     Upload Dokumen
                                 </button>
                             @elseif($rental->status === 'completed')

@@ -14,12 +14,15 @@ use App\Domain\Rental\Exceptions\InvalidRentalStatusException;
 use App\Domain\Rental\Exceptions\RoomFullException;
 use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
+use App\Domain\Rental\Models\RentalDocument;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\CancelRentalRequest;
 use App\Http\Requests\Tenant\CreateRentalRequest;
 use App\Http\Requests\Tenant\UploadDocumentRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class RentalController extends Controller
 {
@@ -200,5 +203,28 @@ class RentalController extends Controller
                 ->withInput()
                 ->withErrors(['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Download rental document with authorization.
+     *
+     * Serves requirement document (KTP, Passport, etc) from private storage
+     * after verifying tenant owns the rental. Returns 404 if file not found.
+     *
+     * @param  RentalDocument  $document  The document to download
+     *
+     * @throws HttpException 404 if file not found
+     */
+    public function downloadDocument(RentalDocument $document): BinaryFileResponse
+    {
+        $this->authorize('view', $document->rental);
+
+        $path = storage_path('app/private/'.$document->document_path);
+
+        if (! file_exists($path)) {
+            abort(404, 'Document not found');
+        }
+
+        return response()->download($path);
     }
 }
