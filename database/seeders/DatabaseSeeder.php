@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
         // Execution order (respect FK constraints)
         $this->call([
             SystemUserSeeder::class,       // System user (id=1)
+            SuperAdminSeeder::class,       // Super Admin account (COMP-009)
             CategorySeeder::class,        // Independent (master data)
             UserSeeder::class,             // Independent (identity)
             DevSampleImageSeeder::class,   // Download images first

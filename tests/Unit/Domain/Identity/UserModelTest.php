@@ -109,15 +109,15 @@ class UserModelTest extends TestCase
     /**
      * The fillable attributes include the expected fields.
      *
-     * The `role` field is intentionally excluded from fillable to
-     * prevent mass-assignment; it must be set explicitly.
+     * Note: `role` and `email_verified_at` are fillable to support
+     * admin account creation by SuperAdmin (COMP-009).
      */
     public function test_user_fillable_attributes(): void
     {
         $user = new User;
 
         $this->assertSame(
-            ['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path'],
+            ['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path', 'role', 'email_verified_at'],
             $user->getFillable(),
         );
     }
