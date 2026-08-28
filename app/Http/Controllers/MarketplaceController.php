@@ -89,14 +89,9 @@ class MarketplaceController extends Controller
                 'kostImages' => fn ($q) => $q->where('is_thumbnail', true)
                     ->select('id', 'kost_id', 'image_path', 'is_thumbnail'),
             ])
-            ->withAvg('reviews', 'kost_rating') // Alias: reviews_avg_kost_rating
-            ->withCount('reviews') // Alias: reviews_count
-            // Rating filter (FR-054): filter by minimum average rating
-            ->when($ratingMin, function ($query, $ratingMin) {
-                $query->having('reviews_avg_kost_rating', '>=', $ratingMin);
-            })
-            ->orderByDesc('reviews_avg_kost_rating') // Highest rated first
-            ->orderByDesc('published_at') // Then newest
+            // Note: Cannot use withAvg/withCount for reviews due to complex relationship
+            // Reviews are accessed via accessor methods (average_kost_rating, review_count)
+            ->orderByDesc('published_at') // Newest first
             ->paginate(20);
 
         // Get all categories for filter sidebar

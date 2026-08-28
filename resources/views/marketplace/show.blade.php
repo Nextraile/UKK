@@ -236,18 +236,38 @@
                     
                     @if($reviewCount > 0)
                         <!-- Rating Summary -->
-                        <div class="flex items-center gap-4 pb-6 mb-6 border-b border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center">
-                                <svg class="w-8 h-8 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                <span class="ml-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                                    {{ number_format($avgRating, 1) }}
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                <p class="font-medium">{{ $reviewCount }} ulasan</p>
-                                <p>Dari penyewa yang telah menginap</p>
+                        <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex flex-wrap gap-6">
+                                @if($avgKostRating)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-8 h-8 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($avgKostRating, 1) }}</p>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">Rating Kost</p>
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                @if($avgRoomRating)
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-8 h-8 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <div>
+                                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($avgRoomRating, 1) }}</p>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">Rating Kamar</p>
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                <div class="flex items-center">
+                                    <div>
+                                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $reviewCount }} ulasan</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Dari penyewa yang telah menginap</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -259,61 +279,70 @@
                                     <div class="flex items-center justify-between mb-3">
                                         <div>
                                             <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                {{ $review->tenant->name ?? 'Anonymous' }}
+                                                {{ $review->rental->user->first_name ?? 'Anonymous' }}
                                             </p>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">
                                                 {{ $review->created_at->diffForHumans() }}
                                             </p>
                                         </div>
-                                        
-                                        <!-- Rating Stars (simple, no fractional) -->
-                                        @if($review->kost_rating)
-                                            <div class="flex items-center gap-0.5">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <svg class="w-4 h-4 {{ $i <= $review->kost_rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} fill-current" viewBox="0 0 20 20">
-                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                    </svg>
-                                                @endfor
-                                            </div>
-                                        @endif
                                     </div>
                                     
-                                    <!-- Review Text -->
-                                    @if($review->kost_comment)
-                                        <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                                            {{ $review->kost_comment }}
-                                        </p>
+                                    <!-- Kost Rating & Comment -->
+                                    @if($review->kost_rating)
+                                        <div class="mb-3">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Rating Kost:</span>
+                                                <div class="flex items-center gap-0.5">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <svg class="w-4 h-4 {{ $i <= $review->kost_rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} fill-current" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                        </svg>
+                                                    @endfor
+                                                </div>
+                                            </div>
+                                            @if($review->kost_comment)
+                                                <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed ml-4">
+                                                    {{ $review->kost_comment }}
+                                                </p>
+                                            @endif
+                                        </div>
                                     @endif
                                     
-                                    <!-- Room Review (if exists) -->
-                                    @if($review->room_rating || $review->room_comment)
+                                    <!-- Room Rating & Comment -->
+                                    @if($review->room_rating)
                                         <div class="mt-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
-                                            @if($review->room_rating)
-                                                <div class="flex items-center gap-1 mb-1">
-                                                    <span class="text-xs text-gray-600 dark:text-gray-400">Rating Kamar:</span>
-                                                    <div class="flex items-center gap-0.5">
-                                                        @for($i = 1; $i <= 5; $i++)
-                                                            <svg class="w-3 h-3 {{ $i <= $review->room_rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} fill-current" viewBox="0 0 20 20">
-                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                            </svg>
-                                                        @endfor
-                                                    </div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Rating Kamar:</span>
+                                                <div class="flex items-center gap-0.5">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <svg class="w-3 h-3 {{ $i <= $review->room_rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }} fill-current" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                        </svg>
+                                                    @endfor
                                                 </div>
-                                            @endif
+                                            </div>
                                             @if($review->room_comment)
                                                 <p class="text-xs text-gray-600 dark:text-gray-400">{{ $review->room_comment }}</p>
                                             @endif
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Review Images -->
+                                    @if($review->review_images && count($review->review_images) > 0)
+                                        <div class="mt-3 flex gap-2 overflow-x-auto">
+                                            @foreach($review->review_images as $imagePath)
+                                                <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 object-cover rounded border border-gray-200 dark:border-gray-700">
+                                            @endforeach
                                         </div>
                                     @endif
                                 </article>
                             @endforeach
                         </div>
                         
-                        @if($reviewCount > 10)
-                            <div class="mt-6 text-center">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Menampilkan 10 ulasan terbaru dari {{ $reviewCount }} total ulasan
-                                </p>
+                        <!-- Pagination -->
+                        @if($reviews->hasPages())
+                            <div class="mt-6">
+                                {{ $reviews->links() }}
                             </div>
                         @endif
                     @else
@@ -401,12 +430,12 @@
                         <p class="text-3xl font-bold text-primary-600">Rp 1jt<span class="text-base text-gray-500">/bulan</span></p>
                     </div>
                     
-                    @if($avgRating)
+                    @if($avgKostRating || $avgRoomRating)
                         <div class="flex items-center mb-4 text-sm">
                             <svg class="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                             </svg>
-                            <span class="ml-1 font-semibold text-gray-900 dark:text-gray-100">{{ number_format($avgRating, 1) }}</span>
+                            <span class="ml-1 font-semibold text-gray-900 dark:text-gray-100">{{ number_format($avgKostRating ?? $avgRoomRating, 1) }}</span>
                             <span class="ml-1 text-gray-500">({{ $reviewCount }} ulasan)</span>
                         </div>
                     @endif
