@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\RoomTypeImageController;
 use App\Http\Controllers\KostDetailController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\SuperAdmin\CategoryController;
 use App\Http\Controllers\SuperAdmin\KostSubmissionController;
 use App\Http\Controllers\Tenant\PaymentController;
@@ -218,6 +219,10 @@ Route::middleware(['auth', 'role:superadmin'])->prefix('super-admin')->name('sup
 
     // Category Management (COMP-003: Kost Configuration)
     Route::resource('categories', CategoryController::class);
+
+    // Admin Account Management (COMP-009, FR-111—FR-116)
+    Route::resource('admins', AdminManagementController::class)
+        ->except(['show']);
 });
 
 require __DIR__.'/auth.php';

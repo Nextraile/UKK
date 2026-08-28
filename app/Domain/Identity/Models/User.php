@@ -33,7 +33,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path'])]
+#[Fillable(['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path', 'role', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable implements MustVerifyEmail
