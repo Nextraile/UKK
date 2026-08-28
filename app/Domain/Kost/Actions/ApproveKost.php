@@ -43,7 +43,7 @@ class ApproveKost
             $kost->save();
 
             // Send approval notification to kost owner
-            Mail::to($kost->owner->email)->send(new KostApprovedMail($kost));
+            Mail::to($kost->owner->email)->queue(new KostApprovedMail($kost));
 
             return $kost->fresh();
         });

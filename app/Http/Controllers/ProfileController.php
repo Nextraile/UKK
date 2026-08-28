@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -82,10 +83,10 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($user->avatar_path);
         }
 
-        // Store new avatar with generated filename (security: don't use original filename)
+        // Store new avatar with UUID filename (security: prevent enumeration attacks)
         $file = $request->file('avatar');
         $extension = $file->guessExtension();
-        $filename = uniqid('avatar_', true).'.'.$extension;
+        $filename = Str::uuid().'.'.$extension;
 
         $path = $file->storeAs('avatars', $filename, 'public');
 

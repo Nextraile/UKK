@@ -313,7 +313,7 @@ class KostSubmissionWorkflowTest extends TestCase
         $this->actingAs($this->superAdmin)
             ->post(route('super-admin.kost-submissions.approve', $kost));
 
-        Mail::assertSent(KostApprovedMail::class, function ($mail) use ($kost) {
+        Mail::assertQueued(KostApprovedMail::class, function ($mail) use ($kost) {
             return $mail->hasTo($kost->owner->email)
                 && $mail->kost->id === $kost->id;
         });
@@ -330,7 +330,7 @@ class KostSubmissionWorkflowTest extends TestCase
                 'rejection_reason' => 'Alamat tidak lengkap',
             ]);
 
-        Mail::assertSent(KostRejectedMail::class, function ($mail) use ($kost) {
+        Mail::assertQueued(KostRejectedMail::class, function ($mail) use ($kost) {
             return $mail->hasTo($kost->owner->email)
                 && $mail->kost->id === $kost->id;
         });

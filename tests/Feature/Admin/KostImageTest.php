@@ -48,9 +48,13 @@ class KostImageTest extends TestCase
             'sort_order' => 1,
         ]);
 
-        // Verify file stored with correct pattern
+        // Verify file stored with UUID pattern (security: prevent enumeration)
         $image = KostImage::where('kost_id', $kost->id)->first();
-        $this->assertStringStartsWith('kost-images/kost-'.$kost->id.'-img-', $image->image_path);
+        $this->assertStringStartsWith('kost-images/', $image->image_path);
+        $this->assertMatchesRegularExpression(
+            '/^kost-images\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|jpeg|png|webp)$/',
+            $image->image_path
+        );
         Storage::disk('public')->assertExists($image->image_path);
     }
 
@@ -97,8 +101,8 @@ class KostImageTest extends TestCase
 
         $image = KostImage::where('kost_id', $kost->id)->first();
 
-        // Pattern: kost-{id}-img-{Ymd-His}-{seq}.{ext}
-        $pattern = '/^kost-images\/kost-\d+-img-\d{8}-\d{6}-\d+\.(jpg|jpeg|png|webp)$/';
+        // Pattern: UUID v4 filename (security: prevent enumeration)
+        $pattern = '/^kost-images\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|jpeg|png|webp)$/';
         $this->assertMatchesRegularExpression($pattern, $image->image_path);
     }
 

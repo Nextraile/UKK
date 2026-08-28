@@ -22,6 +22,10 @@
 # Start environment (first time or after reboot)
 wsl ./vendor/bin/sail up -d
 
+# Check Supervisor status (queue worker, scheduler, vite, php server)
+wsl ./vendor/bin/sail exec laravel.test supervisorctl status         # Should show 4 programs RUNNING
+wsl ./vendor/bin/sail exec laravel.test supervisorctl restart laravel-queue  # Restart queue worker if needed
+
 # Run tests (Definition of Done requirement)
 wsl ./vendor/bin/sail artisan test                                   # PHPUnit (NOT Pest)
 wsl ./vendor/bin/sail php vendor/bin/phpstan analyse                 # level 5 (via sail, bukan docker exec root)

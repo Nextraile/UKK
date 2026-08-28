@@ -8,6 +8,7 @@ use App\Domain\Rental\Models\Rental;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\UploadProofOfPaymentRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -40,7 +41,9 @@ class PaymentController extends Controller
     {
         $this->authorize('uploadPayment', $rental);
 
-        $path = $request->file('proof')->store('payment-proofs', 'private');
+        $file = $request->file('proof');
+        $filename = Str::uuid().'.'.$file->guessExtension();
+        $path = $file->storeAs('payment-proofs', $filename, 'private');
 
         $rental->payment->update([
             'proof_of_payment_path' => $path,

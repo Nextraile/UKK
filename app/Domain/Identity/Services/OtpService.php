@@ -89,7 +89,7 @@ class OtpService
         );
 
         // Send the OTP email (queued implicitly by the mailable if configured).
-        Mail::to($user)->send(new OtpVerificationMail($user, $code, $purpose));
+        Mail::to($user)->queue(new OtpVerificationMail($user, $code, $purpose));
 
         return $code;
     }

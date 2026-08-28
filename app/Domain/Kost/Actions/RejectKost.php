@@ -54,7 +54,7 @@ class RejectKost
             $kost->save();
 
             // Send rejection notification to kost owner
-            Mail::to($kost->owner->email)->send(new KostRejectedMail($kost));
+            Mail::to($kost->owner->email)->queue(new KostRejectedMail($kost));
 
             return $kost->fresh();
         });

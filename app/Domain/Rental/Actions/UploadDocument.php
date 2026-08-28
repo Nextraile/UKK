@@ -10,6 +10,7 @@ use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Upload or replace rental document.
@@ -63,7 +64,7 @@ class UploadDocument
 
             // Reset verification status (allow re-upload)
             $existingDoc->update([
-                'document_path' => $file->store('rental-documents', 'private'),
+                'document_path' => $file->storeAs('rental-documents', Str::uuid().'.'.$file->guessExtension(), 'private'),
                 'uploaded_at' => now(),
                 'verification_status' => 'pending',
                 'rejection_reason' => null,
@@ -79,7 +80,7 @@ class UploadDocument
         // Create new document record
         $document = $rental->rentalDocuments()->create([
             'document_type' => $documentType,
-            'document_path' => $file->store('rental-documents', 'private'),
+            'document_path' => $file->storeAs('rental-documents', Str::uuid().'.'.$file->guessExtension(), 'private'),
             'uploaded_at' => now(),
             'verification_status' => 'pending',
         ]);
