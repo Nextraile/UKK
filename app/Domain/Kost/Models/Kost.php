@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Kost\Models;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Review\Models\Review;
 use Database\Factories\KostFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -207,16 +209,51 @@ class Kost extends Model
     }
 
     /**
-     * Get the reviews for this kost (1:N).
+     * Get all reviews for this kost (via rooms -> rentals -> reviews).
      *
-     * Placeholder relationship for COMP-008 (Review & Rating).
-     * Returns empty collection until Review model is implemented.
+     * Note: This returns a query builder, not an Eloquent relationship.
+     * Use this for querying reviews, but not for eager loading with withAvg/withCount.
      *
-     * @return HasMany<Review, $this>
+     * @return Builder<Review>
      */
-    public function reviews(): HasMany
+    public function reviewsQuery(): Builder
     {
-        return $this->hasMany(Review::class);
+        return Review::query()
+            ->whereHas('rental.room', function ($q) {
+                $q->where('kost_id', $this->id);
+            });
+    }
+
+    /**
+     * Get the average kost rating from all reviews.
+     */
+    public function getAverageKostRatingAttribute(): ?float
+    {
+        $average = $this->reviewsQuery()
+            ->whereNotNull('kost_rating')
+            ->avg('kost_rating');
+
+        return $average ? round($average, 1) : null;
+    }
+
+    /**
+     * Get the average room rating from all reviews.
+     */
+    public function getAverageRoomRatingAttribute(): ?float
+    {
+        $average = $this->reviewsQuery()
+            ->whereNotNull('room_rating')
+            ->avg('room_rating');
+
+        return $average ? round($average, 1) : null;
+    }
+
+    /**
+     * Get the total count of reviews for this kost.
+     */
+    public function getReviewCountAttribute(): int
+    {
+        return $this->reviewsQuery()->count();
     }
 
     /**

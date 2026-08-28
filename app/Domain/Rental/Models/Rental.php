@@ -7,6 +7,7 @@ namespace App\Domain\Rental\Models;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\PriceScheme;
 use App\Domain\Kost\Models\Room;
+use App\Domain\Review\Models\Review;
 use Database\Factories\RentalFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read User $user
  * @property-read PriceScheme $priceScheme
  * @property-read Payment $payment
+ * @property-read Review|null $review
  * @property-read Collection<int, RentalDocument> $rentalDocuments
  * @property-read Collection<int, RentalStatusHistory> $statusHistories
  */
@@ -120,5 +122,13 @@ class Rental extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(RentalStatusHistory::class);
+    }
+
+    /**
+     * Get the review for this rental.
+     */
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
     }
 }

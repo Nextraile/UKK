@@ -193,8 +193,6 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 ### Komponen: COMP-006 — Rental Lifecycle Management
 
-> ✅ **Done (2026-08-27)** — Includes bug fixes: cancel.blade.php layout component typo, Alpine.js syntax errors, console error fixes (Phase 1-3)
-
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
 | TASK-046 | Setup migration Rental, RentalDocument, RentalStatusHistory | FR-061—FR-068, FR-083—FR-104 | TASK-027 | Must | Done | 1 hari | ✅ (2026-08-27) 3 migrations created (rentals, rental_documents, rental_status_histories). Rental model: 7 status enum (pending/paid/rejected/documents_pending/confirmed/active/completed/cancelled), snapshot fields (price_snapshot, duration_snapshot, etc.), calculated accessors (isOverdue, daysSinceCreation), relations (room, kost, tenant, payment, documents, statusHistories), soft delete. RentalDocument model: status enum (pending/approved/rejected), rejection_reason, file path. RentalStatusHistory model: tracks all transitions (changed_by, changed_from, changed_to, internal_notes, notes). Factories for testing |
@@ -216,7 +214,6 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 ### Komponen: COMP-007 — Payment Management
 
-> ✅ **Complete (2026-08-27)** — All 13/14 FRs implemented, FR-081 superseded by ADR-018. Payment deadline monitoring fixed (48h), security hardened (4 vulnerabilities), 542 tests passing.
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
@@ -237,13 +234,13 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 
 | ID | Judul Task | FR/NFR Terkait | Dependency | Prioritas | Status | Estimasi | Catatan |
 |---|---|---|---|---|---|---|---|
-| TASK-064 | Setup migration Review (gabung kost+room, JSON images) | FR-105—FR-110 | TASK-046 | Should | Not Started | 0.5 hari | Review model, fields: rental_id (UNIQUE), kost_rating, kost_comment, room_rating, room_comment, images (JSON) |
-| TASK-065 | Tenant submit review dengan eligibility check | FR-105, FR-106, FR-108 | TASK-064, TASK-055 | Should | Not Started | 1 hari | Action SubmitReview, check rental Completed & belum ada review, minimal 1 rating wajib, validation 1-5 |
-| TASK-066 | Upload review images (JSON array) | FR-107 | TASK-065 | Should | Not Started | 0.5 hari | Upload images, simpan paths sebagai JSON, max 5 images |
-| TASK-067 | Calculate & display average ratings | FR-110 | TASK-065 | Should | Not Started | 0.5 hari | Query AVG(kost_rating), AVG(room_rating), display di marketplace |
-| TASK-068 | Unit & feature tests COMP-008 | FR-105—FR-110 | TASK-064—TASK-067 | Should | Not Started | 0.5 hari | Test eligibility, submit review, validation, avg calculation |
+| TASK-064 | Setup migration Review (gabung kost+room, JSON images) | FR-105—FR-110 | TASK-046 | Should | Done | 0.5 hari | ✅ Migration created: rental_id UNIQUE, kost_rating, kost_comment, room_rating, room_comment, images JSON. Delete stub migration. Review model moved to app/Domain/Review/Models/ |
+| TASK-065 | Tenant submit review dengan eligibility check | FR-105, FR-106, FR-108 | TASK-064, TASK-055 | Should | Done | 1 hari | ✅ SubmitReviewAction: Check rental completed & no existing review, min 1 rating validation (required_without), ReviewController (5 methods), ReviewPolicy (create/update/delete), ReviewRequest validation, image upload to public/review-images/{id}/ |
+| TASK-066 | Upload review images (JSON array) | FR-107 | TASK-065 | Should | Done | 0.5 hari | ✅ Image upload with preview (max 5, 2MB each, JPEG/PNG/JPG), stored as JSON array, UpdateReviewAction replaces all images, DeleteReviewAction cleans up storage |
+| TASK-067 | Calculate & display average ratings | FR-110 | TASK-065 | Should | Done | 0.5 hari | ✅ Kost model accessors: averageKostRating, averageRoomRating, reviewCount (real-time query). Display on marketplace show page with pagination (10/page) |
+| TASK-068 | Unit & feature tests COMP-008 | FR-105—FR-110 | TASK-064—TASK-067 | Should | Done | 0.5 hari | ✅ 15 tests: ReviewCrudTest (10 tests), ReviewDisplayTest (5 tests). Coverage: eligibility, authorization, validation, image upload, avg ratings, pagination. 564 total tests passed |
 
-**Subtotal COMP-008:** 5 tasks, ~3 hari
+**Subtotal COMP-008:** 5 tasks, 5 Done, ~3 hari
 
 ---
 
@@ -286,7 +283,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-005 (Marketplace) | 10 | 10 | 0 | 0 | 0 | 7.5 hari |
 | COMP-006 (Rental Lifecycle) | 12 | 12 | 0 | 0 | 0 | 12 hari |
 | COMP-007 (Payment) | 7 | 7 | 0 | 0 | 0 | 5 hari |
-| COMP-008 (Review) | 5 | 0 | 0 | 5 | 0 | 3 hari |
+| COMP-008 (Review) | 5 | 5 | 0 | 0 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 0 | 0 | 5 | 0 | 3 hari |
 | Cross-Cutting | 5 | 0 | 0 | 5 | 0 | 4 hari |
 | **TOTAL** | **85 tasks** | **69** | **0** | **16** | **0** | **~66.75 hari kerja** |
@@ -355,7 +352,7 @@ COMP-009 (parallel dengan COMP-002)
 | FR-069—FR-082 (Payment QRIS) | COMP-007 | TASK-058—TASK-063 | Not Started |
 | FR-083—FR-095 (Document Verification) | COMP-006 | TASK-051—TASK-053 | Done |
 | FR-096—FR-104 (Rental Monitoring) | COMP-006 | TASK-049—TASK-050, TASK-055—TASK-057 | Done |
-| FR-105—FR-110 (Review) | COMP-008 | TASK-064—TASK-068 | Not Started |
+| FR-105—FR-110 (Review) | COMP-008 | TASK-064—TASK-068 | Done |
 | FR-111—FR-116 (Admin Account Mgmt) | COMP-009 | TASK-069—TASK-073 | Not Started |
 | FR-117—FR-120 (Category Mgmt) | COMP-003, COMP-009 | TASK-025 | Done |
 | FR-121—FR-129 (Open Questions Resolution) | COMP-006, COMP-007 | TASK-047, TASK-048, TASK-054—TASK-057 | Done (COMP-006 part) |
@@ -413,4 +410,4 @@ COMP-009 (parallel dengan COMP-002)
 
 ---
 
-**COMP-001 DONE (13/13 tasks).** **COMP-002 DONE (10/10 tasks).** **COMP-003 DONE (9/9 tasks).** **COMP-004 DONE (9/9 tasks).** **COMP-005 DONE (10/10 tasks).** **COMP-006 DONE (12/12 tasks).** **COMP-007 DONE (8/8 tasks, 13/14 FRs, FR-081 superseded by ADR-018).** Next: COMP-008 (Review Management) — TASK-064 onward.
+**COMP-001 DONE (13/13 tasks).** **COMP-002 DONE (10/10 tasks).** **COMP-003 DONE (9/9 tasks).** **COMP-004 DONE (9/9 tasks).** **COMP-005 DONE (10/10 tasks).** **COMP-006 DONE (12/12 tasks).** **COMP-007 DONE (8/8 tasks, 13/14 FRs, FR-081 superseded by ADR-018).** **COMP-008 DONE (5/5 tasks, FR-105—FR-110, 2026-08-28).** Next: COMP-009 (Administration) — TASK-069 onward.

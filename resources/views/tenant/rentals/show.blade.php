@@ -186,6 +186,90 @@
                         </div>
                     @endif
 
+                    <!-- Review Section (only for completed rentals) -->
+                    @if($rental->status === 'completed')
+                        <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                            @if($rental->review)
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Ulasan Anda</h3>
+                                
+                                <div class="space-y-3">
+                                    @if($rental->review->kost_rating)
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating Kost</p>
+                                            <div class="flex items-center gap-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <svg class="w-5 h-5 {{ $i <= $rental->review->kost_rating ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                @endfor
+                                                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">({{ $rental->review->kost_rating }}/5)</span>
+                                            </div>
+                                            @if($rental->review->kost_comment)
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ $rental->review->kost_comment }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    
+                                    @if($rental->review->room_rating)
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating Kamar</p>
+                                            <div class="flex items-center gap-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <svg class="w-5 h-5 {{ $i <= $rental->review->room_rating ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                    </svg>
+                                                @endfor
+                                                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">({{ $rental->review->room_rating }}/5)</span>
+                                            </div>
+                                            @if($rental->review->room_comment)
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">{{ $rental->review->room_comment }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    
+                                    @if($rental->review->review_images && count($rental->review->review_images) > 0)
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Foto</p>
+                                            <div class="flex gap-2 overflow-x-auto">
+                                                @foreach($rental->review->review_images as $imagePath)
+                                                    <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 object-cover rounded border border-gray-200 dark:border-gray-700">
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <div class="mt-4 flex gap-2">
+                                    <a href="{{ route('rentals.reviews.edit', $rental) }}" 
+                                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                        Edit Ulasan
+                                    </a>
+                                    <form method="POST" action="{{ route('rentals.reviews.destroy', $rental) }}" onsubmit="return confirm('Yakin ingin menghapus ulasan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                                            Hapus Ulasan
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                <div class="text-center py-6">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Bagaimana pengalaman Anda?</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                        Bantu calon penyewa lain dengan memberikan ulasan tentang kost ini
+                                    </p>
+                                    <a href="{{ route('rentals.reviews.create', $rental) }}" 
+                                       class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold">
+                                        Tulis Ulasan
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     <!-- Document Section -->
                     @if($rental->status === 'paid' || $rental->status === 'documents_pending')
                         <div id="document-section" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800"
@@ -425,9 +509,15 @@
                                     Upload Dokumen
                                 </button>
                             @elseif($rental->status === 'completed')
-                                <a href="#" class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
-                                    Tulis Review
-                                </a>
+                                @if(!$rental->review)
+                                    <a href="{{ route('rentals.reviews.create', $rental) }}" class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
+                                        Tulis Ulasan
+                                    </a>
+                                @else
+                                    <a href="{{ route('rentals.reviews.edit', $rental) }}" class="block w-full rounded-md border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        Edit Ulasan
+                                    </a>
+                                @endif
                             @endif
                             
                             @if(!in_array($rental->status, ['completed', 'cancelled']))

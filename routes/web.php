@@ -18,6 +18,7 @@ use App\Http\Controllers\SuperAdmin\CategoryController;
 use App\Http\Controllers\SuperAdmin\KostSubmissionController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\RentalController;
+use App\Http\Controllers\Tenant\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // Route model bindings with eager loading (VULN-002 fix)
@@ -87,6 +88,18 @@ Route::middleware(['auth', 'verified', 'role:user'])->group(function () {
         ->name('rentals.cancel.form');
     Route::post('/rentals/{rental}/cancel', [RentalController::class, 'cancel'])
         ->name('rentals.cancel');
+
+    // Review Management (COMP-008)
+    Route::get('/rentals/{rental}/reviews/create', [ReviewController::class, 'create'])
+        ->name('rentals.reviews.create');
+    Route::post('/rentals/{rental}/reviews', [ReviewController::class, 'store'])
+        ->name('rentals.reviews.store');
+    Route::get('/rentals/{rental}/reviews/edit', [ReviewController::class, 'edit'])
+        ->name('rentals.reviews.edit');
+    Route::patch('/rentals/{rental}/reviews', [ReviewController::class, 'update'])
+        ->name('rentals.reviews.update');
+    Route::delete('/rentals/{rental}/reviews', [ReviewController::class, 'destroy'])
+        ->name('rentals.reviews.destroy');
 });
 
 // Admin Kost Management (COMP-002: Kost Publication)
