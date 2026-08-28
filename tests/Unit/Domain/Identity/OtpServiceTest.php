@@ -49,7 +49,7 @@ class OtpServiceTest extends TestCase
             'used_at' => null,
         ]);
 
-        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user, $code): bool {
+        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user, $code): bool {
             return $mail->user->is($user) && $mail->code === $code;
         });
     }
@@ -114,7 +114,7 @@ class OtpServiceTest extends TestCase
 
         $this->otpService->generate($user, 'password-reset');
 
-        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user): bool {
+        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user): bool {
             return $mail->user->is($user)
                 && $mail->purpose === 'password-reset'
                 && $mail->hasSubject('[SewaKost] Kode Reset Password Anda');
@@ -130,7 +130,7 @@ class OtpServiceTest extends TestCase
 
         $this->otpService->generate($user);
 
-        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user): bool {
+        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user): bool {
             return $mail->user->is($user)
                 && $mail->purpose === 'email-verification'
                 && $mail->hasSubject('[SewaKost] Kode Verifikasi Email Anda');

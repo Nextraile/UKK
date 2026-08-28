@@ -30,7 +30,7 @@ class PasswordResetTest extends TestCase
         $this->post('/forgot-password', ['email' => $user->email])
             ->assertRedirect(route('password.otp'));
 
-        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user): bool {
+        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user): bool {
             return $mail->user->is($user)
                 && $mail->purpose === 'password-reset'
                 && $mail->hasSubject('[SewaKost] Kode Reset Password Anda');

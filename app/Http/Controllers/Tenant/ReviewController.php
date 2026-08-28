@@ -11,6 +11,7 @@ use App\Domain\Review\Actions\UpdateReviewAction;
 use App\Domain\Review\Models\Review;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\ReviewRequest;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class ReviewController extends Controller
@@ -18,7 +19,7 @@ class ReviewController extends Controller
     /**
      * Show the form for creating a new review.
      *
-     * @return \Illuminate\Contracts\View\View
+     * @return View
      */
     public function create(Rental $rental)
     {
@@ -56,7 +57,7 @@ class ReviewController extends Controller
     /**
      * Show the form for editing the review.
      *
-     * @return \Illuminate\Contracts\View\View
+     * @return View
      */
     public function edit(Rental $rental)
     {

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -62,18 +63,14 @@ class KostImageController extends Controller
 
         $file = $request->file('image');
 
-        // Generate filename: kost-{id}-img-{Ymd-His}-{seq}.{ext}
-        $sequence = $kost->kostImages()->count() + 1;
-        $filename = sprintf(
-            'kost-%d-img-%s-%d.%s',
-            $kost->id,
-            now()->format('Ymd-His'),
-            $sequence,
-            $file->guessExtension()
-        );
+        // Generate UUID filename for security (prevent enumeration attacks)
+        $filename = Str::uuid().'.'.$file->guessExtension();
 
         // Store in storage/app/public/kost-images/
         $path = $file->storeAs('kost-images', $filename, 'public');
+
+        // Get next sort_order
+        $sequence = $kost->kostImages()->count() + 1;
 
         // Create database record
         $image = KostImage::create([

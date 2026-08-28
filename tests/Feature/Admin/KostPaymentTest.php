@@ -53,10 +53,10 @@ class KostPaymentTest extends TestCase
 
         $kost->refresh();
 
-        // Verify filename pattern: qris-kost-{id}-{Ymd-His}.{ext}
+        // Verify filename pattern: UUID v4 (security: prevent enumeration)
         $this->assertNotNull($kost->qris_image_path);
         $this->assertMatchesRegularExpression(
-            '/^qris\/qris-kost-\d+-\d{8}-\d{6}\.(jpg|jpeg|png)$/',
+            '/^qris\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|jpeg|png)$/',
             $kost->qris_image_path
         );
 

@@ -18,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -340,12 +341,7 @@ class KostController extends Controller
                 Storage::disk('public')->delete($kost->qris_image_path);
             }
 
-            $filename = sprintf(
-                'qris-kost-%d-%s.%s',
-                $kost->id,
-                now()->format('Ymd-His'),
-                $request->file('qris_image')->guessExtension()
-            );
+            $filename = Str::uuid().'.'.$request->file('qris_image')->guessExtension();
 
             $path = $request->file('qris_image')->storeAs('qris', $filename, 'public');
             $validated['qris_image_path'] = $path;

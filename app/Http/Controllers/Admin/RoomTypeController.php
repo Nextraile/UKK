@@ -78,14 +78,8 @@ class RoomTypeController extends Controller
                 foreach ($files as $index => $file) {
                     $sequence = $index + 1;
 
-                    // Generate filename: room-type-{id}-img-{Ymd-His}-{seq}.{ext}
-                    $filename = sprintf(
-                        'room-type-%d-img-%s-%d.%s',
-                        $roomType->id,
-                        now()->format('Ymd-His'),
-                        $sequence,
-                        $file->guessExtension()
-                    );
+                    // Generate UUID filename for security (prevent enumeration attacks)
+                    $filename = Str::uuid().'.'.$file->guessExtension();
 
                     // Store in storage/app/public/room-type-images/
                     $path = $file->storeAs('room-type-images', $filename, 'public');
@@ -179,13 +173,8 @@ class RoomTypeController extends Controller
                 foreach ($files as $index => $file) {
                     $sequence = $maxSortOrder + $index + 1;
 
-                    $filename = sprintf(
-                        'room-type-%d-img-%s-%d.%s',
-                        $roomType->id,
-                        now()->format('Ymd-His'),
-                        $sequence,
-                        $file->guessExtension()
-                    );
+                    // Generate UUID filename for security (prevent enumeration attacks)
+                    $filename = Str::uuid().'.'.$file->guessExtension();
 
                     $path = $file->storeAs('room-type-images', $filename, 'public');
 

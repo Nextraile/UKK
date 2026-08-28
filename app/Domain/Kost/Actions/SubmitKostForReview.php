@@ -40,7 +40,7 @@ class SubmitKostForReview
             // Send notification to Super Admin
             $superAdminEmail = config('mail.super_admin_email');
             if ($superAdminEmail) {
-                Mail::to($superAdminEmail)->send(new KostSubmittedMail($kost));
+                Mail::to($superAdminEmail)->queue(new KostSubmittedMail($kost));
             }
         });
     }

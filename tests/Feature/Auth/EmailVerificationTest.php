@@ -39,7 +39,7 @@ class EmailVerificationTest extends TestCase
 
         // FR-004 on-demand: no OTP at registration, generated when the page is visited.
         $this->assertTrue($otpService->hasValidOtp($user));
-        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user): bool {
+        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user): bool {
             return $mail->user->is($user);
         });
     }

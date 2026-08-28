@@ -163,7 +163,7 @@ class RoomTypeImageTest extends TestCase
 
         $image = RoomTypeImage::first();
         $this->assertMatchesRegularExpression(
-            '/^room-type-images\/room-type-\d+-img-\d{8}-\d{6}-\d+\.\w+$/',
+            '/^room-type-images\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.\w+$/',
             $image->image_path
         );
     }
