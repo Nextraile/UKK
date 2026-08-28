@@ -286,7 +286,7 @@ Lihat definisi **Definition of Ready** & **Definition of Done** lengkap di `WORK
 | COMP-008 (Review) | 5 | 5 | 0 | 0 | 0 | 3 hari |
 | COMP-009 (Administration) | 5 | 5 | 0 | 0 | 0 | 3 hari |
 | Cross-Cutting | 5 | 5 | 0 | 0 | 0 | 4 hari |
-| **TOTAL** | **85 tasks** | **80** | **0** | **5** | **0** | **~66.75 hari kerja** |
+| **TOTAL** | **85 tasks** | **85** | **0** | **0** | **0** | **~66.75 hari kerja** |
 
 **Catatan Estimasi:**
 - Total **~66.25 hari kerja** untuk 1 developer (solo work)
