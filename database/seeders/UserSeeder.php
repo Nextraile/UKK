@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
      * Creates:
      * - 1 SuperAdmin
      * - 3 Admins (kost owners)
-     * - 6 Tenants (5 verified, 1 unverified, 1 soft deleted)
+     * - 13 Tenants (11 verified, 1 unverified, 1 soft deleted)
      */
     public function run(): void
     {
@@ -115,6 +115,91 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // Additional tenants for rental seed data
+        User::firstOrCreate(
+            ['email' => 'budi.tenant@example.com'],
+            [
+                'first_name' => 'Budi',
+                'last_name' => 'Hartono',
+                'password' => 'password',
+                'phone' => '081234567897',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'ani.tenant@example.com'],
+            [
+                'first_name' => 'Ani',
+                'last_name' => 'Susanti',
+                'password' => 'password',
+                'phone' => '081234567898',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'eko.tenant@example.com'],
+            [
+                'first_name' => 'Eko',
+                'last_name' => 'Prasetyo',
+                'password' => 'password',
+                'phone' => '081234567899',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'sari.tenant@example.com'],
+            [
+                'first_name' => 'Sari',
+                'last_name' => 'Melati',
+                'password' => 'password',
+                'phone' => '081234567900',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'dedi.tenant@example.com'],
+            [
+                'first_name' => 'Dedi',
+                'last_name' => 'Santoso',
+                'password' => 'password',
+                'phone' => '081234567901',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'lina.tenant@example.com'],
+            [
+                'first_name' => 'Lina',
+                'last_name' => 'Wijaya',
+                'password' => 'password',
+                'phone' => '081234567902',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'tono.tenant@example.com'],
+            [
+                'first_name' => 'Tono',
+                'last_name' => 'Suryadi',
+                'password' => 'password',
+                'phone' => '081234567903',
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
+
         // Unverified tenant
         User::firstOrCreate(
             ['email' => 'unverified@example.com'],
@@ -143,6 +228,6 @@ class UserSeeder extends Seeder
             $deletedUser->delete();
         }
 
-        $this->command->info('✅ Users seeded: 10 total (1 SuperAdmin, 3 Admins, 6 Tenants)');
+        $this->command->info('✅ Users seeded: 17 total (1 SuperAdmin, 3 Admins, 13 Tenants)');
     }
 }

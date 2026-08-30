@@ -84,7 +84,7 @@ class MarketplaceController extends Controller
                 });
             })
             ->with([
-                'address:id,kost_id,city,district',
+                'address:id,kost_id,full_address,district,city,province,postal_code',
                 'categories:id,name,slug',
                 'kostImages' => fn ($q) => $q->where('is_thumbnail', true)
                     ->select('id', 'kost_id', 'image_path', 'is_thumbnail'),

@@ -14,10 +14,10 @@ class DevSampleImageSeeder extends Seeder
      * Download sample images from picsum.photos for kost and room type galleries.
      *
      * Downloads:
-     * - 60 kost images (1200x800)
-     * - 60 room type images (800x600)
+     * - 100 kost images (1200x800) - supports 25 kosts with 4 images each
+     * - 80 room type images (800x600) - supports 40 room types with 2 images each
      *
-     * Total: 120 images
+     * Total: 180 images
      */
     public function run(): void
     {
@@ -29,11 +29,11 @@ class DevSampleImageSeeder extends Seeder
         Storage::disk('public')->makeDirectory('room-type-images');
 
         // Download kost images (1200x800)
-        $this->command->info('📥 Downloading kost images (60 images, 1200x800)...');
-        $bar = $this->command->getOutput()->createProgressBar(60);
+        $this->command->info('📥 Downloading kost images (100 images, 1200x800)...');
+        $bar = $this->command->getOutput()->createProgressBar(100);
         $bar->start();
 
-        for ($i = 1; $i <= 60; $i++) {
+        for ($i = 1; $i <= 100; $i++) {
             try {
                 $content = Http::timeout(10)
                     ->get('https://picsum.photos/1200/800')
@@ -52,11 +52,11 @@ class DevSampleImageSeeder extends Seeder
         $this->command->newLine();
 
         // Download room type images (800x600)
-        $this->command->info('📥 Downloading room type images (60 images, 800x600)...');
-        $bar = $this->command->getOutput()->createProgressBar(60);
+        $this->command->info('📥 Downloading room type images (80 images, 800x600)...');
+        $bar = $this->command->getOutput()->createProgressBar(80);
         $bar->start();
 
-        for ($i = 1; $i <= 60; $i++) {
+        for ($i = 1; $i <= 80; $i++) {
             try {
                 $content = Http::timeout(10)
                     ->get('https://picsum.photos/800/600')
@@ -76,7 +76,7 @@ class DevSampleImageSeeder extends Seeder
         $this->command->newLine();
 
         $this->command->info('✅ Images downloaded successfully!');
-        $this->command->info('   - 60 kost images in storage/app/public/kost-images/');
-        $this->command->info('   - 60 room type images in storage/app/public/room-type-images/');
+        $this->command->info('   - 100 kost images in storage/app/public/kost-images/');
+        $this->command->info('   - 80 room type images in storage/app/public/room-type-images/');
     }
 }

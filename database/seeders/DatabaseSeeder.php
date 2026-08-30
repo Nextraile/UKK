@@ -10,6 +10,10 @@ use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\PriceScheme;
 use App\Domain\Kost\Models\Room;
 use App\Domain\Kost\Models\RoomType;
+use App\Domain\Rental\Models\Payment;
+use App\Domain\Rental\Models\Rental;
+use App\Domain\Rental\Models\RentalDocument;
+use App\Domain\Review\Models\Review;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,10 +26,12 @@ class DatabaseSeeder extends Seeder
      *
      * Execution order respects FK constraints:
      * 1. SystemUserSeeder - System user (id=1) for automated operations
-     * 2. CategorySeeder - Independent master data
-     * 3. UserSeeder - Independent identity data
+     * 2. CategorySeeder - Independent master data (8 categories)
+     * 3. UserSeeder - Independent identity data (17 users)
      * 4. DevSampleImageSeeder - Download images from picsum.photos
-     * 5. KostSeeder - Depends on users, categories, images
+     * 5. KostSeeder - Depends on users, categories, images (25 kosts, 4 cities)
+     * 6. RentalSeeder - Depends on kosts, users (20 rentals across all statuses)
+     * 7. ReviewSeeder - Depends on rentals (reviews for completed rentals)
      */
     public function run(): void
     {
@@ -44,17 +50,19 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SystemUserSeeder::class,       // System user (id=1)
             SuperAdminSeeder::class,       // Super Admin account (COMP-009)
-            CategorySeeder::class,        // Independent (master data)
-            UserSeeder::class,             // Independent (identity)
+            CategorySeeder::class,         // Independent (master data) - 8 categories
+            UserSeeder::class,             // Independent (identity) - 17 users
             DevSampleImageSeeder::class,   // Download images first
-            KostSeeder::class,             // Depends: users, categories, images
+            KostSeeder::class,             // Depends: users, categories, images - 25 kosts
+            RentalSeeder::class,           // Depends: kosts, users - 20 rentals
+            ReviewSeeder::class,           // Depends: rentals - reviews for completed
         ]);
 
         $this->command->newLine();
         $this->command->info('✅ Seeding complete!');
         $this->command->newLine();
 
-        // Summary table
+        // Summary table with all seeded entities
         $this->command->table(
             ['Entity', 'Count'],
             [
@@ -65,6 +73,11 @@ class DatabaseSeeder extends Seeder
                 ['Room Types', RoomType::count()],
                 ['Rooms', Room::count()],
                 ['Price Schemes', PriceScheme::count()],
+                ['Rentals', Rental::count()],
+                ['Active Rentals', Rental::where('status', 'active')->count()],
+                ['Payments', Payment::count()],
+                ['Rental Documents', RentalDocument::count()],
+                ['Reviews', Review::count()],
             ]
         );
     }

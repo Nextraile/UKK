@@ -27,9 +27,10 @@ class KostSeeder extends Seeder
     protected int $roomImageCounter = 1;
 
     /**
-     * Realistic Bandung kost locations with full address data.
+     * Kost locations across 4 major cities with full address data.
      */
-    protected array $bandungLocations = [
+    protected array $locations = [
+        // Bandung (15 kosts)
         ['name' => 'Kost Ganesha Residence', 'address' => 'Jl. Ganesha No. 15', 'district' => 'Coblong', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40132', 'lat' => -6.8915, 'lng' => 107.6107],
         ['name' => 'Kost Dago Heights', 'address' => 'Jl. Ir. H. Juanda (Dago) No. 234', 'district' => 'Coblong', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40135', 'lat' => -6.8698, 'lng' => 107.6165],
         ['name' => 'Kost Cihampelas Walk', 'address' => 'Jl. Cihampelas No. 123', 'district' => 'Sukajadi', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40131', 'lat' => -6.8943, 'lng' => 107.6037],
@@ -45,14 +46,31 @@ class KostSeeder extends Seeder
         ['name' => 'Kost Margahayu Raya', 'address' => 'Jl. Margahayu Raya No. 245', 'district' => 'Margahayu', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40286', 'lat' => -6.9612, 'lng' => 107.6456],
         ['name' => 'Kost Ciumbuleuit View', 'address' => 'Jl. Ciumbuleuit No. 178', 'district' => 'Cidadap', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40142', 'lat' => -6.8534, 'lng' => 107.6078],
         ['name' => 'Kost Rancasari Budget', 'address' => 'Jl. A.H. Nasution No. 345', 'district' => 'Rancasari', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40292', 'lat' => -6.9567, 'lng' => 107.6723],
+        
+        // Jakarta (5 kosts)
+        ['name' => 'Kost Salemba Medical', 'address' => 'Jl. Salemba Raya No. 45', 'district' => 'Senen', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '10430', 'lat' => -6.1944, 'lng' => 106.8456],
+        ['name' => 'Kost Kuningan Elite', 'address' => 'Jl. HR Rasuna Said No. 123', 'district' => 'Setiabudi', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '12940', 'lat' => -6.2185, 'lng' => 106.8317],
+        ['name' => 'Kost Thamrin Central', 'address' => 'Jl. MH Thamrin No. 78', 'district' => 'Menteng', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '10350', 'lat' => -6.1862, 'lng' => 106.8231],
+        ['name' => 'Kost Kemang Residence', 'address' => 'Jl. Kemang Raya No. 56', 'district' => 'Mampang Prapatan', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '12730', 'lat' => -6.2615, 'lng' => 106.8172],
+        ['name' => 'Kost Kelapa Gading', 'address' => 'Jl. Boulevard Raya No. 234', 'district' => 'Kelapa Gading', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '14240', 'lat' => -6.1585, 'lng' => 106.9068],
+        
+        // Yogyakarta (3 kosts)
+        ['name' => 'Kost Malioboro Heritage', 'address' => 'Jl. Malioboro No. 67', 'district' => 'Danurejan', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55271', 'lat' => -7.7926, 'lng' => 110.3650],
+        ['name' => 'Kost UGM Campus', 'address' => 'Jl. Kaliurang KM 5 No. 12', 'district' => 'Sleman', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55281', 'lat' => -7.7698, 'lng' => 110.3783],
+        ['name' => 'Kost Prawirotaman', 'address' => 'Jl. Prawirotaman No. 89', 'district' => 'Mergangsan', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55153', 'lat' => -7.8134, 'lng' => 110.3745],
+        
+        // Surabaya (2 kosts)
+        ['name' => 'Kost Tunjungan Plaza', 'address' => 'Jl. Tunjungan No. 89', 'district' => 'Genteng', 'city' => 'Surabaya', 'province' => 'Jawa Timur', 'postal_code' => '60275', 'lat' => -7.2615, 'lng' => 112.7382],
+        ['name' => 'Kost ITS Campus', 'address' => 'Jl. Raya ITS No. 45', 'district' => 'Sukolilo', 'city' => 'Surabaya', 'province' => 'Jawa Timur', 'postal_code' => '60111', 'lat' => -7.2819, 'lng' => 112.7950],
     ];
 
     /**
      * Seed comprehensive kost data with full configuration.
      *
      * Creates:
-     * - 15 kosts (6 Active, 3 Draft, 3 Pending, 2 Approved, 1 Rejected)
+     * - 25 kosts (16 Active, 4 Draft, 2 Pending, 2 Approved, 1 Rejected)
      * - Distributed across 3 admin owners
+     * - Multi-city: Bandung (15), Jakarta (5), Yogyakarta (3), Surabaya (2)
      * - Full configuration for active kosts (images, documents, rooms, prices)
      */
     public function run(): void
@@ -75,37 +93,48 @@ class KostSeeder extends Seeder
             return;
         }
 
-        // Kost distribution: 5 kosts per admin
+        // Kost distribution: 25 kosts across 3 admins, 4 cities
+        // Distribution: 16 Active, 4 Draft, 2 Pending, 2 Approved, 1 Rejected
         $kostDistribution = [
-            // Budi: 5 kosts (indices 0-4)
+            // Budi: 9 kosts (Bandung 7, Jakarta 2)
             ['admin_index' => 0, 'location_index' => 0, 'status' => 'active'],
             ['admin_index' => 0, 'location_index' => 1, 'status' => 'active'],
-            ['admin_index' => 0, 'location_index' => 2, 'status' => 'draft'],
-            ['admin_index' => 0, 'location_index' => 3, 'status' => 'pending_review'],
-            ['admin_index' => 0, 'location_index' => 4, 'status' => 'rejected'],
+            ['admin_index' => 0, 'location_index' => 2, 'status' => 'active'],
+            ['admin_index' => 0, 'location_index' => 3, 'status' => 'draft'],
+            ['admin_index' => 0, 'location_index' => 4, 'status' => 'active'],
+            ['admin_index' => 0, 'location_index' => 15, 'status' => 'active'], // Jakarta
+            ['admin_index' => 0, 'location_index' => 16, 'status' => 'active'], // Jakarta
+            ['admin_index' => 0, 'location_index' => 5, 'status' => 'pending_review'],
+            ['admin_index' => 0, 'location_index' => 6, 'status' => 'rejected'],
 
-            // Siti: 5 kosts (indices 5-9)
-            ['admin_index' => 1, 'location_index' => 5, 'status' => 'draft'],
-            ['admin_index' => 1, 'location_index' => 6, 'status' => 'active'],
+            // Siti: 8 kosts (Bandung 5, Yogyakarta 3)
             ['admin_index' => 1, 'location_index' => 7, 'status' => 'active'],
-            ['admin_index' => 1, 'location_index' => 8, 'status' => 'approved'],
-            ['admin_index' => 1, 'location_index' => 9, 'status' => 'rejected'],
+            ['admin_index' => 1, 'location_index' => 8, 'status' => 'active'],
+            ['admin_index' => 1, 'location_index' => 9, 'status' => 'draft'],
+            ['admin_index' => 1, 'location_index' => 10, 'status' => 'active'],
+            ['admin_index' => 1, 'location_index' => 20, 'status' => 'active'], // Yogyakarta
+            ['admin_index' => 1, 'location_index' => 21, 'status' => 'active'], // Yogyakarta
+            ['admin_index' => 1, 'location_index' => 22, 'status' => 'active'], // Yogyakarta
+            ['admin_index' => 1, 'location_index' => 11, 'status' => 'approved'],
 
-            // Andi: 5 kosts (indices 10-14)
-            ['admin_index' => 2, 'location_index' => 10, 'status' => 'draft'],
-            ['admin_index' => 2, 'location_index' => 11, 'status' => 'active'],
-            ['admin_index' => 2, 'location_index' => 12, 'status' => 'pending_review'],
-            ['admin_index' => 2, 'location_index' => 13, 'status' => 'approved'],
+            // Andi: 8 kosts (Bandung 3, Jakarta 3, Surabaya 2)
+            ['admin_index' => 2, 'location_index' => 12, 'status' => 'active'],
+            ['admin_index' => 2, 'location_index' => 13, 'status' => 'draft'],
             ['admin_index' => 2, 'location_index' => 14, 'status' => 'active'],
+            ['admin_index' => 2, 'location_index' => 17, 'status' => 'active'], // Jakarta
+            ['admin_index' => 2, 'location_index' => 18, 'status' => 'active'], // Jakarta
+            ['admin_index' => 2, 'location_index' => 19, 'status' => 'draft'], // Jakarta
+            ['admin_index' => 2, 'location_index' => 23, 'status' => 'active'], // Surabaya
+            ['admin_index' => 2, 'location_index' => 24, 'status' => 'approved'], // Surabaya
         ];
 
         foreach ($kostDistribution as $index => $config) {
             $admin = $admins[$config['admin_index']];
-            $location = $this->bandungLocations[$config['location_index']];
+            $location = $this->locations[$config['location_index']];
             $status = $config['status'];
 
             $kostNumber = $index + 1;
-            $this->command->info("Creating kost {$kostNumber}/15: {$location['name']} ({$status})");
+            $this->command->info("Creating kost {$kostNumber}/25: {$location['name']} - {$location['city']} ({$status})");
 
             if ($status === 'active') {
                 $this->createActiveKost($admin, $superAdmin, $location);
@@ -121,12 +150,13 @@ class KostSeeder extends Seeder
         }
 
         $this->command->newLine();
-        $this->command->info('✅ Kosts seeded: 15 total');
-        $this->command->info('   - 6 Active (marketplace ready)');
-        $this->command->info('   - 3 Draft');
+        $this->command->info('✅ Kosts seeded: 25 total across 4 cities');
+        $this->command->info('   - 16 Active (marketplace ready)');
+        $this->command->info('   - 4 Draft');
         $this->command->info('   - 2 Pending Review');
-        $this->command->info('   - 2 Approved');
-        $this->command->info('   - 2 Rejected');
+        $this->command->info('   - 2 Approved (with rooms)');
+        $this->command->info('   - 1 Rejected');
+        $this->command->info('   Cities: Bandung (15), Jakarta (5), Yogyakarta (3), Surabaya (2)');
     }
 
     /**
@@ -371,6 +401,10 @@ class KostSeeder extends Seeder
         KostDocumentRequirement::create(['kost_id' => $kost->id, 'document_type' => 'ktp', 'is_required' => true]);
         KostDocumentRequirement::create(['kost_id' => $kost->id, 'document_type' => 'selfie_with_ktp', 'is_required' => true]);
         KostDocumentRequirement::create(['kost_id' => $kost->id, 'document_type' => 'student_card', 'is_required' => false]);
+
+        // Phase 1A: Add room types so Admin can publish approved kosts
+        $this->createRoomType($kost, 'Kamar Single', 1, '3x3 m', 500000);
+        $this->createRoomType($kost, 'Kamar Double', 2, '4x4 m', 750000);
     }
 
     /**
@@ -448,7 +482,23 @@ class KostSeeder extends Seeder
             $this->roomImageCounter++;
         }
 
-        // Create 3 price schemes
+        // Phase 3A: Vary discount by category
+        $category = $kost->categories->first();
+        $discount3mo = match($category?->slug) {
+            'premium' => 0.03,  // 3% (premium discounts less)
+            'budget' => 0.10,   // 10% (budget encourages longer stays)
+            'syariah' => 0.08,  // 8%
+            default => 0.05,    // 5% default
+        };
+
+        $discount6mo = match($category?->slug) {
+            'premium' => 0.07,  // 7%
+            'budget' => 0.18,   // 18%
+            'syariah' => 0.15,  // 15%
+            default => 0.10,    // 10% default
+        };
+
+        // Create 3 price schemes with category-based discounts
         $monthlyPrice = rand(1200000, 2500000);
 
         PriceScheme::create([
@@ -464,8 +514,8 @@ class KostSeeder extends Seeder
         PriceScheme::create([
             'room_type_id' => $roomType->id,
             'name' => '3 Bulan',
-            'description' => 'Sewa 3 bulan (diskon 5%)',
-            'price' => $monthlyPrice * 3 * 0.95,
+            'description' => 'Sewa 3 bulan (diskon '.($discount3mo * 100).'%)',
+            'price' => $monthlyPrice * 3 * (1 - $discount3mo),
             'duration_value' => 3,
             'duration_unit' => 'month',
             'is_active' => true,
@@ -474,8 +524,8 @@ class KostSeeder extends Seeder
         PriceScheme::create([
             'room_type_id' => $roomType->id,
             'name' => '6 Bulan',
-            'description' => 'Sewa 6 bulan (diskon 10%)',
-            'price' => $monthlyPrice * 6 * 0.90,
+            'description' => 'Sewa 6 bulan (diskon '.($discount6mo * 100).'%)',
+            'price' => $monthlyPrice * 6 * (1 - $discount6mo),
             'duration_value' => 6,
             'duration_unit' => 'month',
             'is_active' => true,

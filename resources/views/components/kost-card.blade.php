@@ -35,7 +35,7 @@
         @if($kost->address)
           {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
           @if($kost->address->postal_code)
-            {{ $kost->address->postal_code }}
+            ({{ $kost->address->postal_code }})
           @endif
         @else
           Lokasi tidak tersedia

@@ -70,7 +70,7 @@
                                 <p>{{ $kost->address->full_address }}, 
                                     {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
                                     @if($kost->address->postal_code)
-                                        {{ $kost->address->postal_code }}
+                                        ({{ $kost->address->postal_code }})
                                     @endif
                                 </p>
                             @else
@@ -541,7 +541,7 @@
                             disabled
                             class="block w-full px-6 py-3 bg-gray-400 text-white text-center font-semibold rounded-lg opacity-50 cursor-not-allowed"
                         >
-                            Tidak Ada Kamar Tersedia
+                            Kamar Tidak Tersedia
                         </button>
                     @endif
                     
