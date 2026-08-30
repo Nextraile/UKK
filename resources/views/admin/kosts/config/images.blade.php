@@ -8,7 +8,6 @@
         title="Kelola Gambar Kost"
         :subtitle="$kost->name"
         :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => 'Kost', 'url' => route('admin.kosts.index')],
             ['label' => $kost->name, 'url' => route('admin.kosts.show', $kost)],
             ['label' => 'Gambar'],

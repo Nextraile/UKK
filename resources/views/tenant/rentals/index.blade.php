@@ -5,7 +5,6 @@
                 title="Rental Saya"
                 subtitle="Halo, {{ auth()->user()->first_name }} — Kelola rental kost Anda di sini"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Rental'],
                 ]"
             />

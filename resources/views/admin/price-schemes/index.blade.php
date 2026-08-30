@@ -1,5 +1,9 @@
-<x-app-layout>
-    <div class="py-12" x-data="{
+@extends('layouts.admin')
+
+@section('title', 'Paket Harga - ' . $roomType->name)
+
+@section('content')
+    <div class="space-y-6" x-data="{
         showModal: false,
         editing: false,
         form: {
@@ -65,137 +69,134 @@
             }
         }
     }">
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <x-page-header 
-                title="Paket Harga - {{ $roomType->name }}"
-                subtitle="Atur paket harga sewa untuk tipe kamar ini"
-                :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
-                    ['label' => 'Kost', 'url' => route('admin.kosts.index')],
-                    ['label' => $roomType->kost->name, 'url' => route('admin.kosts.show', $roomType->kost)],
-                    ['label' => $roomType->name, 'url' => route('admin.room-types.show', [$roomType->kost, $roomType])],
-                    ['label' => 'Paket Harga'],
-                ]"
-            >
-                <x-slot:actions>
-                    <a href="{{ route('admin.room-types.show', [$roomType->kost, $roomType]) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
-                        ← Kembali
-                    </a>
-                </x-slot:actions>
-            </x-page-header>
+        <x-page-header 
+            title="Paket Harga - {{ $roomType->name }}"
+            subtitle="Atur paket harga sewa untuk tipe kamar ini"
+            :breadcrumbs="[
+                ['label' => 'Kost', 'url' => route('admin.kosts.index')],
+                ['label' => $roomType->kost->name, 'url' => route('admin.kosts.show', $roomType->kost)],
+                ['label' => $roomType->name, 'url' => route('admin.room-types.show', [$roomType->kost, $roomType])],
+                ['label' => 'Paket Harga'],
+            ]"
+        >
+            <x-slot:actions>
+                <a href="{{ route('admin.room-types.show', [$roomType->kost, $roomType]) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                    ← Kembali
+                </a>
+            </x-slot:actions>
+        </x-page-header>
 
-            <!-- Success Message -->
-            @if (session('success'))
-                <x-alert-banner variant="success" class="mb-4" dismissible>
-                    {{ session('success') }}
-                </x-alert-banner>
-            @endif
+        <!-- Success Message -->
+        @if (session('success'))
+            <x-alert-banner variant="success" class="mb-4" dismissible>
+                {{ session('success') }}
+            </x-alert-banner>
+        @endif
 
-            <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <!-- Add Button -->
-                    <div class="mb-6 flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900">Daftar Paket Harga</h3>
-                        <button @click="openCreate()" type="button"
-                            class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                            aria-label="Tambah paket harga baru">
-                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Tambah Paket Harga
-                        </button>
-                    </div>
-
-                    <!-- Price Schemes Table -->
-                    @if($roomType->priceSchemes->isEmpty())
-                        <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada paket harga</h3>
-                            <p class="mt-1 text-sm text-gray-500">Tambahkan paket harga menggunakan tombol di atas.</p>
-                        </div>
-                    @else
-                        <div class="overflow-hidden rounded-lg border border-gray-200">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Nama Paket
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Harga
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Durasi
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Status
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                                            Aksi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
-                                    @foreach($roomType->priceSchemes as $priceScheme)
-                                        <tr>
-                                            <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $priceScheme->name }}</div>
-                                                @if($priceScheme->description)
-                                                    <div class="text-sm text-gray-500">{{ $priceScheme->description }}</div>
-                                                @endif
-                                            </td>
-                                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                                Rp {{ number_format((float) $priceScheme->price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                                                {{ $priceScheme->duration_value }} 
-                                                @if($priceScheme->duration_unit === 'day')
-                                                    Hari
-                                                @elseif($priceScheme->duration_unit === 'week')
-                                                    Minggu
-                                                @else
-                                                    Bulan
-                                                @endif
-                                            </td>
-                                            <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                                <button @click="toggleActive({{ $priceScheme->id }}, {{ $priceScheme->is_active ? 'true' : 'false' }})" 
-                                                    type="button"
-                                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $priceScheme->is_active ? 'bg-success/10 text-success-700' : 'bg-gray-100 text-gray-800' }}">
-                                                    {{ $priceScheme->is_active ? 'Aktif' : 'Nonaktif' }}
-                                                </button>
-                                            </td>
-                                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                                <button @click="openEdit({
-                                                    id: {{ $priceScheme->id }},
-                                                    name: '{{ addslashes($priceScheme->name) }}',
-                                                    description: '{{ addslashes($priceScheme->description ?? '') }}',
-                                                    price: {{ $priceScheme->price }},
-                                                    duration_value: {{ $priceScheme->duration_value }},
-                                                    duration_unit: '{{ $priceScheme->duration_unit }}',
-                                                    is_active: {{ $priceScheme->is_active ? 'true' : 'false' }}
-                                                })" type="button" class="text-primary-600 hover:text-primary-900">
-                                                    Edit
-                                                </button>
-                                                <span class="text-gray-300">|</span>
-                                                <form method="POST" action="{{ route('admin.price-schemes.destroy', [$roomType, $priceScheme]) }}" 
-                                                    class="inline"
-                                                    onsubmit="return confirm('Yakin ingin menghapus paket harga ini?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-error-600 hover:text-error-900">
-                                                        Hapus
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
+        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+            <div class="p-6">
+                <!-- Add Button -->
+                <div class="mb-6 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Daftar Paket Harga</h3>
+                    <button @click="openCreate()" type="button"
+                        class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        aria-label="Tambah paket harga baru">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Paket Harga
+                    </button>
                 </div>
+
+                <!-- Price Schemes Table -->
+                @if($roomType->priceSchemes->isEmpty())
+                    <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada paket harga</h3>
+                        <p class="mt-1 text-sm text-gray-500">Tambahkan paket harga menggunakan tombol di atas.</p>
+                    </div>
+                @else
+                    <div class="overflow-hidden rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Nama Paket
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Harga
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Durasi
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Status
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                                        Aksi
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                @foreach($roomType->priceSchemes as $priceScheme)
+                                    <tr>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ $priceScheme->name }}</div>
+                                            @if($priceScheme->description)
+                                                <div class="text-sm text-gray-500">{{ $priceScheme->description }}</div>
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                                            Rp {{ number_format((float) $priceScheme->price, 0, ',', '.') }}
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                            {{ $priceScheme->duration_value }} 
+                                            @if($priceScheme->duration_unit === 'day')
+                                                Hari
+                                            @elseif($priceScheme->duration_unit === 'week')
+                                                Minggu
+                                            @else
+                                                Bulan
+                                            @endif
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-sm">
+                                            <button @click="toggleActive({{ $priceScheme->id }}, {{ $priceScheme->is_active ? 'true' : 'false' }})" 
+                                                type="button"
+                                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $priceScheme->is_active ? 'bg-success/10 text-success-700' : 'bg-gray-100 text-gray-800' }}">
+                                                {{ $priceScheme->is_active ? 'Aktif' : 'Nonaktif' }}
+                                            </button>
+                                        </td>
+                                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                            <button @click="openEdit({
+                                                id: {{ $priceScheme->id }},
+                                                name: '{{ addslashes($priceScheme->name) }}',
+                                                description: '{{ addslashes($priceScheme->description ?? '') }}',
+                                                price: {{ $priceScheme->price }},
+                                                duration_value: {{ $priceScheme->duration_value }},
+                                                duration_unit: '{{ $priceScheme->duration_unit }}',
+                                                is_active: {{ $priceScheme->is_active ? 'true' : 'false' }}
+                                            })" type="button" class="text-primary-600 hover:text-primary-900">
+                                                Edit
+                                            </button>
+                                            <span class="text-gray-300">|</span>
+                                            <form method="POST" action="{{ route('admin.price-schemes.destroy', [$roomType, $priceScheme]) }}" 
+                                                class="inline"
+                                                onsubmit="return confirm('Yakin ingin menghapus paket harga ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-error-600 hover:text-error-900">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -376,4 +377,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

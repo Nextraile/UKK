@@ -4,7 +4,6 @@
             <x-page-header 
                 title="Buat Booking Rental"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Rental', 'url' => route('rentals.index')],
                     ['label' => 'Buat Booking'],
                 ]"

@@ -4,7 +4,6 @@
             <x-page-header 
                 title="Edit Profil"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Profil', 'url' => route('profile.show')],
                     ['label' => 'Edit'],
                 ]"

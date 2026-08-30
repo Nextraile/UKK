@@ -5,7 +5,6 @@
                 title="Kelola Informasi Pembayaran"
                 :subtitle="$kost->name . ' — Upload gambar QRIS dan isi informasi rekening bank untuk pembayaran.'"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Kost', 'url' => route('admin.kosts.index')],
                     ['label' => $kost->name, 'url' => route('admin.kosts.show', $kost)],
                     ['label' => 'Pembayaran'],

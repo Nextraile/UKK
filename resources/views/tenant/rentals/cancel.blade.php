@@ -1,14 +1,13 @@
 <x-app-layout>
     <div class="max-w-2xl mx-auto py-8 px-4">
-        <x-page-header 
-            title="Batalkan Rental"
+            <x-page-header 
+                title="Pembatalan Rental"
             :breadcrumbs="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Rental', 'url' => route('rentals.index')],
-                ['label' => 'Detail', 'url' => route('rentals.show', $rental)],
-                ['label' => 'Batalkan'],
+                ['label' => 'Detail Rental', 'url' => route('rentals.show', $rental)],
+                ['label' => 'Pembatalan'],
             ]"
-        >
+            >
             <x-slot:actions>
                 <a href="{{ route('rentals.show', $rental) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     ← Kembali

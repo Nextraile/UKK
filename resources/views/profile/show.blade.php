@@ -4,7 +4,6 @@
             <x-page-header 
                 title="Profil Saya"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Profil'],
                 ]"
             >

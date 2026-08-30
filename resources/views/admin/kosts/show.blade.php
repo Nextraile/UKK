@@ -8,7 +8,6 @@
         :title="$kost->name"
         subtitle="Dibuat {{ $kost->created_at->format('d M Y') }}"
         :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => 'Kost', 'url' => route('admin.kosts.index')],
             ['label' => $kost->name],
         ]"

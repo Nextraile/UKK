@@ -7,8 +7,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.3.0` |
-| Terakhir Diperbarui | `2026-08-24` |
+| Versi Dokumen | `1.3.2` |
+| Terakhir Diperbarui | `2026-08-30` |
 | Total Pages | 64 pages + 8 email templates |
 
 ---
@@ -21,6 +21,11 @@
 3. **Implementasi Blade view** berdasarkan spec: layout, components, data requirements, validation rules
 4. **Follow user flows** untuk memahami interaksi dan edge cases
 5. **Test accessibility** sesuai catatan aksesibilitas per page
+6. **Understand unified navigation** — All pages use unified navbar component `<x-nav-public />`:
+   - Shows same UI for all roles (guest, tenant, admin, superadmin)
+   - **Dashboard link** routes to role-specific page via `auth()->user()->dashboardRoute()` method
+   - **Admin/Super Admin pages**: Use admin sidebar layout (`layouts/admin.blade.php`) for page content, but navbar at top is still `<x-nav-public />`
+   - **Breadcrumbs**: No longer include "Dashboard" link — start directly with section context (e.g., "Rentals", "Kost Management", "Profile")
 
 ### 0.2 Struktur Page Spec
 Setiap page specification berisi:
@@ -1070,7 +1075,7 @@ Public Nav (authenticated) + Main Content:
 ```
 
 #### Components Used
-- `<x-nav-public>` with authenticated state (§3.6)
+- `<x-nav-public />` with authenticated state (§3.6) — Public navbar showing tenant-specific dropdown: "Rental Saya", "Profil", "Logout"
 - `<x-stat-card />` x 3 — Active Rentals, Pending Actions, Completed Rentals (icon + label + nilai, delta opsional) (§3.31)
 - `<x-rental-card />` x N (§3.3)
 - `<x-confirm-dialog />` — aksi destruktif dari kartu (mis. cancel rental / hapus) (§3.25)
@@ -1465,13 +1470,15 @@ public function store(ReviewRequest $request, Rental $rental)
 
 #### Layout Structure
 ```
-Admin layout (sidebar x-nav-admin-sidebar):
+Admin layout (sidebar):
 - x-page-header: breadcrumb (Kost → Buat/Edit) + judul + aksi kontekstual
 - x-callout error (jika rejected_reason ada): alasan penolakan + tombol "Perbaiki & Kirim Ulang" (FR-020)
 - x-stepper horizontal 4 langkah (§5.1b):
   [Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → [Review & Kirim]
 - Panel aktif per langkah (validasi per langkah; tombol Kembali/Lanjut)
 ```
+
+**Navigation:** Admin sidebar (`layouts/admin.blade.php`) with role-specific menu items (Admin vs Super Admin).
 
 #### Components Used
 - `<x-page-header />` — breadcrumb + judul + aksi (§3.26)
@@ -2083,6 +2090,8 @@ Admin layout:
      - Link: /admin/kosts/{id}/room-types (COMP-004, not implemented yet)
 ```
 
+**Navigation:** Admin sidebar (`layouts/admin.blade.php`) with role-specific menu items (Admin vs Super Admin).
+
 #### Components Used
 - `<x-status-badge />` for kost status (draft/pending_review/approved/active/rejected)
 - `<x-callout type="warning" />` for completeness checklist
@@ -2171,6 +2180,8 @@ Detail (/superadmin/submissions/{kost}):
 - Info lengkap: deskripsi, fasilitas/aturan list, room types + harga, QRIS/bank, document requirements
 - Aksi: [Approve] primary / [Reject] destructive (modal reason)
 ```
+
+**Navigation:** Admin sidebar (`layouts/admin.blade.php`) with Super Admin-specific menu items.
 
 #### Components Used
 - `<x-page-header />` — judul + count pending (§3.26)
@@ -2514,9 +2525,13 @@ Mark TASK Done
 **END OF PAGES.MD**
 
 > **Total Documentation:**
-> - DESIGN.md: 4340 lines (complete design system)
-> - PAGES.md: 2519 lines (24 fully specified page specs + 40 summarized + 8 email templates = 72 specs)
-> - Combined: 6859 lines of comprehensive UI/UX documentation
+> - DESIGN.md: 4505 lines (complete design system)
+> - PAGES.md: 2535 lines (24 fully specified page specs + 40 summarized + 8 email templates = 72 specs)
+> - Combined: 7040 lines of comprehensive UI/UX documentation
+>
+> **Version 1.3.2 (2026-08-30):** Updated §0.1 navigation guidelines: replaced role-based dropdown mention with unified navbar spec (`<x-nav-public />` for all roles, Dashboard link routes via `auth()->user()->dashboardRoute()`, Admin/Super Admin pages use admin sidebar but navbar remains unified). Added breadcrumb guideline: no "Dashboard" link, start directly with section context.
+>
+> **Version 1.3.1 (2026-08-30):** Added role-based navigation documentation: §0.1 updated with navbar usage guidelines (public navbar for tenant pages, admin sidebar for admin/superadmin pages). Updated PAGE-007 (Tenant Dashboard), PAGE-011 (Admin Kost Create/Edit), PAGE-020 (Admin Kost Configuration Hub), PAGE-012 (Super Admin Submission Review) with navigation notes.
 >
 > **Version 1.3.0 (2026-08-24):** Added 7 COMP-003 Kost Configuration page specs (PAGE-014—PAGE-020): Info & Address, Images Management, Categories Assignment, Facilities & Rules, Payment Configuration (QRIS + Bank), Document Requirements, Configuration Hub. Updated page inventory: 57 → 64 pages total.
 > **Next:** Update AGENTS.md with references to DESIGN.md + PAGES.md

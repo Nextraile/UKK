@@ -7,8 +7,8 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `v1.6.1` |
-| Terakhir Diperbarui | `2026-08-20` |
+| Versi Dokumen | `v1.6.3` |
+| Terakhir Diperbarui | `2026-08-30` |
 | Tech Stack | Laravel 13 + Blade + Alpine.js 3.14 + Tailwind CSS 4.0 |
 
 ---
@@ -1163,81 +1163,64 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
 ```
 
 ---
-
 ### 3.6 Navigation
 
-#### Public Navigation (Marketplace)
+#### Unified Public Navigation
+
+**Used by:** All pages (landing, marketplace, tenant, admin, super admin) — single unified navbar component `<x-nav-public />`
+
+**Behavior:**
+- **Guest users:** Shows "Cari Kost" link, "Masuk" link, "Daftar" button (primary CTA)
+- **Authenticated users:** Shows "Cari Kost", "Profile", "Dashboard", "Logout" links (text-based, no avatar dropdown)
+  - **Dashboard link:** Redirects to role-specific page via `auth()->user()->dashboardRoute()` method:
+    - Tenant (role=user) → `/rentals`
+    - Admin (role=admin) → `/admin/dashboard`
+    - Super Admin (role=superadmin) → `/super-admin/dashboard`
+
+**Implementation:** `resources/views/components/nav-public.blade.php`
+
 ```html
-<nav x-data="{ mobileMenuOpen: false }" class="bg-white dark:bg-surface-raised-dark shadow-sm sticky top-0 z-40 border-b border-gray-200 dark:border-border-dark">
+<nav x-data="{ mobileMenuOpen: false }" 
+  class="bg-white dark:bg-surface-raised-dark border-b border-gray-200 dark:border-border-dark sticky top-0 z-50 shadow-sm">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
       <!-- Logo -->
-      <div class="flex items-center">
-        <a href="/" class="flex items-center group">
-          <img src="/logo.svg" alt="SewaKost" class="h-8 w-auto">
-          <span class="ml-2 text-xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
-            SewaKost
-          </span>
+      <div class="flex-shrink-0">
+        <a href="/" class="flex items-center gap-2">
+          <span class="text-xl font-bold text-gray-900 dark:text-text-strong-dark">SewaKost</span>
         </a>
       </div>
       
-      <!-- Desktop Navigation -->
-      <div class="hidden md:flex items-center space-x-8">
+      <!-- Desktop Navigation Links -->
+      <div class="hidden md:flex md:items-center md:gap-6">
         <a href="/marketplace" 
-          class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">
+          class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
           Cari Kost
         </a>
+        
         @auth
-          <a href="/rentals" 
-            class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">
-            Rental Saya
+          <a href="/profile" 
+            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+            Profile
           </a>
-          <!-- User Dropdown -->
-          <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open"
-              aria-label="Menu akun"
-              aria-haspopup="menu"
-              :aria-expanded="open"
-              class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1">
-              <img src="{{ auth()->user()->avatar_url }}" 
-                alt="{{ auth()->user()->first_name }}" 
-                class="w-8 h-8 rounded-full ring-2 ring-gray-200">
-              <svg class="w-4 h-4 text-gray-600" :class="{ 'rotate-180': open }" 
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
+          <a href="{{ auth()->user()->dashboardRoute() }}" 
+            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+            Dashboard
+          </a>
+          <form method="POST" action="/logout" class="inline">
+            @csrf
+            <button type="submit" 
+              class="text-error-700 hover:text-error-800 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+              Logout
             </button>
-            <!-- Dropdown Menu -->
-            <div x-show="open" 
-              @click.away="open = false"
-              @keydown.escape.window="open = false"       <!-- focus management dasar: Esc tutup, Tab keluar -->
-              x-transition:enter="transition ease-out duration-200"
-              x-transition:enter-start="opacity-0 scale-95"
-              x-transition:enter-end="opacity-100 scale-100"
-              role="menu"
-              class="absolute right-0 mt-2 w-48 bg-white dark:bg-surface-raised-dark rounded-lg shadow-lg ring-1 ring-gray-900/5 dark:ring-border-dark py-1">
-              <a href="/profile" role="menuitem" class="block px-4 py-2 text-sm text-gray-700 dark:text-text-dark hover:bg-gray-50">
-                Profil Saya
-              </a>
-              <a href="/rentals" role="menuitem" class="block px-4 py-2 text-sm text-gray-700 dark:text-text-dark hover:bg-gray-50">
-                Rental Saya
-              </a>
-              <hr class="my-1 border-gray-200">
-              <form method="POST" action="/logout">
-                @csrf
-                <button type="submit" role="menuitem" class="w-full text-left px-4 py-2 text-sm text-error-700 hover:bg-gray-50">
-                  Logout
-                </button>
-              </form>
-            </div>
-          </div>
+          </form>
         @else
           <a href="/login" 
-            class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors">
+            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
             Masuk
           </a>
           <a href="/register" 
-            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all">
+            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
             Daftar
           </a>
         @endauth
@@ -1248,8 +1231,8 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
         <button @click="mobileMenuOpen = !mobileMenuOpen"
           aria-label="Buka menu navigasi"
           :aria-expanded="mobileMenuOpen"
-          class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="p-2 text-gray-600 dark:text-text-dark hover:text-gray-900 dark:hover:text-text-strong-dark focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
@@ -1259,32 +1242,42 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
   
   <!-- Mobile Menu -->
   <div x-show="mobileMenuOpen" 
+    x-cloak
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 -translate-y-1"
     x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 -translate-y-1"
     class="md:hidden border-t border-gray-200 dark:border-border-dark">
     <div class="px-2 pt-2 pb-3 space-y-1">
-      <a href="/marketplace" class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark">
+      <a href="/marketplace" 
+        class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
         Cari Kost
       </a>
       @auth
-        <a href="/rentals" class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark">
-          Rental Saya
+        <a href="/profile" 
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+          Profile
         </a>
-        <a href="/profile" class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark">
-          Profil Saya
+        <a href="{{ auth()->user()->dashboardRoute() }}" 
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+          Dashboard
         </a>
         <form method="POST" action="/logout">
           @csrf
-          <button type="submit" class="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-error-700 hover:bg-gray-50 dark:hover:bg-surface-muted-dark">
+          <button type="submit" 
+            class="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-error-700 hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
             Logout
           </button>
         </form>
       @else
-        <a href="/login" class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark">
+        <a href="/login" 
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
           Masuk
         </a>
-        <a href="/register" class="block px-3 py-2 rounded-lg text-base font-medium bg-primary-600 text-white hover:bg-primary-700">
+        <a href="/register" 
+          class="block px-3 py-2 rounded-lg text-base font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors">
           Daftar
         </a>
       @endauth
@@ -1293,7 +1286,94 @@ Kelas dasar: `sm` = `px-4 py-2 text-sm`; `md` = `px-6 py-3 text-base`; `lg` = `p
 </nav>
 ```
 
+**Responsive:** Mobile hamburger menu with same links.
+
+**Active state:** Can be implemented with route matching if needed: `request()->is('marketplace')`, `request()->is('profile')`, etc.
+
+**Note:** This unified navbar replaced the previous role-based dropdown menus and tenant-specific navigation. All roles now see the same UI with role-aware Dashboard link routing.
+
+---
+
 #### Admin Sidebar Navigation
+
+**Used by:** Admin and Super Admin pages (different menus per role)
+
+**Admin Menu (role=admin):**
+- Kelola Kost → `/admin/kosts`
+- Rental Management → `/admin/rentals` (with notification badge if pending verifications > 0)
+- Logout
+
+**Super Admin Menu (role=superadmin):**
+- Kost Submissions → `/super-admin/kost-submissions` (with notification badge if pending > 0)
+- Admin Management → `/super-admin/admins`
+- Categories → `/super-admin/categories`
+- Logout
+
+**Implementation:** Role-based conditional rendering with `@if(auth()->user()->isAdmin())` and `@if(auth()->user()->isSuperAdmin())`.
+
+**Notification badges:** Real-time counts via `AdminSidebarComposer` (ViewComposer), displayed as warning-colored badges (`bg-warning-700`).
+
+```html
+<aside class="w-64 bg-gray-900 text-white min-h-screen fixed left-0 top-0 flex flex-col">
+  <!-- Brand -->
+  <div class="p-6 border-b border-gray-800">
+    <h2 class="text-xl font-bold">SewaKost Admin</h2>
+    <p class="text-sm text-gray-400 mt-1">{{ auth()->user()->first_name }}</p>
+  </div>
+  
+  <!-- Navigation Links -->
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <a href="/admin/dashboard" 
+      class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->is('admin/dashboard') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      <span class="font-medium">Dashboard</span>
+    </a>
+    
+    <a href="/admin/kosts" 
+      class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->is('admin/kosts*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+      </svg>
+      <span class="font-medium">Kost Saya</span>
+    </a>
+    
+    <a href="/admin/rentals" 
+      class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->is('admin/rentals*') ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }} transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+      </svg>
+      <span class="font-medium">Rental Management</span>
+      @if($pendingVerifications > 0)
+        <span class="ml-auto px-2 py-0.5 bg-warning-700 text-white text-xs font-semibold rounded-full">
+          {{ $pendingVerifications }}
+        </span>
+      @endif
+    </a>
+  </nav>
+  
+  <!-- Footer -->
+  <div class="p-4 border-t border-gray-800">
+    <form method="POST" action="/logout">
+      @csrf
+      <button type="submit" class="flex items-center gap-3 w-full px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        <span class="font-medium">Logout</span>
+      </button>
+    </form>
+  </div>
+</aside>
+
+<!-- Main Content Area (with sidebar offset) -->
+<div class="ml-64 min-h-screen bg-gray-50">
+  <!-- Content here -->
+</div>
+```
+
+---
 ```html
 <aside class="w-64 bg-gray-900 text-white min-h-screen fixed left-0 top-0 flex flex-col">
   <!-- Brand -->
@@ -4412,6 +4492,8 @@ Gunakan package optimasi gambar Laravel (mis. `spatie/laravel-image-optimizer`).
 | v1.6.0 | 2026-08-19 | Fase 5: state machine kost lengkap — §5.1b tabel state→badge→action per role (Pemilik Kost/Super Admin; state sesuai DM-002: draft/pending_review/approved/active/rejected, tanpa inactive/archived/blocked — nonaktif via soft delete + `<x-confirm-dialog>` §3.25), submission stepper 4 langkah ([Detail Kost] → [Foto & Media] → [Fasilitas & Aturan] → [Review & Kirim]; varian `x-stepper` §3.11: done `bg-success-700`, active `bg-primary-600` + `aria-current="step"`, upcoming muted, validasi per langkah + prev/next), rejection flow (`<x-callout>` error + "Perbaiki & Kirim Ulang" → `draft` clear rejected_reason; approve → banner sukses + "Publikasikan Sekarang" → `active`). Inventory §3.0: Progress/Timeline tambah varian submission. | OpenCode |
 | v1.6.1 | 2026-08-20 | Fix referensi silang PAGE (PAGE-008→010, PAGE-002→003, PAGE-004→003, drawer→PAGE-002); sinkron count PAGES 57 halaman. | OpenCode |
 | v1.6.2 | 2026-08-20 | Registrasi `x-theme-toggle` §3.39 + inventory §3.0: dark/light theme switcher (class-based `.dark` di `<html>`, persist `localStorage.theme`, no-FOUC inline script layout head — selaras strategi §2.1); a11y `:aria-pressed`, ikon `aria-hidden`, touch target ≥44px, `focus-visible:ring-2`; dark pair token semantik. Implementasi: `resources/views/components/theme-toggle.blade.php`. | OpenCode |
+| v1.6.2 | 2026-08-30 | Update §3.6 Navigation: tambah role-based dropdown behavior notes untuk Public Navigation (Guest vs Tenant/Admin/Super Admin dropdown items), tambah spec Tenant Navigation (authenticated tenant interface dengan primary nav links Rental Saya + Cari Kost, user dropdown Profil Saya + Logout, theme toggle, responsive hamburger menu, active state route matching), update Admin Sidebar Navigation dengan role differentiation notes (Admin vs Super Admin menu items, notification badges via AdminSidebarComposer). | OpenCode |
+| v1.6.3 | 2026-08-30 | Update §3.6 Navigation: Unified navbar implementation — replaced role-based dropdown menus and tenant-specific navigation with single `<x-nav-public />` component for all roles. Authenticated users see direct links (Profile, Dashboard, Logout) instead of avatar dropdown. Dashboard link routes to role-specific page via `User::dashboardRoute()` method (tenant→/rentals, admin→/admin/dashboard, superadmin→/super-admin/dashboard). Removed Tenant Navigation section. Updated code examples to match implementation in `resources/views/components/nav-public.blade.php`. | OpenCode |
 ---
 
 **END OF DESIGN.md**

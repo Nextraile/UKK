@@ -4,14 +4,13 @@
 
 @section('content')
 <div class="space-y-6">
-    <x-page-header 
-        title="Manajemen Rental"
-        subtitle="Total: {{ $rentals->total() }} rental"
-        :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
-            ['label' => 'Rental'],
-        ]"
-    />
+            <x-page-header 
+                title="Rental Management"
+                subtitle="Kelola semua rental di kost Anda"
+                :breadcrumbs="[
+                    ['label' => 'Rental'],
+                ]"
+            />
 
     <!-- Filters -->
     <div class="flex items-center space-x-4">

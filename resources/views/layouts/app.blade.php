@@ -30,7 +30,7 @@
         </a>
 
         <div class="min-h-screen bg-surface dark:bg-surface-dark">
-            @include('layouts.navigation')
+            <x-nav-public />
 
             <!-- Page Heading -->
             @isset($header)

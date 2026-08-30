@@ -7,8 +7,6 @@
     {{-- Breadcrumb --}}
     <nav class="text-sm" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2 text-gray-500">
-            <li><a href="{{ route('dashboard') }}" class="hover:text-gray-700">Home</a></li>
-            <li><span aria-hidden="true">/</span></li>
             <li><a href="{{ route('super-admin.kost-submissions.index') }}" class="hover:text-gray-700">Kost Submissions</a></li>
             <li><span aria-hidden="true">/</span></li>
             <li class="text-gray-900 font-medium" aria-current="page">{{ $submission->name }}</li>

@@ -40,8 +40,9 @@ Route::get('/marketplace/kosts/{kost:slug}', [KostDetailController::class, 'show
 // Global rate limiting for all authenticated routes (60 req/min per IP)
 // Auth routes in auth.php have stricter limits (5/min, 1/min) for security-sensitive operations
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
+    // Dashboard redirect to role-specific destination
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return redirect(auth()->user()->dashboardRoute());
     })->name('dashboard');
 
     // Profile Management

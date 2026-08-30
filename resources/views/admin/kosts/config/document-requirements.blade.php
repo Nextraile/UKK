@@ -5,7 +5,6 @@
                 title="Persyaratan Dokumen - {{ $kost->name }}"
                 subtitle="Atur dokumen apa saja yang harus disiapkan penyewa saat menyewa kost ini"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Kost', 'url' => route('admin.kosts.index')],
                     ['label' => $kost->name, 'url' => route('admin.kosts.show', $kost)],
                     ['label' => 'Persyaratan Dokumen'],

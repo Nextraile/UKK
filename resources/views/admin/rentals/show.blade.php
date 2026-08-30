@@ -4,7 +4,6 @@
             <x-page-header 
                 title="Detail Rental #{{ $rental->id }}"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Rental', 'url' => route('admin.rentals.index')],
                     ['label' => 'Detail'],
                 ]"

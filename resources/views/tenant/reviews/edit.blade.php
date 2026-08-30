@@ -2,12 +2,11 @@
     <div class="py-12">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
             <x-page-header 
-                title="Edit Penilaian"
+                title="Edit Review untuk {{ $rental->room->roomType->kost->name }}"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Rental', 'url' => route('rentals.index')],
-                    ['label' => 'Detail', 'url' => route('rentals.show', $rental)],
-                    ['label' => 'Edit Penilaian'],
+                    ['label' => 'Detail Rental', 'url' => route('rentals.show', $rental)],
+                    ['label' => 'Edit Review'],
                 ]"
             >
                 <x-slot:actions>

@@ -5,7 +5,6 @@
                 title="Kelola Kategori Kost"
                 :subtitle="$kost->name . ' — Pilih minimal 1 kategori untuk kost ini.'"
                 :breadcrumbs="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
                     ['label' => 'Kost', 'url' => route('admin.kosts.index')],
                     ['label' => $kost->name, 'url' => route('admin.kosts.show', $kost)],
                     ['label' => 'Kategori'],

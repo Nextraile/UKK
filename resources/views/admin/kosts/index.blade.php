@@ -4,14 +4,13 @@
 
 @section('content')
 <div class="space-y-6">
-    <x-page-header 
-        title="Kelola Kost"
-        subtitle="Total: {{ $kosts->total() }} kost"
-        :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
-            ['label' => 'Kost'],
-        ]"
-    >
+            <x-page-header 
+                title="Kost Saya"
+                subtitle="Kelola properti kost yang Anda miliki"
+                :breadcrumbs="[
+                    ['label' => 'Kost'],
+                ]"
+            >
         <x-slot:actions>
             <a href="{{ route('admin.kosts.create') }}" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                 Buat Kost Baru
