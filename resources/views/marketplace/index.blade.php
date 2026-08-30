@@ -1,12 +1,48 @@
-<x-guest-layout>
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Jelajahi Kost</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">Temukan kost yang sesuai dengan kebutuhan Anda</p>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <title>Jelajahi Kost - SewaKost</title>
+    <meta name="description" content="Temukan kost yang sesuai dengan kebutuhan Anda. Cari berdasarkan lokasi, harga, kategori, dan rating.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    
+    <!-- No-FOUC theme bootstrap -->
+    <script>
+        (function() {
+            const stored = localStorage.getItem('theme');
+            const dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', dark);
+        })();
+    </script>
+    
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="font-sans text-text-strong dark:text-text-strong-dark antialiased bg-surface dark:bg-surface-dark">
+    <!-- Skip to main content -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg transition-all">
+        Skip to main content
+    </a>
+    
+    <!-- Public Navigation -->
+    <x-nav-public />
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <div class="py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Jelajahi Kost</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Temukan kost yang sesuai dengan kebutuhan Anda</p>
+            </div>
         </div>
-    </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <!-- Search Bar (FR-051) -->
         <div class="mb-6">
             <form method="GET" action="{{ route('marketplace.index') }}" class="flex gap-2">
@@ -210,7 +246,11 @@
                 </p>
             </div>
         @endif
-            </main>
+            </div>
         </div>
-    </div>
-</x-guest-layout>
+    </main>
+    
+    <!-- Footer -->
+    <x-footer />
+</body>
+</html>

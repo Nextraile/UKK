@@ -3688,6 +3688,8 @@ Pola layout per role akses — struktur halaman, breakpoints, dan kontainer maks
 <main class="ml-64 min-h-screen bg-surface dark:bg-surface-dark">
 ```
 
+**Footer:** None — admin interface adalah aplikasi dashboard, bukan marketing site. Footer links (terms, privacy, contact) accessible via profile/settings menu jika diperlukan. Menghilangkan footer memaksimalkan vertical space untuk konten operasional (tables, forms, charts).
+
 ---
 
 ### 4.3 Auth Layout (Centered Card)
@@ -3711,6 +3713,10 @@ Pola layout per role akses — struktur halaman, breakpoints, dan kontainer maks
 
 **Centered Container:** `min-h-screen flex items-center justify-center bg-surface dark:bg-surface-dark`
 **Card:** `max-w-md w-full bg-white dark:bg-surface-raised-dark shadow-xl rounded-xl p-8`
+
+**Navigation:** Logo only (non-interactive) — auth flows (login, register, password reset) adalah task-focused, tidak memerlukan site navigation. User hanya perlu menyelesaikan satu task (authenticate) tanpa distraksi navigasi ke halaman lain.
+
+**Footer:** None — auth pages minimal untuk fokus pada task completion. Marketing/legal links (terms, privacy) accessible dari landing page atau post-login.
 
 ---
 

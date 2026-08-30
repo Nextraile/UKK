@@ -208,13 +208,14 @@ public function index()
 ```
 
 #### Components Used
-- `<x-nav-public>` (§3.6)
+- `<x-nav-public />` — Public navigation (§3.6) ✅ **WAJIB** — sticky navbar dengan logo, "Cari Kost" link, auth links/user menu
 - `<x-search />` — Search bar (nama/lokasi) + submit-on-Enter (§3.36)
 - `<x-mobile-filter-drawer />` — Filter drawer mobile (harga min-max + kategori + rating, chips ringkasan filter aktif) (§3.32). Desktop: panel filter inline (sidebar kiri, sticky) memakai pola yang sama: `fieldset` + `legend` per grup filter, tombol "Terapkan Filter" `x-button` primary — lihat §3.32 untuk struktur field + a11y
 - `<x-kost-card />` x N (§3.3)
 - `<x-pagination />` (§3.15, Laravel default styled)
 - `<x-empty-state />` — No results state (§3.8)
 - `<x-skeleton variant="card" />` x 12 — Loading state (§3.38) (skeleton card pattern — DESIGN §3.9)
+- `<x-footer />` — Multi-column footer (§3.35) ✅ **WAJIB** — brand, navigation links, social media, copyright. Sesuai DESIGN.md §4.1 Public Layout Pattern
 
 #### Data Requirements
 ```php
@@ -377,7 +378,7 @@ public function index(Request $request)
 ```
 
 #### Components Used
-- `<x-nav-public>` (§3.6)
+- `<x-nav-public />` — Public navigation (§3.6) ✅ **WAJIB** — sticky navbar dengan logo, "Cari Kost" link, auth links/user menu
 - `<x-breadcrumbs />` (§3.13)
 - `<x-gallery-lightbox />` — Hero image + thumbnail grid + lightbox (focus trap, Esc, arrow prev/next) (§3.27)
 - Kost Info Card (custom, display facilities/rules as list)
@@ -387,6 +388,7 @@ public function index(Request $request)
 - `<x-map />` — Map Widget (Leaflet.js, read-only, fallback alamat teks + link Google Maps) (§3.28)
 - `<x-rating :value="4.8" :count="32" />` — Rating summary di booking sidebar (§3.29)
 - Booking Sidebar (sticky): `<x-booking-form />` panel summary (§3.23); di mobile → `<x-sticky-action-bar />` (fixed bottom) (§3.33)
+- `<x-footer />` — Multi-column footer (§3.35) ✅ **WAJIB** — brand, navigation links, social media, copyright. Sesuai DESIGN.md §4.1 Public Layout Pattern
 
 #### Data Requirements
 ```php
