@@ -28,7 +28,8 @@ class RoomTypeFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->randomElement(['Single Bed', 'Double Bed', 'Suite', 'Standard', 'Deluxe', 'VIP']);
+        // Use sequential numbering to avoid unique constraint overflow
+        $name = fake()->randomElement(['Single Bed', 'Double Bed', 'Suite', 'Standard', 'Deluxe', 'VIP']).' '.fake()->unique()->numerify('##');
 
         return [
             'kost_id' => Kost::factory(),

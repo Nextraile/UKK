@@ -50,8 +50,11 @@ class RentalController extends Controller
         // Calculate stats from collection (no separate queries)
         $stats = [
             'active' => $rentals->where('status', 'active')->count(),
-            'pending_actions' => $rentals->whereIn('status', ['pending', 'paid', 'confirmed'])->count(),
+            // Pending actions: only pending (awaiting payment) and paid (awaiting doc upload)
+            // Confirmed status excluded because admin verifies documents (no tenant action needed)
+            'pending_actions' => $rentals->whereIn('status', ['pending', 'paid'])->count(),
             'completed' => $rentals->where('status', 'completed')->count(),
+            'cancelled' => $rentals->where('status', 'cancelled')->count(),
         ];
 
         return view('tenant.rentals.index', compact('rentals', 'stats'));

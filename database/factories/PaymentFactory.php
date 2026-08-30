@@ -44,4 +44,15 @@ class PaymentFactory extends Factory
             'paid_at' => now(),
         ]);
     }
+
+    /**
+     * Indicate that the payment is expired.
+     */
+    public function expired(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'pending',
+            'expired_at' => now()->subHours(2),
+        ]);
+    }
 }
