@@ -1047,7 +1047,331 @@ Centered card (max-w-md):
 
 ## 4. Tenant Interface Pages — 16 Pages
 
-### PAGE-007: Tenant Dashboard
+### PAGE-007: Profile Show
+
+**URL:** `/profile`  
+**Route Name:** `profile.show`  
+**Method:** GET  
+**Auth:** Authenticated  
+**Controller:** `ProfileController@show`  
+**FR Reference:** FR-002 (User profile management)
+
+#### Purpose
+- Display user profile information (read-only view)
+- Show email verification status with visual badge
+- Show role badge (Tenant, Admin, Super Admin)
+- Provide quick access to edit profile page
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Public Nav (unified navbar)                 │
+├─────────────────────────────────────────────┤
+│ Page Header                                 │
+│ - Breadcrumb: Profil                        │
+│ - Title: "Profil Saya"                      │
+│ - Action: [Edit Profil] button             │
+├─────────────────────────────────────────────┤
+│ Profile Card (bg-surface-raised)            │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Avatar (circle, 96×96) + Name Header    │ │
+│ │ - First + Last Name (text-xl bold)      │ │
+│ │ - Email (text-sm muted)                 │ │
+│ │ - Role Badge (color-coded)              │ │
+│ ├─────────────────────────────────────────┤ │
+│ │ Detail Rows (border-t, divide-y)        │ │
+│ │ • Email + Verification Status Badge     │ │
+│ │ • Phone Number                          │ │
+│ │ • First Name                            │ │
+│ │ • Last Name                             │ │
+│ ├─────────────────────────────────────────┤ │
+│ │ Footer Action (bg-surface)              │ │
+│ │ [Edit Profil] button                    │ │
+│ └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Container:** `max-w-3xl mx-auto` (centered, narrower than full-width)  
+**Card:** `bg-surface-raised dark:bg-surface-raised-dark shadow-sm rounded-lg`
+
+#### Components Used
+- `<x-base-layout variant="full-width">` (§4.1)
+- `<x-page-header>` — breadcrumb + title + action slot (§3.26)
+- `<x-role-badge :role="$user->role">` — color-coded role badge (NEW component)
+- Avatar: conditional render `avatar_path` vs initials circle (pattern from existing show.blade.php)
+- Email verification badge: inline badge (success/warning)
+- Success message: session flash display (if redirected from edit)
+
+#### Data Requirements
+```php
+// ProfileController@show
+public function show(Request $request)
+{
+    return view('profile.show', [
+        'user' => $request->user(), // Current authenticated user
+    ]);
+}
+```
+
+**User model fields displayed:**
+- `first_name` (required)
+- `last_name` (optional, show "Belum diisi" if null)
+- `email` (required)
+- `email_verified_at` (show badge: verified = success, not verified = warning + CTA)
+- `phone` (optional, show "Belum diisi" if null)
+- `role` (user|admin|superadmin → badge)
+- `avatar_path` (optional, show initials circle if null)
+
+#### User Flows
+
+**Flow 1: View profile (happy path)**
+1. User navigates to `/profile` from navbar dropdown
+2. Page loads with current user data
+3. User sees avatar, name, email, phone, role
+4. Email verification status clearly visible with badge
+5. User can click "Edit Profil" to modify information
+
+**Flow 2: Unverified email prompt**
+1. User with unverified email views profile
+2. Email row shows warning badge "Belum Verifikasi"
+3. CTA button "Verifikasi Email" next to badge
+4. Clicking CTA → redirect to `/verify-email` (PAGE-006)
+
+**Flow 3: After profile update**
+1. User completes profile edit (PAGE-008)
+2. Redirected to `/profile` with success message
+3. Toast/alert shows "Profil berhasil diperbarui"
+4. Updated data displayed
+
+#### Edge Cases
+- **No avatar uploaded:** Show initials circle with first letter of first_name
+- **Missing optional fields:** Display "Belum diisi" (gray, muted)
+- **Soft-deleted user:** Middleware prevents access (redirect to login)
+- **Session status message:** Display success/info alert at top if session flash exists
+
+#### Accessibility Notes
+- **Avatar:** `alt="Avatar"` or `aria-label="Inisial [Name]"` for initials circle
+- **Role badge:** Use semantic color with sufficient contrast (DESIGN.md §3.4)
+- **Email verification badge:** 
+  - Verified: `<span role="status" aria-label="Email terverifikasi">✓ Terverifikasi</span>`
+  - Not verified: `<span role="status" aria-label="Email belum diverifikasi">⚠ Belum Verifikasi</span>`
+- **Edit button:** Clear label "Edit Profil", visible focus indicator
+- **Keyboard navigation:** All interactive elements (edit button, verify email CTA) tabbable
+
+---
+
+### PAGE-008: Profile Edit
+
+**URL:** `/profile/edit`  
+**Route Name:** `profile.edit`  
+**Method:** GET  
+**Auth:** Authenticated  
+**Controller:** `ProfileController@edit`  
+**FR Reference:** FR-002 (User profile management), FR-003 (Email change requires re-verification)
+
+#### Purpose
+- Edit user profile information (name, email, phone, avatar)
+- Update password
+- Delete account permanently
+- Four separate forms in sections: Avatar, Profile Info, Password, Delete Account
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Public Nav (unified navbar)                 │
+├─────────────────────────────────────────────┤
+│ Page Header                                 │
+│ - Breadcrumb: Profil > Edit                 │
+│ - Title: "Edit Profil"                      │
+│ - Action: <x-button variant="outline">     │
+├─────────────────────────────────────────────┤
+│ Status Message (if session flash)           │
+├─────────────────────────────────────────────┤
+│ Section 1: Avatar Upload (id="avatar")      │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ Current Avatar + File Upload            │ │
+│ │ - Preview on select                     │ │
+│ │ - [Upload] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 2: Profile Info (id="profile-info") │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ - First Name (required)                 │ │
+│ │ - Last Name (optional)                  │ │
+│ │ - Email (warning callout below)         │ │
+│ │ - Phone (optional)                      │ │
+│ │ - [Simpan] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 3: Password (id="password")         │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ - Current Password                      │ │
+│ │ - New Password                          │ │
+│ │ - Confirm Password                      │ │
+│ │ - [Simpan] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 4: Delete Account (id="delete")     │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Warning text + [Hapus Akun] button      │ │
+│ │ → Opens enhanced confirmation modal     │ │
+│ └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Container:** `max-w-7xl mx-auto` with 4 separate cards  
+**Each section:** `bg-surface-raised dark:bg-surface-raised-dark shadow-sm rounded-lg p-4 sm:p-8`  
+**Inner content:** `max-w-xl` (constrain form width)
+
+#### Components Used
+- `<x-base-layout variant="full-width">` (§4.1)
+- `<x-page-header>` with back button using `<x-button variant="outline">` (C-2 fix)
+- `<x-callout type="warning">` — email change warning (C-4 fix)
+- Form error summary block with `role="alert" aria-live="assertive"` (C-7 fix)
+- `<x-input-label>`, `<x-text-input>`, `<x-input-error>` (existing Breeze components)
+- `<x-primary-button>` (existing)
+- Avatar upload: Alpine.js preview + drag-drop zone (C-3 fix)
+- Delete modal: Enhanced with checkbox + email confirmation (C-5 fix)
+
+#### Data Requirements
+```php
+// ProfileController@edit
+public function edit(Request $request)
+{
+    return view('profile.edit', [
+        'user' => $request->user(),
+    ]);
+}
+```
+
+**Forms POST to:**
+1. Avatar: `POST /profile/avatar` → `ProfileController@updateAvatar`
+2. Profile info: `PATCH /profile` → `ProfileController@update`
+3. Password: `PUT /profile/password` → `PasswordController@update`
+4. Delete: `DELETE /profile` → `ProfileController@destroy`
+
+#### Validation Rules
+
+**Profile Info (ProfileUpdateRequest):**
+```php
+'first_name' => ['required', 'string', 'max:255'],
+'last_name' => ['nullable', 'string', 'max:255'],
+'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+'phone' => ['nullable', 'string', 'max:20'],
+```
+
+**Password Update:**
+```php
+'current_password' => ['required', 'current_password'],
+'password' => ['required', 'confirmed', 'min:8'],
+```
+
+**Avatar Upload:**
+```php
+'avatar' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB
+```
+
+**Account Deletion:**
+```php
+'password' => ['required', 'current_password'],
+'email_confirmation' => ['required', 'email', 'in:' . $user->email], // Must match
+'confirmation_checkbox' => ['accepted'], // Must check understanding
+```
+
+#### User Flows
+
+**Flow 1: Edit profile info**
+1. User clicks "Edit Profil" from profile show page
+2. Page loads with 4 sections, profile info form pre-filled
+3. User changes first name, clicks Save
+4. Success: Redirect to `/profile` with toast "Profil berhasil diperbarui"
+5. Error: Form re-displayed with error messages + error summary at top
+
+**Flow 2: Change email (requires re-verification)**
+1. User changes email in profile info form
+2. Warning callout visible: "Mengubah email memerlukan verifikasi ulang. Akses fitur rental akan diblokir sampai email baru diverifikasi."
+3. User submits form
+4. Backend: Update email, set `email_verified_at = null`
+5. Redirect to `/verify-email` (PAGE-006) to verify new email
+6. OTP sent to new email address
+
+**Flow 3: Upload avatar with preview**
+1. User clicks file input or drags image to drop zone
+2. Alpine.js immediately shows preview thumbnail
+3. User sees preview, clicks "Upload" button
+4. Form submits via POST to `/profile/avatar`
+5. Success: Page reloads with new avatar visible
+6. Error: Show error message below upload zone
+
+**Flow 4: Change password**
+1. User scrolls to password section
+2. Fills current password, new password, confirm password
+3. Clicks Save
+4. Success: Toast "Password berhasil diperbarui", form cleared
+5. Error: Show validation errors (e.g., "Current password salah")
+
+**Flow 5: Delete account (enhanced confirmation)**
+1. User clicks red "Hapus Akun" button
+2. Modal opens with:
+   - Checkbox: "Saya memahami tindakan ini tidak dapat dibatalkan"
+   - Account data summary: "X rental aktif, Y reviews akan dihapus"
+   - Email confirmation input: "Ketik email Anda untuk konfirmasi"
+   - Password input
+   - Submit button disabled until checkbox checked AND email matches
+3. User checks box, types email, enters password
+4. Submit button becomes enabled
+5. User clicks "Hapus Akun"
+6. Backend soft-deletes user account
+7. Logout and redirect to homepage
+
+**Flow 6: Focus management with URL hash**
+1. User navigates to `/profile/edit#password`
+2. Page loads and auto-scrolls to password section
+3. Focus moves to first input in that section
+
+#### Edge Cases
+- **Email change while unverified:** Allow change, but immediately redirect to `/verify-email`
+- **Avatar upload fails (file too large):** Show error "Ukuran file maksimal 2MB"
+- **Incorrect current password:** Show error "Password saat ini salah"
+- **Password too weak:** Show validation error "Password minimal 8 karakter"
+- **Delete account with active rentals:** Show in modal: "Anda memiliki X rental aktif" + warning
+- **Email confirmation mismatch:** Submit button stays disabled, show helper text "Email tidak cocok"
+
+#### Accessibility Notes
+
+**Form Error Announcements (C-7):**
+- Each form section includes error summary block at top with `role="alert" aria-live="assertive"`
+- Screen reader announces errors immediately
+- Per-field errors still shown below each input with `<x-input-error>`
+
+**Focus Management (C-6):**
+- Alpine.js manages URL hash navigation
+- Each section has `id` attribute: `avatar`, `profile-info`, `password`, `delete`
+- Auto-scroll and focus on page load if hash present
+- After form submission, focus returns to edited section
+
+**Avatar Upload (C-3):**
+- Drop zone is `<label>` wrapping hidden `<input type="file">`
+- Keyboard accessible: Tab to drop zone, Enter to open file picker
+- Alpine.js preview updates on file select
+- Preview has descriptive `alt` text
+
+**Email Change Warning (C-4):**
+- `<x-callout type="warning">` immediately below email input
+- Always visible, clear consequences explained
+
+**Delete Account Modal (C-5):**
+- Modal with full accessibility attributes
+- Checkbox + email confirmation + password required
+- Submit disabled until all conditions met
+- Focus trap, Escape to close, focus restoration
+
+---
+
+### PAGE-009: Tenant Dashboard
 
 **URL:** `/rentals` (serves as dashboard)  
 **Route Name:** `rentals.index`  
@@ -1237,6 +1561,368 @@ Centered content (max-w-3xl):
 - Upload zone (<x-document-upload> §3.24): dropzone bisa dioper keyboard (input file focusable), error file (tipe/ukuran) `aria-describedby` + `role="alert"`
 - Label form + preview thumbnail: status "sedang upload" diumumkan `aria-live="polite"`; progress bar readable
 - Submit button disabled saat upload berjalan / countdown expired (prevent submit lewat deadline)
+
+### PAGE-007: Profile Show
+
+**URL:** `/profile`  
+**Route Name:** `profile.show`  
+**Method:** GET  
+**Auth:** Authenticated  
+**Controller:** `ProfileController@show`  
+**FR Reference:** FR-002 (User profile management)
+
+#### Purpose
+- Display user profile information (read-only view)
+- Show email verification status with visual badge
+- Show role badge (Tenant, Admin, Super Admin)
+- Provide quick access to edit profile page
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Public Nav (unified navbar)                 │
+├─────────────────────────────────────────────┤
+│ Page Header                                 │
+│ - Breadcrumb: Profil                        │
+│ - Title: "Profil Saya"                      │
+│ - Action: [Edit Profil] button             │
+├─────────────────────────────────────────────┤
+│ Profile Card (bg-surface-raised)            │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Avatar (circle, 96×96) + Name Header    │ │
+│ │ - First + Last Name (text-xl bold)      │ │
+│ │ - Email (text-sm muted)                 │ │
+│ │ - Role Badge (color-coded)              │ │
+│ ├─────────────────────────────────────────┤ │
+│ │ Detail Rows (border-t, divide-y)        │ │
+│ │ • Email + Verification Status Badge     │ │
+│ │ • Phone Number                          │ │
+│ │ • First Name                            │ │
+│ │ • Last Name                             │ │
+│ ├─────────────────────────────────────────┤ │
+│ │ Footer Action (bg-surface)              │ │
+│ │ [Edit Profil] button                    │ │
+│ └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Container:** `max-w-3xl mx-auto` (centered, narrower than full-width)  
+**Card:** `bg-surface-raised dark:bg-surface-raised-dark shadow-sm rounded-lg`
+
+#### Components Used
+- `<x-base-layout variant="full-width">` (§4.1)
+- `<x-page-header>` — breadcrumb + title + action slot (§3.26)
+- `<x-role-badge :role="$user->role">` — color-coded role badge (NEW component)
+- Avatar: conditional render `avatar_path` vs initials circle (pattern from existing show.blade.php)
+- Email verification badge: `<x-status-badge>` or inline badge (success/warning)
+- Success message: session flash display (if redirected from edit)
+
+#### Data Requirements
+```php
+// ProfileController@show
+public function show(Request $request)
+{
+    return view('profile.show', [
+        'user' => $request->user(), // Current authenticated user
+    ]);
+}
+```
+
+**User model fields displayed:**
+- `first_name` (required)
+- `last_name` (optional, show "Belum diisi" if null)
+- `email` (required)
+- `email_verified_at` (show badge: verified = success, not verified = warning + CTA)
+- `phone` (optional, show "Belum diisi" if null)
+- `role` (user|admin|superadmin → badge)
+- `avatar_path` (optional, show initials circle if null)
+
+#### User Flows
+
+**Flow 1: View profile (happy path)**
+1. User navigates to `/profile` from navbar dropdown
+2. Page loads with current user data
+3. User sees avatar, name, email, phone, role
+4. Email verification status clearly visible with badge
+5. User can click "Edit Profil" to modify information
+
+**Flow 2: Unverified email prompt**
+1. User with unverified email views profile
+2. Email row shows warning badge "Belum Verifikasi"
+3. CTA button "Verifikasi Email" next to badge
+4. Clicking CTA → redirect to `/verify-email` (PAGE-006)
+
+**Flow 3: After profile update**
+1. User completes profile edit (PAGE-008)
+2. Redirected to `/profile` with success message
+3. Toast/alert shows "Profil berhasil diperbarui"
+4. Updated data displayed
+
+#### Edge Cases
+- **No avatar uploaded:** Show initials circle with first letter of first_name
+- **Missing optional fields:** Display "Belum diisi" (gray, muted)
+- **Soft-deleted user:** Middleware prevents access (redirect to login)
+- **Session status message:** Display success/info alert at top if session flash exists
+
+#### Accessibility Notes
+- **Avatar:** `alt="Avatar"` or `aria-label="Inisial [Name]"` for initials circle
+- **Role badge:** Use semantic color with sufficient contrast (DESIGN.md §3.4)
+- **Email verification badge:** 
+  - Verified: `<span role="status" aria-label="Email terverifikasi">✓ Terverifikasi</span>`
+  - Not verified: `<span role="status" aria-label="Email belum diverifikasi">⚠ Belum Verifikasi</span>`
+- **Edit button:** Clear label "Edit Profil", visible focus indicator
+- **Keyboard navigation:** All interactive elements (edit button, verify email CTA) tabbable
+
+---
+
+### PAGE-008: Profile Edit
+
+**URL:** `/profile/edit`  
+**Route Name:** `profile.edit`  
+**Method:** GET  
+**Auth:** Authenticated  
+**Controller:** `ProfileController@edit`  
+**FR Reference:** FR-002 (User profile management), FR-003 (Email change requires re-verification)
+
+#### Purpose
+- Edit user profile information (name, email, phone, avatar)
+- Update password
+- Delete account permanently
+- Four separate forms in sections: Avatar, Profile Info, Password, Delete Account
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Public Nav (unified navbar)                 │
+├─────────────────────────────────────────────┤
+│ Page Header                                 │
+│ - Breadcrumb: Profil > Edit                 │
+│ - Title: "Edit Profil"                      │
+│ - Action: [Kembali] button (outline)       │
+├─────────────────────────────────────────────┤
+│ Status Message (if session flash)           │
+├─────────────────────────────────────────────┤
+│ Section 1: Avatar Upload (id="avatar")      │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ Current Avatar + File Upload            │ │
+│ │ - Preview on select                     │ │
+│ │ - [Upload] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 2: Profile Info (id="profile-info") │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ - First Name (required)                 │ │
+│ │ - Last Name (optional)                  │ │
+│ │ - Email (warning callout below)         │ │
+│ │ - Phone (optional)                      │ │
+│ │ - [Simpan] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 3: Password (id="password")         │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Form Error Summary (if $errors->any())  │ │
+│ │ - Current Password                      │ │
+│ │ - New Password                          │ │
+│ │ - Confirm Password                      │ │
+│ │ - [Simpan] button                       │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ Section 4: Delete Account (id="delete")     │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Warning text + [Hapus Akun] button      │ │
+│ │ → Opens enhanced confirmation modal     │ │
+│ └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+**Container:** `max-w-7xl mx-auto` with 4 separate cards  
+**Each section:** `bg-surface-raised dark:bg-surface-raised-dark shadow-sm rounded-lg p-4 sm:p-8`  
+**Inner content:** `max-w-xl` (constrain form width)
+
+#### Components Used
+- `<x-base-layout variant="full-width">` (§4.1)
+- `<x-page-header>` with back button using `<x-button variant="outline">` (NEW - C-2 fix)
+- `<x-callout type="warning">` — email change warning (NEW - C-4 fix)
+- Form error summary block with `role="alert" aria-live="assertive"` (NEW - C-7 fix)
+- `<x-input-label>`, `<x-text-input>`, `<x-input-error>` (existing Breeze components)
+- `<x-primary-button>` (existing)
+- Avatar upload: Alpine.js preview + drag-drop zone (C-3 fix)
+- Delete modal: Enhanced with checkbox + email confirmation (C-5 fix)
+
+#### Data Requirements
+```php
+// ProfileController@edit
+public function edit(Request $request)
+{
+    return view('profile.edit', [
+        'user' => $request->user(),
+    ]);
+}
+```
+
+**Forms POST to:**
+1. Avatar: `POST /profile/avatar` → `ProfileController@updateAvatar`
+2. Profile info: `PATCH /profile` → `ProfileController@update`
+3. Password: `PUT /profile/password` → `PasswordController@update`
+4. Delete: `DELETE /profile` → `ProfileController@destroy`
+
+#### Validation Rules
+
+**Profile Info (ProfileUpdateRequest):**
+```php
+'first_name' => ['required', 'string', 'max:255'],
+'last_name' => ['nullable', 'string', 'max:255'],
+'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+'phone' => ['nullable', 'string', 'max:20'],
+```
+
+**Password Update:**
+```php
+'current_password' => ['required', 'current_password'],
+'password' => ['required', 'confirmed', 'min:8'],
+```
+
+**Avatar Upload:**
+```php
+'avatar' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:2048'], // 2MB
+```
+
+**Account Deletion:**
+```php
+'password' => ['required', 'current_password'],
+'email_confirmation' => ['required', 'email', 'in:' . $user->email], // NEW - must match user email
+'confirmation_checkbox' => ['accepted'], // NEW - must check understanding
+```
+
+#### User Flows
+
+**Flow 1: Edit profile info**
+1. User clicks "Edit Profil" from profile show page
+2. Page loads with 4 sections, profile info form pre-filled
+3. User changes first name, clicks Save
+4. Success: Redirect to `/profile` with toast "Profil berhasil diperbarui"
+5. Error: Form re-displayed with error messages + error summary at top
+
+**Flow 2: Change email (requires re-verification)**
+1. User changes email in profile info form
+2. Warning callout visible: "Mengubah email memerlukan verifikasi ulang. Akses fitur rental akan diblokir sampai email baru diverifikasi."
+3. User submits form
+4. Backend: Update email, set `email_verified_at = null`
+5. Redirect to `/verify-email` (PAGE-006) to verify new email
+6. OTP sent to new email address
+
+**Flow 3: Upload avatar with preview**
+1. User clicks file input or drags image to drop zone
+2. Alpine.js immediately shows preview thumbnail
+3. User sees preview, clicks "Upload" button
+4. Form submits via POST to `/profile/avatar`
+5. Success: Page reloads with new avatar visible
+6. Error: Show error message below upload zone
+
+**Flow 4: Change password**
+1. User scrolls to password section
+2. Fills current password, new password, confirm password
+3. Clicks Save
+4. Success: Toast "Password berhasil diperbarui", form cleared
+5. Error: Show validation errors (e.g., "Current password salah")
+
+**Flow 5: Delete account (enhanced confirmation)**
+1. User clicks red "Hapus Akun" button
+2. Modal opens with:
+   - Checkbox: "Saya memahami tindakan ini tidak dapat dibatalkan"
+   - Account data summary: "X rental aktif, Y reviews akan dihapus"
+   - Email confirmation input: "Ketik email Anda untuk konfirmasi"
+   - Password input
+   - Submit button disabled until checkbox checked AND email matches
+3. User checks box, types email, enters password
+4. Submit button becomes enabled
+5. User clicks "Hapus Akun"
+6. Backend soft-deletes user account
+7. Logout and redirect to homepage
+
+**Flow 6: Focus management with URL hash**
+1. User navigates to `/profile/edit#password`
+2. Page loads and auto-scrolls to password section
+3. Focus moves to first input in that section
+
+#### Edge Cases
+- **Email change while unverified:** Allow change, but immediately redirect to `/verify-email`
+- **Avatar upload fails (file too large):** Show error "Ukuran file maksimal 2MB"
+- **Incorrect current password:** Show error "Password saat ini salah"
+- **Password too weak:** Show validation error "Password minimal 8 karakter"
+- **Delete account with active rentals:** Show in modal: "Anda memiliki X rental aktif. Hubungi admin untuk batalkan rental sebelum menghapus akun" + disable submit
+- **Email confirmation mismatch:** Submit button stays disabled, show helper text "Email tidak cocok"
+
+#### Accessibility Notes (Critical - C-6, C-7 fixes)
+
+**Form Error Announcements (C-7):**
+- Each form section includes error summary block at top:
+  ```blade
+  @if ($errors->updateProfile->any())
+  <div role="alert" aria-live="assertive" class="mb-6 rounded-md bg-error/10 border border-error/20 p-4">
+    <h3 class="text-sm font-semibold text-error-700">
+      Terdapat {{ $errors->updateProfile->count() }} kesalahan pada formulir
+    </h3>
+    <ul class="mt-2 text-sm text-error-700 space-y-1">
+      @foreach ($errors->updateProfile->all() as $error)
+      <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+  </div>
+  @endif
+  ```
+- Screen reader announces errors immediately via `aria-live="assertive"`
+- Per-field errors still shown below each input with `<x-input-error>`
+
+**Focus Management (C-6):**
+- Alpine.js `x-data` on page wrapper:
+  ```blade
+  <div x-data="{ 
+    scrollToSection() { 
+      if (window.location.hash) {
+        const target = document.querySelector(window.location.hash);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const firstInput = target.querySelector('input, textarea, select');
+          if (firstInput) firstInput.focus();
+        }
+      }
+    } 
+  }" x-init="scrollToSection()">
+  ```
+- Each section has `id` attribute: `id="avatar"`, `id="profile-info"`, `id="password"`, `id="delete"`
+- URL hash support: `/profile/edit#password` auto-scrolls to password section
+- After form submission success, focus returns to edited section
+
+**Avatar Upload (C-3):**
+- Drop zone is `<label>` wrapping hidden `<input type="file">`
+- Keyboard accessible: Tab to drop zone, Enter to open file picker
+- Alpine.js preview: `x-data="{ preview: null, fileName: null }"`, `@change` updates preview
+- Preview has `alt` text describing image
+
+**Email Change Warning (C-4):**
+- `<x-callout type="warning">` immediately below email input
+- Content: "**Perhatian:** Mengubah email memerlukan verifikasi ulang. Akses fitur rental akan diblokir sampai email baru diverifikasi."
+- Always visible when email field is focused
+
+**Delete Account Modal (C-5):**
+- Modal `role="dialog"`, `aria-modal="true"`, `aria-labelledby="delete-title"`
+- Checkbox: `<input type="checkbox" id="delete-confirm" required>` with clear label
+- Email confirmation: `<input type="email" id="email-confirmation" aria-describedby="email-help">`
+- Helper text: `<p id="email-help">Ketik email Anda: {{ $user->email }}</p>`
+- Account data summary: "Anda memiliki **X rental aktif** dan **Y reviews** yang akan dihapus permanen."
+- Submit button: `:disabled="!confirmed || emailMismatch"` with Alpine.js validation
+- Focus trap within modal, Escape to close
+
+**Keyboard Navigation:**
+- All forms tabbable in logical order
+- Submit buttons have visible focus ring
+- Modal close button keyboard accessible
+- Skip links for screen readers (optional enhancement)
+
+---
 
 ### PAGE-010: Tenant — Rental Create (Booking)
 
