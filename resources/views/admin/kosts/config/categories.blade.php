@@ -1,4 +1,7 @@
-<x-app-layout>
+<x-base-layout 
+    title="Kelola Kategori Kost - SewaKost"
+    variant="full-width">
+    
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-page-header 
@@ -80,4 +83,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-base-layout>

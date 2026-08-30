@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Reset Password - SewaKost"
+    variant="centered-card">
+    
     @if ($emailUnknown)
         {{-- State A: email unknown / no reset in progress — neutral message, no form --}}
         <div class="mb-6 text-center">
@@ -122,4 +125,4 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</x-guest-layout>
+</x-base-layout>

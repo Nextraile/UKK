@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Edit Admin Account')
-
-@section('content')
+<x-base-layout 
+    title="Edit Admin Account - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Edit Admin Account">
+    
 <div class="container mx-auto px-4 py-6 max-w-2xl">
     {{-- Page Header --}}
     <div class="mb-6">
@@ -95,4 +95,4 @@
         </div>
     </form>
 </div>
-@endsection
+</x-base-layout>

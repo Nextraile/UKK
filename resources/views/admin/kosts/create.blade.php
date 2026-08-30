@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Buat Kost Baru')
-
-@section('content')
+<x-base-layout 
+    title="Buat Kost Baru - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Buat Kost Baru">
+    
 <div class="max-w-3xl">
     <form method="POST" action="{{ route('admin.kosts.store') }}" class="space-y-6">
         @csrf
@@ -55,4 +55,4 @@
         </div>
     </form>
 </div>
-@endsection
+</x-base-layout>

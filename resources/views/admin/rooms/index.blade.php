@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Kelola Kamar - ' . $kost->name)
-
-@section('content')
+<x-base-layout 
+    :title="'Kelola Kamar - ' . $kost->name . ' - Admin - SewaKost'"
+    variant="admin-sidebar"
+    page-title="Kelola Kamar">
+    
     <div class="space-y-6" x-data="{
         activeRoomType: null,
         editingRoom: null,
@@ -353,4 +353,4 @@
             </div>
         @endif
     </div>
-@endsection
+</x-base-layout>

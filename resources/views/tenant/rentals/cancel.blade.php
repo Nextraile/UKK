@@ -1,4 +1,7 @@
-<x-app-layout>
+<x-base-layout 
+    title="Pembatalan Rental - SewaKost"
+    variant="full-width">
+    
     <div class="max-w-2xl mx-auto py-8 px-4">
             <x-page-header 
                 title="Pembatalan Rental"
@@ -105,4 +108,4 @@
             </form>
         </div>
     </div>
-</x-app-layout>
+</x-base-layout>

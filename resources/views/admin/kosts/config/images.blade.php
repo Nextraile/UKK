@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Kelola Gambar Kost')
-
-@section('content')
+<x-base-layout 
+    title="Kelola Gambar Kost - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Kelola Gambar Kost">
+    
 <div class="container mx-auto px-4 py-6">
     <x-page-header 
         title="Kelola Gambar Kost"
@@ -139,4 +139,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-base-layout>

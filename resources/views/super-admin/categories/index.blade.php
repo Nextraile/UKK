@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Manajemen Kategori')
-
-@section('content')
+<x-base-layout 
+    title="Manajemen Kategori - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Manajemen Kategori">
+    
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex justify-between items-center">
@@ -92,4 +92,4 @@
         </div>
     @endif
 </div>
-@endsection
+</x-base-layout>

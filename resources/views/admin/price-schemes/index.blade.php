@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Paket Harga - ' . $roomType->name)
-
-@section('content')
+<x-base-layout 
+    :title="'Paket Harga - ' . $roomType->name . ' - Admin - SewaKost'"
+    variant="admin-sidebar"
+    page-title="Paket Harga">
+    
     <div class="space-y-6" x-data="{
         showModal: false,
         editing: false,
@@ -377,4 +377,4 @@
             </div>
         </div>
     </div>
-@endsection
+</x-base-layout>

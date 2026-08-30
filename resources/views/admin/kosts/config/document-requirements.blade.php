@@ -1,4 +1,7 @@
-<x-app-layout>
+<x-base-layout 
+    title="Persyaratan Dokumen - SewaKost"
+    variant="full-width">
+    
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <x-page-header 
@@ -245,4 +248,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-base-layout>

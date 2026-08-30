@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Buat Room Type')
-
-@section('content')
+<x-base-layout 
+    title="Buat Room Type - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Buat Room Type">
+    
 <div class="max-w-3xl">
     <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900">Buat Room Type</h2>
@@ -257,4 +257,4 @@
         </form>
     </div>
 </div>
-@endsection
+</x-base-layout>

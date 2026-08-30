@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', $kost->name)
-
-@section('content')
+<x-base-layout 
+    :title="$kost->name . ' - Admin - SewaKost'"
+    variant="admin-sidebar"
+    :page-title="$kost->name">
+    
 <div class="max-w-4xl space-y-6">
     <x-page-header 
         :title="$kost->name"
@@ -388,4 +388,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-base-layout>

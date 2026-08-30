@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Manajemen Rental')
-
-@section('content')
+<x-base-layout 
+    title="Manajemen Rental - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Rental Management">
+    
 <div class="space-y-6">
             <x-page-header 
                 title="Rental Management"
@@ -131,4 +131,4 @@
         @endif
     </div>
 </div>
-@endsection
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Room Types - ' . $kost->name)
-
-@section('content')
+<x-base-layout 
+    :title="'Room Types - ' . $kost->name . ' - Admin - SewaKost'"
+    variant="admin-sidebar"
+    page-title="Room Types">
+    
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex justify-between items-center">
@@ -90,4 +90,4 @@
         @endif
     </div>
 </div>
-@endsection
+</x-base-layout>

@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Konfirmasi Password - SewaKost"
+    variant="centered-card">
+    
     <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
         {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
     </div>
@@ -24,4 +27,4 @@
             </x-primary-button>
         </div>
     </form>
-</x-guest-layout>
+</x-base-layout>

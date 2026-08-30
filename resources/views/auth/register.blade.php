@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Daftar - SewaKost"
+    variant="centered-card">
+    
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -90,4 +93,4 @@
             </a>
         </div>
     </form>
-</x-guest-layout>
+</x-base-layout>

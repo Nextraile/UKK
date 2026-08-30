@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Masuk - SewaKost"
+    variant="centered-card">
+    
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -81,4 +84,4 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</x-guest-layout>
+</x-base-layout>

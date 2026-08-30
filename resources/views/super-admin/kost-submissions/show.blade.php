@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Kost Submission Detail')
-
-@section('content')
+<x-base-layout 
+    title="Kost Submission Detail - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Kost Submission Detail">
+    
 <div class="space-y-6">
     {{-- Breadcrumb --}}
     <nav class="text-sm" aria-label="Breadcrumb">
@@ -203,4 +203,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Kelola Kost')
-
-@section('content')
+<x-base-layout 
+    title="Kelola Kost - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Kost Saya">
+    
 <div class="space-y-6">
             <x-page-header 
                 title="Kost Saya"
@@ -76,4 +76,4 @@
         {{ $kosts->links() }}
     </div>
 </div>
-@endsection
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Edit Room Type')
-
-@section('content')
+<x-base-layout 
+    title="Edit Room Type - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Edit Room Type">
+    
 <div class="max-w-3xl">
     <div class="mb-6">
         <h2 class="text-2xl font-semibold text-gray-900">Edit Room Type: {{ $roomType->name }}</h2>
@@ -363,4 +363,4 @@
         </form>
     </div>
 </div>
-@endsection
+</x-base-layout>

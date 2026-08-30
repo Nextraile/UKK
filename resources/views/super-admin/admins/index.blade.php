@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Admin Management')
-
-@section('content')
+<x-base-layout 
+    title="Admin Management - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Admin Management">
+    
     {{-- Page Header --}}
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Admin Management</h1>
@@ -90,4 +90,4 @@
     <div class="mt-4">
         {{ $admins->links() }}
     </div>
-@endsection
+</x-base-layout>

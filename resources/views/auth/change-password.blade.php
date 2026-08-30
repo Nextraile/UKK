@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Ubah Password - SewaKost"
+    variant="centered-card">
+    
     @if (session('status'))
         <div class="mb-4 rounded-md bg-success-50 p-3 text-sm font-medium text-success-600 dark:bg-success-900/30 dark:text-success-400">
             {{ session('status') }}
@@ -77,4 +80,4 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</x-guest-layout>
+</x-base-layout>

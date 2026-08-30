@@ -1,4 +1,7 @@
-<x-app-layout>
+<x-base-layout 
+    title="Buat Booking Rental - SewaKost"
+    variant="full-width">
+    
     <div class="py-12">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
             <x-page-header 
@@ -149,4 +152,4 @@
             @endif
         </div>
     </div>
-</x-app-layout>
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Kost Submissions')
-
-@section('content')
+<x-base-layout 
+    title="Kost Submissions - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Kost Submissions">
+    
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex justify-between items-center">
@@ -67,4 +67,4 @@
         </div>
     @endif
 </div>
-@endsection
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Edit Kategori')
-
-@section('content')
+<x-base-layout 
+    title="Edit Kategori - Super Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Edit Kategori">
+    
 <div class="max-w-2xl">
     <div class="mb-6">
         <a href="{{ route('super-admin.categories.index') }}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
@@ -84,4 +84,4 @@
         </form>
     </div>
 </div>
-@endsection
+</x-base-layout>

@@ -1,8 +1,8 @@
-@extends('layouts.admin')
-
-@section('title', 'Edit Kost')
-
-@section('content')
+<x-base-layout 
+    title="Edit Kost - Admin - SewaKost"
+    variant="admin-sidebar"
+    page-title="Edit Kost">
+    
 <div class="max-w-3xl">
     <form method="POST" action="{{ route('admin.kosts.update', $kost) }}" class="space-y-6">
         @csrf
@@ -237,4 +237,4 @@
         </div>
     </form>
 </div>
-@endsection
+</x-base-layout>

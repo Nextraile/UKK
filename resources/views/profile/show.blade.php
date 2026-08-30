@@ -1,4 +1,7 @@
-<x-app-layout>
+<x-base-layout 
+    title="Profil Saya - SewaKost"
+    variant="full-width">
+    
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <x-page-header 
@@ -115,4 +118,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-base-layout>

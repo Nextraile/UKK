@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Verifikasi Email - SewaKost"
+    variant="centered-card">
+    
     @if (isset($alreadyVerified) && $alreadyVerified)
         {{-- Already verified state --}}
         <div class="mb-6 text-center">
@@ -126,4 +129,4 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</x-guest-layout>
+</x-base-layout>

@@ -1,4 +1,7 @@
-<x-guest-layout>
+<x-base-layout 
+    title="Lupa Password - SewaKost"
+    variant="centered-card">
+    
     <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
         {{ __('Lupa password? Tidak masalah. Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mengatur ulang password.') }}
     </div>
@@ -22,4 +25,4 @@
             </x-primary-button>
         </div>
     </form>
-</x-guest-layout>
+</x-base-layout>
