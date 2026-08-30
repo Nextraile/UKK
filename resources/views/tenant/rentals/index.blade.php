@@ -1,19 +1,14 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-            Rental Saya
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <!-- Welcome Message -->
-            <div class="mb-6">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Halo, {{ auth()->user()->first_name }}
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">Kelola rental kost Anda di sini</p>
-            </div>
+            <x-page-header 
+                title="Rental Saya"
+                subtitle="Halo, {{ auth()->user()->first_name }} — Kelola rental kost Anda di sini"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental'],
+                ]"
+            />
 
             <!-- Stat Cards -->
             <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -21,7 +16,7 @@
                 <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-8 w-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
@@ -36,7 +31,7 @@
                 <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-8 w-8 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
@@ -75,27 +70,30 @@
                     return false;
                 }
             }">
-                <div class="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
-                    <button @click="filter = 'all'" 
-                            :class="filter === 'all' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
-                            class="border-b-2 px-4 py-2 text-sm font-medium">
-                        Semua
-                    </button>
-                    <button @click="filter = 'active'" 
-                            :class="filter === 'active' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
-                            class="border-b-2 px-4 py-2 text-sm font-medium">
-                        Active
-                    </button>
-                    <button @click="filter = 'pending'" 
-                            :class="filter === 'pending' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
-                            class="border-b-2 px-4 py-2 text-sm font-medium">
-                        Pending
-                    </button>
-                    <button @click="filter = 'completed'" 
-                            :class="filter === 'completed' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
-                            class="border-b-2 px-4 py-2 text-sm font-medium">
-                        Completed
-                    </button>
+                <!-- Tab filters with horizontal scroll on mobile -->
+                <div class="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                    <div class="flex gap-2 min-w-max border-b border-gray-200 dark:border-gray-700">
+                        <button @click="filter = 'all'" 
+                                :class="filter === 'all' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
+                                class="border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap">
+                            Semua
+                        </button>
+                        <button @click="filter = 'active'" 
+                                :class="filter === 'active' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
+                                class="border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap">
+                            Active
+                        </button>
+                        <button @click="filter = 'pending'" 
+                                :class="filter === 'pending' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
+                                class="border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap">
+                            Pending
+                        </button>
+                        <button @click="filter = 'completed'" 
+                                :class="filter === 'completed' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400'"
+                                class="border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap">
+                            Completed
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Rental List -->
@@ -109,17 +107,7 @@
                                         <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                             {{ $rental->room->roomType->kost->name }}
                                         </h4>
-                                        <!-- Status Badge -->
-                                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold
-                                            @if($rental->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @elseif($rental->status === 'paid') bg-blue-100 text-blue-800
-                                            @elseif($rental->status === 'confirmed') bg-purple-100 text-purple-800
-                                            @elseif($rental->status === 'active') bg-green-100 text-green-800
-                                            @elseif($rental->status === 'completed') bg-gray-100 text-gray-800
-                                            @else bg-red-100 text-red-800
-                                            @endif">
-                                            {{ ucfirst($rental->status) }}
-                                        </span>
+                                        <x-status-badge :status="$rental->status" type="rental" />
                                     </div>
                                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                                         {{ $rental->room->roomType->name }} - {{ $rental->room->name }}
@@ -136,17 +124,19 @@
                                         </span>
                                     </div>
                                     
-                                    @if($rental->status === 'pending' && $rental->payment->expired_at->isFuture())
-                                        <p class="mt-2 text-sm text-red-600">
-                                            <strong>Deadline pembayaran:</strong> {{ $rental->payment->expired_at->diffForHumans() }}
-                                        </p>
-                                    @endif
+                    @if($rental->status === 'pending' && $rental->payment->expired_at->isFuture())
+                        <p class="mt-2 text-sm text-error-700">
+                            <strong>Deadline pembayaran:</strong> {{ $rental->payment->expired_at->diffForHumans() }}
+                        </p>
+                    @endif
                                 </div>
                                 <div>
-                                    <a href="{{ route('rentals.show', $rental) }}" 
-                                       class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">
+                                    <x-touch-button 
+                                        variant="primary" 
+                                        size="md" 
+                                        :href="route('rentals.show', $rental)">
                                         Lihat Detail
-                                    </a>
+                                    </x-touch-button>
                                 </div>
                             </div>
                         </div>

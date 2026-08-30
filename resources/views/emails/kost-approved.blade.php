@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kost Approved</title>
+    <title>Kost Disetujui</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -84,32 +84,32 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Kost Approved ✓</h1>
+            <h1>Kost Disetujui ✓</h1>
         </div>
         
         <div class="content">
-            <p>Hello {{ $kost->owner->name }},</p>
+            <p>Halo {{ $kost->owner->name }},</p>
             
             <div class="success-box">
-                <p><strong>Good news!</strong> Your kost "<strong>{{ $kost->name }}</strong>" has been approved by Super Admin.</p>
+                <p><strong>Kabar baik!</strong> Kost Anda "<strong>{{ $kost->name }}</strong>" telah disetujui oleh Super Admin.</p>
             </div>
             
-            <p><strong>Next Steps:</strong></p>
+            <p><strong>Langkah Selanjutnya:</strong></p>
             <ul>
-                <li>You can now publish your kost to make it visible to tenants</li>
-                <li>Review your kost details to ensure everything is accurate</li>
-                <li>Once published, tenants will be able to view and book your kost</li>
+                <li>Anda sekarang dapat mempublikasikan kost agar terlihat oleh penyewa</li>
+                <li>Tinjau detail kost untuk memastikan semuanya akurat</li>
+                <li>Setelah dipublikasikan, penyewa akan dapat melihat dan memesan kost Anda</li>
             </ul>
             
             <div class="button-container">
                 <a href="{{ url('/admin/kosts/' . $kost->id) }}" class="button">
-                    View Kost
+                    Lihat Kost
                 </a>
             </div>
         </div>
         
         <div class="footer">
-            <p>This is an automated notification from SewaKost.</p>
+            <p>Ini adalah notifikasi otomatis dari SewaKost.</p>
         </div>
     </div>
 </body>

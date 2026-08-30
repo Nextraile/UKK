@@ -179,7 +179,7 @@
                         @endforeach
                     </div>
                     
-                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800" x-show="deletedImages.length > 0" x-cloak>
+                    <div class="p-3 bg-warning-50 border border-warning-200 rounded-lg text-sm text-warning-800" x-show="deletedImages.length > 0" x-cloak>
                         <p class="font-medium">
                             <span x-text="deletedImages.length"></span> gambar akan dihapus. Klik "Simpan Perubahan" untuk menerapkan.
                         </p>
@@ -246,7 +246,7 @@
                         
                         <p class="text-xs text-gray-500">
                             Format: JPEG, JPG, PNG, WebP. Maksimal 5MB per file.
-                            <span x-show="!canAddMore" class="text-amber-600 font-medium">Maksimal 10 gambar total tercapai.</span>
+                            <span x-show="!canAddMore" class="text-warning-600 font-medium">Maksimal 10 gambar total tercapai.</span>
                         </p>
                     </div>
                 @else

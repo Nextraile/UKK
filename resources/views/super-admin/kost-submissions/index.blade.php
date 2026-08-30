@@ -9,7 +9,7 @@
         <div>
             <p class="text-sm text-gray-600">Review and approve kost submissions</p>
         </div>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
             {{ $submissions->total() }} pending
         </span>
     </div>
@@ -17,7 +17,8 @@
     {{-- Table --}}
     @if ($submissions->count() > 0)
         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
                 <caption class="sr-only">Pending kost submissions</caption>
                 <thead class="bg-gray-50">
                     <tr>
@@ -41,16 +42,15 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $submission->categories->pluck('name')->join(', ') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $submission->updated_at->format('d M Y, H:i') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('super-admin.kost-submissions.show', $submission) }}" 
-                                   class="text-blue-600 hover:text-blue-900"
-                                   aria-label="View {{ $submission->name }} details">
+                                <x-touch-button variant="ghost" size="sm" href="{{ route('super-admin.kost-submissions.show', $submission) }}" aria-label="View {{ $submission->name }} details">
                                     View Detail
-                                </a>
+                                </x-touch-button>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
 
         {{-- Pagination --}}

@@ -14,9 +14,9 @@
 
     {{-- Validation Errors --}}
     @if($errors->any())
-        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p class="text-sm font-medium text-red-800 mb-2">Please correct the following errors:</p>
-            <ul class="list-disc list-inside text-sm text-red-700">
+        <div class="mb-4 p-4 bg-error-50 border border-error-200 rounded-lg">
+            <p class="text-sm font-medium text-error-800 mb-2">Please correct the following errors:</p>
+            <ul class="list-disc list-inside text-sm text-error-700">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -31,12 +31,12 @@
         {{-- First Name --}}
         <div class="mb-4">
             <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">
-                First Name <span class="text-red-500">*</span>
+                First Name <span class="text-error-500">*</span>
             </label>
             <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('first_name') border-red-500 @enderror">
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 @error('first_name') border-error-500 @enderror">
             @error('first_name')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
             @enderror
         </div>
 
@@ -46,36 +46,36 @@
                 Last Name
             </label>
             <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}"
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('last_name') border-red-500 @enderror">
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 @error('last_name') border-error-500 @enderror">
             @error('last_name')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Email --}}
         <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                Email <span class="text-red-500">*</span>
+                Email <span class="text-error-500">*</span>
             </label>
             <input type="email" id="email" name="email" value="{{ old('email') }}" required
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror">
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 @error('email') border-error-500 @enderror">
             @error('email')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Password --}}
         <div class="mb-6">
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-                Password <span class="text-red-500">*</span>
+                Password <span class="text-error-500">*</span>
             </label>
             <input type="text" id="password" name="password" value="{{ old('password') }}" required
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('password') border-red-500 @enderror">
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 @error('password') border-error-500 @enderror">
             <p class="mt-1 text-xs text-gray-600">
                 Password ini akan dikirim ke Admin via email. Sarankan Admin mengganti password setelah login pertama.
             </p>
             @error('password')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
             @enderror
         </div>
 
@@ -86,7 +86,7 @@
                     Cancel
                 </button>
             </a>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
                 Create Admin Account
             </button>
         </div>

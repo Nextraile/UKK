@@ -1,20 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Kelola Kamar - {{ $kost->name }}
-                </h2>
-                <p class="mt-1 text-sm text-gray-600">
-                    Atur unit kamar untuk setiap tipe kamar
-                </p>
-            </div>
-            <a href="{{ route('admin.kosts.show', $kost) }}" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Kembali ke Detail Kost
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-12" x-data="{
         activeRoomType: null,
         editingRoom: null,
@@ -75,51 +59,34 @@
         }
     }">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Kelola Kamar - {{ $kost->name }}"
+                subtitle="Atur unit kamar untuk setiap tipe kamar"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Kost', 'url' => route('admin.kosts.index')],
+                    ['label' => $kost->name, 'url' => route('admin.kosts.show', $kost)],
+                    ['label' => 'Kamar'],
+                ]"
+            >
+                <x-slot:actions>
+                    <a href="{{ route('admin.kosts.show', $kost) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                        ← Kembali
+                    </a>
+                </x-slot:actions>
+            </x-page-header>
+
             <!-- Success/Error Messages -->
             @if (session('success'))
-                <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 rounded-md bg-green-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                        </div>
-                        <div class="ml-auto pl-3">
-                            <button @click="show = false" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100">
-                                <span class="sr-only">Dismiss</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <x-alert-banner variant="success" class="mb-4" dismissible>
+                    {{ session('success') }}
+                </x-alert-banner>
             @endif
 
             @if (session('error'))
-                <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 rounded-md bg-red-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
-                        </div>
-                        <div class="ml-auto pl-3">
-                            <button @click="show = false" class="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100">
-                                <span class="sr-only">Dismiss</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <x-alert-banner variant="error" class="mb-4" dismissible>
+                    {{ session('error') }}
+                </x-alert-banner>
             @endif
 
             @if ($roomTypes->isEmpty())
@@ -131,7 +98,7 @@
                         <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada tipe kamar</h3>
                         <p class="mt-1 text-sm text-gray-500">Buat tipe kamar terlebih dahulu sebelum menambah unit kamar.</p>
                         <div class="mt-6">
-                            <a href="{{ route('admin.room-types.index', $kost) }}" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+                            <a href="{{ route('admin.room-types.index', $kost) }}" class="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500">
                                 <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                                 </svg>
@@ -215,7 +182,7 @@
                                             </div>
                                             
                                             <div class="mt-3">
-                                                <button type="submit" class="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+                                                <button type="submit" class="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500">
                                                     <svg class="-ml-0.5 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
                                                     </svg>
@@ -233,11 +200,11 @@
                                             <table class="min-w-full divide-y divide-gray-200">
                                                 <thead class="bg-gray-50">
                                                     <tr>
-                                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Kode Kamar</th>
-                                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Okupansi</th>
-                                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Catatan Internal</th>
-                                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Aksi</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Kode Kamar</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Okupansi</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Catatan Internal</th>
+                                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Aksi</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -263,7 +230,7 @@
                                                             <!-- Status Column -->
                                                             <td class="whitespace-nowrap px-4 py-4">
                                                                 @if($room->status === 'available')
-                                                                    <span class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Tersedia</span>
+                                                                    <span class="inline-flex rounded-full bg-success/10 px-2 text-xs font-semibold leading-5 text-success-700">Tersedia</span>
                                                                 @else
                                                                     <span class="inline-flex rounded-full bg-gray-100 px-2 text-xs font-semibold leading-5 text-gray-800">Nonaktif</span>
                                                                 @endif
@@ -301,10 +268,11 @@
                                                                     <!-- Edit Button -->
                                                                     <button 
                                                                         @click="editing = true"
-                                                                        class="text-blue-600 hover:text-blue-900"
+                                                                        class="text-primary-600 hover:text-primary-900"
                                                                         title="Edit"
+                                                                        aria-label="Edit kamar {{ $room->code }}"
                                                                     >
-                                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                                         </svg>
                                                                     </button>
@@ -314,13 +282,14 @@
                                                                         @click="toggleStatus({{ $room->id }}, '{{ $room->status }}')"
                                                                         class="text-gray-600 hover:text-gray-900"
                                                                         title="Ubah Status"
+                                                                        aria-label="Ubah status kamar {{ $room->code }}"
                                                                     >
                                                                         @if($room->status === 'available')
-                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                                             </svg>
                                                                         @else
-                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                             </svg>
                                                                         @endif
@@ -330,8 +299,8 @@
                                                                     <form action="{{ route('admin.rooms.destroy', [$kost, $room]) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus kamar {{ $room->code }}? Aksi ini tidak dapat dibatalkan.');">
                                                                         @csrf
                                                                         @method('DELETE')
-                                                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
-                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <button type="submit" class="text-error-600 hover:text-error-900" title="Hapus" aria-label="Hapus kamar {{ $room->code }}">
+                                                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                                             </svg>
                                                                         </button>
@@ -351,7 +320,7 @@
                                                                     <button 
                                                                         type="submit"
                                                                         form="edit-room-{{ $room->id }}"
-                                                                        class="text-green-600 hover:text-green-900"
+                                                                        class="text-success-600 hover:text-success-900"
                                                                         title="Simpan"
                                                                     >
                                                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

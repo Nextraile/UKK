@@ -22,9 +22,7 @@
                 <h2 class="text-xl font-semibold text-gray-900">{{ $submission->name }}</h2>
                 <p class="mt-1 text-sm text-gray-600">Submitted {{ $submission->updated_at->diffForHumans() }}</p>
             </div>
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Pending Review
-            </span>
+            <x-status-badge status="pending_review" type="kost" />
         </div>
 
         {{-- Kost Details --}}
@@ -86,10 +84,10 @@
             @if (!empty($submission->facilities))
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-3">Facilities</h3>
-                    <ul class="grid grid-cols-2 gap-2">
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         @foreach ($submission->facilities as $facility)
                             <li class="flex items-center text-sm text-gray-700">
-                                <svg class="h-4 w-4 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                <svg class="h-4 w-4 text-success-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                                 {{ $facility }}
@@ -117,14 +115,14 @@
             <form method="POST" action="{{ route('super-admin.kost-submissions.approve', $submission) }}" 
                   onsubmit="return confirm('Are you sure you want to approve this kost?')">
                 @csrf
-                <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition">
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-success-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-success-700 focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2 transition">
                     Approve
                 </button>
             </form>
 
             <button type="button" 
                     @click="showRejectModal = true"
-                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition">
+                    class="inline-flex items-center px-4 py-2 bg-error-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-error-700 focus:outline-none focus:ring-2 focus:ring-error-500 focus:ring-offset-2 transition">
                 Reject
             </button>
 
@@ -167,7 +165,7 @@
                         </div>
                         <div class="px-6 py-4">
                             <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
-                                Rejection Reason <span class="text-red-600">*</span>
+                                Rejection Reason <span class="text-error-600">*</span>
                             </label>
                             <textarea 
                                 id="rejection_reason" 
@@ -178,14 +176,14 @@
                                 maxlength="1000"
                                 x-model="reason"
                                 @input="charCount = reason.length"
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-error-500 focus:ring-error-500 sm:text-sm"
                                 placeholder="Explain why this kost is being rejected (minimum 10 characters)"></textarea>
                             <p class="mt-2 text-sm text-gray-500">
                                 <span x-text="charCount"></span> / 1000 characters
-                                <span x-show="charCount < 10" class="text-red-600">(minimum 10 required)</span>
+                                <span x-show="charCount < 10" class="text-error-600">(minimum 10 required)</span>
                             </p>
                             @error('rejection_reason')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-2 text-sm text-error-600">{{ $message }}</p>
                             @enderror
                         </div>
                         <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
@@ -197,7 +195,7 @@
                             <button type="submit" 
                                     x-bind:disabled="charCount < 10"
                                     x-bind:class="charCount < 10 ? 'opacity-50 cursor-not-allowed' : ''"
-                                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                    class="px-4 py-2 text-sm font-medium text-white bg-error-600 border border-transparent rounded-lg hover:bg-error-700 focus:outline-none focus:ring-2 focus:ring-error-500 focus:ring-offset-2">
                                 Submit Rejection
                             </button>
                         </div>

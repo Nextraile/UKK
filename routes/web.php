@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\RentalManagementController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\RoomTypeImageController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KostDetailController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\ProfileController;
@@ -27,9 +28,7 @@ Route::bind('payment', function ($value) {
     return Payment::with('rental.room.roomType.kost')->findOrFail($value);
 });
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public marketplace — no auth required (users can browse unverified, FR-006).
 Route::get('/marketplace', [MarketplaceController::class, 'index'])

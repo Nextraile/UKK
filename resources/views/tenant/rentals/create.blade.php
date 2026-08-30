@@ -1,12 +1,14 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-            Buat Booking Rental
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Buat Booking Rental"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental', 'url' => route('rentals.index')],
+                    ['label' => 'Buat Booking'],
+                ]"
+            />
             @if($rooms->isEmpty())
                 <!-- Empty State: No Available Rooms -->
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
@@ -89,7 +91,7 @@
                                 <x-input-error :messages="$errors->get('price_scheme_id')" class="mt-2" />
                                 <p x-show="selectedRoomId && availableSchemes.length === 0" 
                                    x-cloak
-                                   class="mt-2 text-sm text-red-600 dark:text-red-400">
+                                   class="mt-2 text-sm text-error-600 dark:text-error-400">
                                     Tidak ada paket harga tersedia untuk kamar ini.
                                 </p>
                             </div>

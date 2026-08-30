@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kost Rejected</title>
+    <title>Kost Ditolak</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -87,35 +87,35 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Kost Rejected</h1>
+            <h1>Kost Ditolak</h1>
         </div>
         
         <div class="content">
-            <p>Hello {{ $kost->owner->name }},</p>
+            <p>Halo {{ $kost->owner->name }},</p>
             
-            <p>Your kost submission "<strong>{{ $kost->name }}</strong>" has been rejected by Super Admin.</p>
+            <p>Submission kost Anda "<strong>{{ $kost->name }}</strong>" telah ditolak oleh Super Admin.</p>
             
             <div class="error-box">
-                <p><strong>Rejection Reason:</strong></p>
+                <p><strong>Alasan Penolakan:</strong></p>
                 <p>{{ $kost->rejected_reason }}</p>
             </div>
             
-            <p><strong>What to do next:</strong></p>
+            <p><strong>Yang Perlu Dilakukan:</strong></p>
             <ul>
-                <li>Review the rejection reason carefully</li>
-                <li>Edit your kost to address the issues mentioned</li>
-                <li>Resubmit your kost once the corrections have been made</li>
+                <li>Tinjau alasan penolakan dengan seksama</li>
+                <li>Edit kost Anda untuk memperbaiki masalah yang disebutkan</li>
+                <li>Submit ulang kost setelah perbaikan selesai</li>
             </ul>
             
             <div class="button-container">
                 <a href="{{ url('/admin/kosts/' . $kost->id . '/edit') }}" class="button">
-                    Edit Kost
+                    Perbaiki Kost
                 </a>
             </div>
         </div>
         
         <div class="footer">
-            <p>This is an automated notification from SewaKost.</p>
+            <p>Ini adalah notifikasi otomatis dari SewaKost.</p>
         </div>
     </div>
 </body>

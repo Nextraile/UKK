@@ -15,8 +15,8 @@
                  alt="Avatar"
                  class="h-20 w-20 rounded-full object-cover border-2 border-border dark:border-border-dark" />
         @else
-            <div class="h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center border-2 border-border dark:border-border-dark">
-                <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            <div class="h-20 w-20 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center border-2 border-border dark:border-border-dark">
+                <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">
                     {{ strtoupper(substr($user->first_name, 0, 1)) }}
                 </span>
             </div>
@@ -35,9 +35,9 @@
                            file:mr-4 file:py-2 file:px-4
                            file:rounded-md file:border-0
                            file:text-sm file:font-semibold
-                           file:bg-indigo-50 file:text-indigo-700
-                           hover:file:bg-indigo-100
-                           dark:file:bg-indigo-900/30 dark:file:text-indigo-300"
+                           file:bg-primary-50 file:text-primary-700
+                           hover:file:bg-primary-100
+                           dark:file:bg-primary-900/30 dark:file:text-primary-300"
                 />
                 <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
             </div>

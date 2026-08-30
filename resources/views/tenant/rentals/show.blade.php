@@ -1,40 +1,33 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Detail Rental #{{ $rental->id }}
-            </h2>
-            <a href="{{ route('rentals.index') }}" class="text-sm text-primary-600 hover:text-primary-700">
-                ← Kembali ke Daftar Rental
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Detail Rental #{{ $rental->id }}"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental', 'url' => route('rentals.index')],
+                    ['label' => 'Detail'],
+                ]"
+            >
+                <x-slot:actions>
+                    <x-touch-button variant="secondary" size="md" :href="route('rentals.index')">
+                        ← Kembali
+                    </x-touch-button>
+                </x-slot:actions>
+            </x-page-header>
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <!-- Left Column (2/3 width) -->
-                <div class="space-y-6 lg:col-span-2">
+                <!-- Left Column (2/3 width on desktop) -->
+                <div class="space-y-6 lg:col-span-2 order-2 lg:order-1">
                     <!-- Rental Info Card -->
                     <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
                                 {{ $rental->room->roomType->kost->name }}
                             </h3>
-                            <!-- Status Badge -->
-                            <span class="inline-flex rounded-full px-4 py-2 text-sm font-semibold
-                                @if($rental->status === 'pending') bg-yellow-100 text-yellow-800
-                                @elseif($rental->status === 'paid') bg-blue-100 text-blue-800
-                                @elseif($rental->status === 'confirmed') bg-purple-100 text-purple-800
-                                @elseif($rental->status === 'active') bg-green-100 text-green-800
-                                @elseif($rental->status === 'completed') bg-gray-100 text-gray-800
-                                @else bg-red-100 text-red-800
-                                @endif">
-                                {{ ucfirst($rental->status) }}
-                            </span>
+                            <x-status-badge :status="$rental->status" type="rental" size="md" />
                         </div>
 
-                        <dl class="grid grid-cols-2 gap-4">
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Kamar</dt>
                                 <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -59,7 +52,7 @@
                                     {{ $rental->end_date->format('d M Y') }}
                                 </dd>
                             </div>
-                    <div class="col-span-2">
+                    <div class="col-span-1 sm:col-span-2">
                         <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Pembayaran</dt>
                         <dd class="mt-1 text-2xl font-bold text-primary-600">
                             Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}
@@ -84,13 +77,15 @@
                                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                             Anda dapat membatalkan rental ini sebelum tanggal mulai ({{ $rental->start_date->format('d M Y') }}).
                                         </p>
-                                        <a href="{{ route('rentals.cancel.form', $rental) }}"
-                                           class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg text-red-700 hover:bg-red-50 transition">
+                                        <x-touch-button 
+                                            variant="danger" 
+                                            size="md" 
+                                            :href="route('rentals.cancel.form', $rental)">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                             </svg>
                                             Batalkan Rental
-                                        </a>
+                                        </x-touch-button>
                                     </div>
                                 </div>
                             </div>
@@ -105,11 +100,11 @@
                                 <div class="mb-4 flex">
                                     <!-- Timeline Line -->
                                     <div class="relative flex flex-col items-center">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full
+                                        <div class="flex h-10 w-10 sm:h-10 sm:w-10 items-center justify-center rounded-full
                                             @if($loop->last) bg-primary-600 text-white
                                             @else bg-gray-300 text-gray-600
                                             @endif">
-                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <svg class="h-6 w-6 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                             </svg>
                                         </div>
@@ -145,24 +140,27 @@
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Pembayaran</h3>
                             
                             @if($rental->payment->expired_at->isFuture())
-                                <div class="mb-4 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
-                                    <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                                <div class="mb-4 rounded-lg bg-warning-light p-4 dark:bg-warning-900/20">
+                                    <p class="text-sm font-semibold text-warning-700 dark:text-warning-200">
                                         Selesaikan pembayaran sebelum {{ $rental->payment->expired_at->format('d M Y H:i') }}
                                         ({{ $rental->payment->expired_at->diffForHumans() }})
                                     </p>
                                 </div>
                                 
                                 <div class="text-center">
-                                    <a href="{{ route('rentals.payment.show', $rental) }}" class="inline-flex items-center rounded-md bg-primary-600 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-700">
+                                    <x-touch-button 
+                                        variant="primary" 
+                                        size="md" 
+                                        :href="route('rentals.payment.show', $rental)">
                                         Upload Bukti Pembayaran
-                                    </a>
+                                    </x-touch-button>
                                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         Transfer ke rekening yang tertera, kemudian upload bukti transfer
                                     </p>
                                 </div>
                             @else
-                                <div class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-                                    <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+                                <div class="rounded-lg bg-error-light p-4 dark:bg-error-900/20">
+                                    <p class="text-sm font-semibold text-error-700 dark:text-error-200">
                                         Deadline pembayaran terlewati. Rental akan dibatalkan otomatis oleh sistem.
                                     </p>
                                 </div>
@@ -171,11 +169,11 @@
                     @elseif(in_array($rental->status, ['paid', 'confirmed', 'active', 'completed']))
                         <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Status Pembayaran</h3>
-                            <div class="flex items-center rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
-                                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center rounded-lg bg-success-light p-4 dark:bg-success-900/20">
+                                <svg class="h-6 w-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p class="ml-3 text-sm font-semibold text-green-800 dark:text-green-200">
+                                <p class="ml-3 text-sm font-semibold text-success-700 dark:text-success-200">
                                     @if($rental->payment->verified_at)
                                         Pembayaran terverifikasi pada {{ $rental->payment->verified_at->format('d M Y H:i') }}
                                     @else
@@ -230,26 +228,31 @@
                                     @if($rental->review->review_images && count($rental->review->review_images) > 0)
                                         <div>
                                             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Foto</p>
-                                            <div class="flex gap-2 overflow-x-auto">
-                                                @foreach($rental->review->review_images as $imagePath)
-                                                    <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 object-cover rounded border border-gray-200 dark:border-gray-700">
-                                                @endforeach
+                                            <!-- Horizontal scroll with proper spacing on mobile -->
+                                            <div class="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0 scroll-smooth">
+                                                <div class="flex gap-3 pb-3 min-w-max">
+                                                    @foreach($rental->review->review_images as $imagePath)
+                                                        <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 flex-shrink-0 object-cover rounded border border-gray-200 dark:border-gray-700">
+                                                    @endforeach
+                                                </div>
                                             </div>
                                         </div>
                                     @endif
                                 </div>
                                 
                                 <div class="mt-4 flex gap-2">
-                                    <a href="{{ route('rentals.reviews.edit', $rental) }}" 
-                                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                    <x-touch-button 
+                                        variant="secondary" 
+                                        size="md" 
+                                        :href="route('rentals.reviews.edit', $rental)">
                                         Edit Ulasan
-                                    </a>
+                                    </x-touch-button>
                                     <form method="POST" action="{{ route('rentals.reviews.destroy', $rental) }}" onsubmit="return confirm('Yakin ingin menghapus ulasan ini?')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                                        <x-touch-button variant="danger" size="md" type="submit">
                                             Hapus Ulasan
-                                        </button>
+                                        </x-touch-button>
                                     </form>
                                 </div>
                             @else
@@ -261,10 +264,12 @@
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                         Bantu calon penyewa lain dengan memberikan ulasan tentang kost ini
                                     </p>
-                                    <a href="{{ route('rentals.reviews.create', $rental) }}" 
-                                       class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold">
+                                    <x-touch-button 
+                                        variant="primary" 
+                                        size="md" 
+                                        :href="route('rentals.reviews.create', $rental)">
                                         Tulis Ulasan
-                                    </a>
+                                    </x-touch-button>
                                 </div>
                             @endif
                         </div>
@@ -386,7 +391,7 @@
                             
                             <div class="space-y-4">
                                 <template x-for="d in docs" :key="d.key">
-                                    <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                                    <div class="rounded-lg border border-gray-200 p-3 sm:p-4 dark:border-gray-700">
                                         <div class="flex items-start justify-between gap-3">
                                             <div>
                                                 <p class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="d.label"></p>
@@ -397,13 +402,20 @@
                                                     <p class="mt-1 text-xs text-gray-600 dark:text-gray-400" x-text="d.reason"></p>
                                                 </template>
                                             </div>
-                                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                                                :class="{
-                                                    'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200': d.status === 'approved',
-                                                    'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200': d.status === 'rejected',
-                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200': d.status === 'pending'
-                                                }"
-                                                x-text="d.status === 'approved' ? 'Disetujui' : d.status === 'rejected' ? 'Ditolak' : 'Menunggu'"></span>
+                                            <span 
+                                                x-data="{ getStatusBadge(status) {
+                                                    const badges = {
+                                                        'approved': { class: 'bg-success/10 text-success-700 dark:bg-success-900/20 dark:text-success-200', label: 'Disetujui' },
+                                                        'rejected': { class: 'bg-error/10 text-error-700 dark:bg-error-900/20 dark:text-error-200', label: 'Ditolak' },
+                                                        'pending': { class: 'bg-warning/10 text-warning-700 dark:bg-warning-900/20 dark:text-warning-200', label: 'Menunggu' }
+                                                    };
+                                                    return badges[status] || badges['pending'];
+                                                }}"
+                                                :class="getStatusBadge(d.status).class"
+                                                x-text="getStatusBadge(d.status).label"
+                                                class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                                                role="status">
+                                            </span>
                                         </div>
 
                                         <!-- File preview (when uploading) -->
@@ -453,7 +465,7 @@
 
                                         <!-- Rejection reason -->
                                         <p x-show="d.status === 'rejected' && d.rejection_reason" 
-                                            class="mt-2 text-xs text-red-700 dark:text-red-400">
+                                            class="mt-2 text-xs text-error-700 dark:text-error-400">
                                             Ditolak: <span x-text="d.rejection_reason ?? 'file tidak terbaca'"></span> — silakan upload ulang.
                                         </p>
                                     </div>
@@ -493,37 +505,55 @@
                 </div>
 
                 <!-- Right Column (1/3 width) — Sidebar -->
-                <div class="space-y-6">
+                <div class="space-y-6 order-1 lg:order-2">
                     <!-- Quick Actions Card -->
                     <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                         <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Aksi Cepat</h3>
                         <div class="space-y-3">
                             @if($rental->status === 'pending')
-                                <a href="#" class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
+                                <x-touch-button 
+                                    variant="primary" 
+                                    size="md" 
+                                    :fullWidthOnMobile="true"
+                                    href="#payment-section">
                                     Upload Bukti Bayar
-                                </a>
+                                </x-touch-button>
                             @elseif($rental->status === 'paid' || $rental->status === 'documents_pending')
-                                <button 
-                                    @click="document.querySelector('#document-section')?.scrollIntoView({ behavior: 'smooth' })"
-                                    class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
+                                <x-touch-button 
+                                    variant="primary" 
+                                    size="md" 
+                                    :fullWidthOnMobile="true"
+                                    @click="document.querySelector('#document-section')?.scrollIntoView({ behavior: 'smooth' })">
                                     Upload Dokumen
-                                </button>
+                                </x-touch-button>
                             @elseif($rental->status === 'completed')
                                 @if(!$rental->review)
-                                    <a href="{{ route('rentals.reviews.create', $rental) }}" class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
+                                    <x-touch-button 
+                                        variant="primary" 
+                                        size="md" 
+                                        :fullWidthOnMobile="true"
+                                        :href="route('rentals.reviews.create', $rental)">
                                         Tulis Ulasan
-                                    </a>
+                                    </x-touch-button>
                                 @else
-                                    <a href="{{ route('rentals.reviews.edit', $rental) }}" class="block w-full rounded-md border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <x-touch-button 
+                                        variant="secondary" 
+                                        size="md" 
+                                        :fullWidthOnMobile="true"
+                                        :href="route('rentals.reviews.edit', $rental)">
                                         Edit Ulasan
-                                    </a>
+                                    </x-touch-button>
                                 @endif
                             @endif
                             
                             @if(!in_array($rental->status, ['completed', 'cancelled']))
-                                <button class="block w-full rounded-md border border-red-600 px-4 py-2 text-center text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                <x-touch-button 
+                                    variant="danger" 
+                                    size="md" 
+                                    :fullWidthOnMobile="true"
+                                    href="#">
                                     Batalkan Rental
-                                </button>
+                                </x-touch-button>
                             @endif
                         </div>
                     </div>

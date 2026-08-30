@@ -1,26 +1,30 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Pembayaran Rental #{{ $rental->id }}
-            </h2>
-            <a href="{{ route('rentals.show', $rental) }}" class="text-sm text-primary-600 hover:text-primary-700">
-                ← Kembali ke Detail Rental
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Pembayaran Rental #{{ $rental->id }}"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental', 'url' => route('rentals.index')],
+                    ['label' => 'Detail', 'url' => route('rentals.show', $rental)],
+                    ['label' => 'Pembayaran'],
+                ]"
+            >
+                <x-slot:actions>
+                    <x-touch-button variant="secondary" size="md" :href="route('rentals.show', $rental)">
+                        ← Kembali
+                    </x-touch-button>
+                </x-slot:actions>
+            </x-page-header>
             <!-- Deadline Warning -->
             @if($rental->payment->expired_at->isFuture())
-                <div class="mb-6 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+                <div class="mb-6 rounded-lg bg-warning-light p-3 sm:p-4 dark:bg-warning-900/20" role="status" aria-live="polite" aria-atomic="true">
                     <div class="flex">
-                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="h-5 w-5 text-warning-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                         </svg>
                         <div class="ml-3">
-                            <p class="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                            <p class="text-sm font-semibold text-warning-700 dark:text-warning-200">
                                 Selesaikan pembayaran sebelum {{ $rental->payment->expired_at->format('d M Y H:i') }}
                                 ({{ $rental->payment->expired_at->diffForHumans() }})
                             </p>
@@ -28,8 +32,8 @@
                     </div>
                 </div>
             @else
-                <div class="mb-6 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-                    <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+                <div class="mb-6 rounded-lg bg-error-light p-3 sm:p-4 dark:bg-error-900/20">
+                    <p class="text-sm font-semibold text-error-700 dark:text-error-200">
                         Deadline pembayaran telah terlewati. Rental akan dibatalkan otomatis oleh sistem.
                     </p>
                 </div>
@@ -55,7 +59,7 @@
                         <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Scan QRIS:</p>
                         <img src="{{ route('rentals.payment.qris', $rental) }}" 
                              alt="QRIS Payment" 
-                             class="mx-auto h-64 w-auto rounded-lg border border-gray-300">
+                             class="mx-auto w-full max-w-xs sm:w-64 h-auto rounded-lg border border-gray-300">
                     </div>
                 @endif
 
@@ -90,14 +94,14 @@
                 
                 <!-- Show rejection reason if exists -->
                 @if($rental->payment->rejection_reason)
-                    <div class="mb-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-                        <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+                    <div class="mb-4 rounded-lg bg-error-light p-4 dark:bg-error-900/20">
+                        <p class="text-sm font-semibold text-error-700 dark:text-error-200">
                             Bukti pembayaran ditolak:
                         </p>
-                        <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                        <p class="mt-1 text-sm text-error-700 dark:text-error-300">
                             {{ $rental->payment->rejection_reason }}
                         </p>
-                        <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                        <p class="mt-2 text-xs text-error-600 dark:text-error-400">
                             Silakan upload bukti pembayaran yang baru.
                         </p>
                     </div>
@@ -105,8 +109,8 @@
 
                 <!-- Show current proof if exists -->
                 @if($rental->payment->proof_of_payment_path && !$rental->payment->rejection_reason)
-                    <div class="mb-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                        <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                    <div class="mb-4 rounded-lg bg-primary-light p-4 dark:bg-primary-900/20">
+                        <p class="text-sm font-semibold text-primary-700 dark:text-primary-200">
                             Bukti pembayaran sudah diupload. Menunggu verifikasi admin.
                         </p>
                         <img src="{{ route('rentals.payment.proof', $rental) }}" 
@@ -134,9 +138,9 @@
                     </div>
 
                     <div class="flex items-center justify-end">
-                        <x-primary-button>
+                        <x-touch-button variant="primary" size="md" type="submit">
                             {{ $rental->payment->proof_of_payment_path ? 'Upload Ulang' : 'Upload Bukti' }}
-                        </x-primary-button>
+                        </x-touch-button>
                     </div>
                 </form>
             </x-card>
