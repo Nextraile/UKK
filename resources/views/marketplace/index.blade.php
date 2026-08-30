@@ -51,6 +51,7 @@
                     name="search" 
                     value="{{ request('search') }}" 
                     placeholder="Cari kost berdasarkan nama atau lokasi..."
+                    aria-label="Cari kost berdasarkan nama atau lokasi"
                     class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100"
                 >
                 <button 
@@ -70,10 +71,13 @@
             </form>
         </div>
 
+        {{-- Mobile Filter Drawer --}}
+        <x-mobile-filter-drawer :categories="$allCategories" />
+
         <!-- Filter + Grid Layout -->
         <div class="lg:grid lg:grid-cols-4 lg:gap-8">
-            <!-- Filter Sidebar (Desktop sticky, Mobile stacked) -->
-            <aside class="lg:col-span-1 mb-6 lg:mb-0">
+            <!-- Filter Sidebar (Desktop only) -->
+            <aside class="hidden lg:block lg:col-span-1">
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 lg:sticky lg:top-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Filter</h3>
                     
@@ -166,7 +170,7 @@
             <main class="lg:col-span-3">
                 <!-- Result count (if search active) -->
                 @if(request('search'))
-                    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="mb-4 text-sm text-gray-600 dark:text-gray-400" aria-live="polite">
                         Menampilkan {{ $kosts->total() }} kost untuk <strong>"{{ request('search') }}"</strong>
                     </div>
                 @endif
@@ -174,79 +178,28 @@
                 @if ($kosts->isNotEmpty())
                     <!-- Grid adjusted for sidebar layout -->
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                @foreach ($kosts as $kost)
-                    <article class="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow">
-                        <!-- Thumbnail -->
-                        <div class="h-48 bg-gray-200 dark:bg-gray-700 rounded-t-lg overflow-hidden">
-                            @php $thumbnail = $kost->kostImages->first(); @endphp
-                            @if ($thumbnail)
-                                <img src="{{ Storage::url($thumbnail->image_path) }}" 
-                                     alt="{{ $kost->name }}"
-                                     class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                            @endif
-                        </div>
-                        
-                        <!-- Content -->
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                {{ $kost->name }}
-                            </h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                                {{ $kost->address->city ?? 'Lokasi tidak tersedia' }}
-                            </p>
-                            
-                            <!-- Price placeholder -->
-                            <p class="text-xl font-bold text-primary-600 mt-3">
-                                Mulai dari Rp 1jt<span class="text-sm text-gray-500">/bulan</span>
-                            </p>
-                            
-                            <!-- Rating (if exists) -->
-                            @if ($kost->reviews_avg_kost_rating)
-                                <div class="flex items-center mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                    <span class="ml-1">{{ number_format($kost->reviews_avg_kost_rating, 1) }}</span>
-                                    <span class="ml-1 text-gray-400">({{ $kost->reviews_count }})</span>
-                                </div>
-                            @endif
-                            
-                            <!-- Link to detail -->
-                            <a href="{{ route('marketplace.show', $kost->slug) }}" class="block mt-4 text-sm text-primary-600 hover:underline">
-                                Lihat Detail →
-                            </a>
-                        </div>
-                    </article>
-                @endforeach
-            </div>
+                        @foreach ($kosts as $kost)
+                            <x-kost-card :kost="$kost" />
+                        @endforeach
+                    </div>
 
-            <!-- Pagination -->
-            <div class="mt-8">
-                {{ $kosts->links() }}
-            </div>
-        @else
-            <!-- Empty state -->
-            <div class="flex flex-col items-center justify-center px-4 py-12 text-center">
-                <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                </svg>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Tidak ada kost ditemukan</h3>
-                <p class="mt-1 max-w-sm text-sm text-gray-600 dark:text-gray-400">
-                    Coba ubah filter atau kata kunci pencarian Anda.
-                </p>
-            </div>
-        @endif
-            </div>
+                    <!-- Pagination -->
+                    <div class="mt-8">
+                        {{ $kosts->links() }}
+                    </div>
+                @else
+                    <!-- Empty state -->
+                    <div class="flex flex-col items-center justify-center px-4 py-12 text-center">
+                        <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Tidak ada kost ditemukan</h3>
+                        <p class="mt-1 max-w-sm text-sm text-gray-600 dark:text-gray-400">
+                            Coba ubah filter atau kata kunci pencarian Anda.
+                        </p>
+                    </div>
+                @endif
+            </main>
         </div>
     </main>
     

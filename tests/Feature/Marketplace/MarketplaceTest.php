@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Marketplace;
 
+use App\Domain\Kost\Models\Address;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Kost\Models\PriceScheme;
+use App\Domain\Kost\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -175,5 +178,178 @@ class MarketplaceTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('kosts');
         $this->assertCount(0, $response->viewData('kosts'));
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_displays_kost_category_badges_in_card(): void
+    {
+        $category1 = Category::factory()->create(['name' => 'Kost Putra']);
+        $category2 = Category::factory()->create(['name' => 'Kost Campur']);
+
+        $kost = Kost::factory()->create(['status' => 'active']);
+        $kost->categories()->attach([$category1->id, $category2->id]);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Kost Putra');
+        $response->assertSee('Kost Campur');
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_displays_city_only_in_kost_card(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Test']);
+        Address::factory()->create([
+            'kost_id' => $kost->id,
+            'city' => 'Bandung',
+            'province' => 'Jawa Barat',
+        ]);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Bandung');
+        // Province should NOT be displayed in location
+        $response->assertDontSee('Jawa Barat');
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_displays_minimum_price_with_correct_format(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Murah']);
+        $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType->id,
+            'price' => 1200000,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        // Should display formatted price "Mulai dari Rp 1.200,0jt"
+        $response->assertSee('Mulai dari');
+        $response->assertSee('1.200,0jt');
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_uses_kost_card_component_not_inline_html(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active']);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        // Verify component-specific classes (from kost-card.blade.php)
+        $response->assertSee('bg-white dark:bg-surface-raised-dark rounded-xl', false);
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_displays_multiple_categories_for_single_kost(): void
+    {
+        $category1 = Category::factory()->create(['name' => 'Kost Putra']);
+        $category2 = Category::factory()->create(['name' => 'Kost Campur']);
+        $category3 = Category::factory()->create(['name' => 'Kost Strategis']);
+
+        $kost = Kost::factory()->create(['status' => 'active']);
+        $kost->categories()->attach([$category1->id, $category2->id, $category3->id]);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Kost Putra');
+        $response->assertSee('Kost Campur');
+        $response->assertSee('Kost Strategis');
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_handles_kost_without_categories_gracefully(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost No Category']);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Kost No Category');
+        // Should not throw error when no categories exist
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_handles_kost_without_address_gracefully(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost No Address']);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Kost No Address');
+        // Should not throw error when address is null
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_handles_kost_without_price_schemes_gracefully(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost No Price']);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Kost No Price');
+        // Should not throw error when min_price is null
+    }
+
+    /**
+     * @test
+     */
+    public function test_it_displays_lowest_price_from_multiple_room_types(): void
+    {
+        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Multi Room']);
+
+        // Room type 1: min 1500000
+        $roomType1 = RoomType::factory()->create(['kost_id' => $kost->id]);
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType1->id,
+            'price' => 1500000,
+            'is_active' => true,
+        ]);
+
+        // Room type 2: min 900000 (lowest)
+        $roomType2 = RoomType::factory()->create(['kost_id' => $kost->id]);
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType2->id,
+            'price' => 900000,
+            'is_active' => true,
+        ]);
+
+        // Room type 3: min 2000000
+        $roomType3 = RoomType::factory()->create(['kost_id' => $kost->id]);
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType3->id,
+            'price' => 2000000,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('marketplace.index'));
+
+        $response->assertStatus(200);
+        // Should display the lowest price (900k = 900,0jt)
+        $response->assertSee('900,0jt');
     }
 }

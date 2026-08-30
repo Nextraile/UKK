@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -254,6 +255,61 @@ class Kost extends Model
     public function getReviewCountAttribute(): int
     {
         return $this->reviewsQuery()->count();
+    }
+
+    /**
+     * Get the thumbnail image URL for this kost.
+     *
+     * Returns the storage URL of the first thumbnail image.
+     * Returns null if no thumbnail exists.
+     */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        $thumbnail = $this->kostImages()
+            ->where('is_thumbnail', true)
+            ->first();
+
+        return $thumbnail ? Storage::url($thumbnail->image_path) : null;
+    }
+
+    /**
+     * Get the city name from the kost address.
+     *
+     * Shortcut accessor for $kost->address->city.
+     * Returns null if address doesn't exist.
+     */
+    public function getCityAttribute(): ?string
+    {
+        return $this->address?->city;
+    }
+
+    /**
+     * Get the province name from the kost address.
+     *
+     * Shortcut accessor for $kost->address->province.
+     * Returns null if address doesn't exist.
+     */
+    public function getProvinceAttribute(): ?string
+    {
+        return $this->address?->province;
+    }
+
+    /**
+     * Get the minimum price from all active price schemes.
+     *
+     * Calculates the lowest price across all room types' active price schemes.
+     * Returns null if no active price schemes exist.
+     *
+     * @return int|null Price in IDR (not formatted)
+     */
+    public function getMinPriceAttribute(): ?int
+    {
+        $minPrice = $this->roomTypes
+            ->flatMap(fn ($roomType) => $roomType->priceSchemes)
+            ->where('is_active', true)
+            ->min('price');
+
+        return $minPrice ? (int) $minPrice : null;
     }
 
     /**
