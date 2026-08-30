@@ -60,12 +60,23 @@
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">{{ $kost->name }}</h1>
                     
                     <!-- Location -->
-                    <div class="flex items-center text-gray-600 dark:text-gray-400 mb-4">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-start text-gray-600 dark:text-gray-400 mb-4">
+                        <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        {{ $kost->address->full_address ?? 'Alamat tidak tersedia' }}
+                        <div>
+                            @if($kost->address)
+                                <p>{{ $kost->address->full_address }}, 
+                                    {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
+                                    @if($kost->address->postal_code)
+                                        {{ $kost->address->postal_code }}
+                                    @endif
+                                </p>
+                            @else
+                                <p>Alamat tidak tersedia</p>
+                            @endif
+                        </div>
                     </div>
                     
                     <!-- Categories -->
@@ -149,8 +160,88 @@
                     @endif
                 </div>
                 
-                <!-- Room Types Section -->
+                
+                <!-- Map Section -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Lokasi</h2>
+                    
+                    @if($kost->address && $kost->address->latitude && $kost->address->longitude)
+                        <!-- Leaflet Map -->
+                        <div 
+                            x-data="{
+                                map: null,
+                                init() {
+                                    this.$nextTick(() => {
+                                        this.map = L.map(this.$refs.mapContainer).setView([{{ $kost->address->latitude }}, {{ $kost->address->longitude }}], 15);
+                                        
+                                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            maxZoom: 19,
+                                            attribution: '© OpenStreetMap contributors'
+                                        }).addTo(this.map);
+                                        
+                                        L.marker([{{ $kost->address->latitude }}, {{ $kost->address->longitude }}])
+                                            .addTo(this.map)
+                                            .bindPopup('{{ $kost->name }}');
+                                    });
+                                    this.$cleanup(() => {
+                                        if (this.map) {
+                                            this.map.remove();
+                                        }
+                                    });
+                                }
+                            }"
+                            class="mb-4"
+                        >
+                            <div 
+                                x-ref="mapContainer" 
+                                class="w-full h-64 md:h-96 rounded-lg border border-gray-200 dark:border-gray-700" 
+                                style="z-index: 1;"
+                            ></div>
+                        </div>
+                        
+                        <!-- Address Text -->
+                        <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <p class="font-medium">{{ $kost->address->full_address }}</p>
+                            <p>
+                                {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
+                                @if($kost->address->postal_code)
+                                    {{ $kost->address->postal_code }}
+                                @endif
+                            </p>
+                        </div>
+                    @else
+                        <!-- Fallback: Text address only -->
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2">
+                            @if($kost->address)
+                                <p class="text-gray-900 dark:text-gray-100 font-medium">
+                                    {{ $kost->address->full_address }}
+                                </p>
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                    {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
+                                    @if($kost->address->postal_code)
+                                        {{ $kost->address->postal_code }}
+                                    @endif
+                                </p>
+                                <a 
+                                    href="https://www.google.com/maps/search/?api=1&query={{ urlencode($kost->address->full_address . ', ' . $kost->address->city . ', ' . $kost->address->province) }}" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center text-sm text-primary-600 hover:underline"
+                                >
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    Lihat di Google Maps
+                                </a>
+                            @else
+                                <p class="text-gray-600 dark:text-gray-400">Alamat tidak tersedia</p>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Room Types Section -->
+                <div id="room-types" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Tipe Kamar</h2>
                     
                     @if($kost->roomTypes->isNotEmpty())
@@ -175,8 +266,12 @@
                                                 @endif
                                                 Max {{ $roomType->max_occupants }} orang
                                                 •
-                                                <span class="font-medium {{ $roomType->available_count > 0 ? 'text-success-600' : 'text-error-600' }}">
-                                                    {{ $roomType->available_count }} kamar tersedia
+                                                <span class="font-medium {{ $roomType->available_count > 0 ? 'text-success-700 dark:text-success-400' : 'text-error-700 dark:text-error-400' }}">
+                                                  @if($roomType->available_count > 0)
+                                                    {{ $roomType->available_count }} Kamar tersedia
+                                                  @else
+                                                    Kamar tidak tersedia
+                                                  @endif
                                                 </span>
                                             </p>
                                         </div>
@@ -197,6 +292,19 @@
                                         x-collapse
                                         class="px-4 py-4 bg-white dark:bg-gray-800"
                                     >
+                                        
+                                        <!-- Thumbnail (if exists) -->
+                                        @php $thumbnail = $roomType->roomTypeImages->first(); @endphp
+                                        @if($thumbnail)
+                                            <div class="mb-4">
+                                                <img 
+                                                    src="{{ Storage::url($thumbnail->image_path) }}" 
+                                                    alt="{{ $roomType->name }}"
+                                                    class="w-full h-48 object-cover rounded-lg"
+                                                >
+                                            </div>
+                                        @endif
+                                        
                                         <!-- Price Schemes -->
                                         @if($roomType->priceSchemes->isNotEmpty())
                                             <div class="mb-4">
@@ -212,13 +320,13 @@
                                                                 @if($scheme->security_deposit > 0)
                                                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                                         + Deposit: Rp {{ number_format($scheme->security_deposit, 0, ',', '.') }}
-                                                                    </p>
-                                                                @endif
-                                                            </div>
-                                            <div class="text-right">
-                                                                <p class="text-xl font-bold text-primary-600">
-                                                                    Rp {{ number_format($scheme->price, 0, ',', '.') }}
-                                                                </p>
+                                                                     </p>
+                                                                 @endif
+                                                             </div>
+                                                             <div class="text-right">
+                                                                 <p class="text-xl font-bold text-primary-600 dark:text-primary-400">
+                                                                     Rp {{ number_format($scheme->price, 0, ',', '.') }}
+                                                                 </p>
                                                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                                                     per {{ $scheme->duration_unit === 'month' ? 'bulan' : ($scheme->duration_unit === 'week' ? 'minggu' : 'hari') }}
                                                                 </p>
@@ -231,31 +339,36 @@
                                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Tidak ada skema harga aktif</p>
                                         @endif
                                         
-                                        <!-- Thumbnail (if exists) -->
-                                        @php $thumbnail = $roomType->roomTypeImages->first(); @endphp
-                                        @if($thumbnail)
-                                            <div class="mb-4">
-                                                <img 
-                                                    src="{{ Storage::url($thumbnail->image_path) }}" 
-                                                    alt="{{ $roomType->name }}"
-                                                    class="w-full h-48 object-cover rounded-lg"
-                                                >
-                                            </div>
-                                        @endif
-                                        
                                         <!-- Action Button -->
-                                        <a 
-                                            href="{{ route('rentals.create', ['kost_id' => $kost->id, 'room_type_id' => $roomType->id]) }}"
-                                            class="block w-full px-4 py-2 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors {{ $roomType->available_count === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : '' }}"
-                                        >
-                                            {{ $roomType->available_count > 0 ? 'Pilih Kamar Ini' : 'Tidak Tersedia' }}
-                                        </a>
+                                        @if($roomType->available_count > 0)
+                                            <a 
+                                                href="{{ route('rentals.create', ['kost_id' => $kost->id, 'room_type_id' => $roomType->id]) }}"
+                                                class="block w-full px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white text-center font-semibold rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                                            >
+                                                Pilih Kamar Ini
+                                            </a>
+                                        @else
+                                            <button 
+                                                disabled
+                                                class="block w-full px-4 py-2 bg-gray-400 dark:bg-gray-600 text-white text-center font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                                            >
+                                                Tidak Tersedia
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                     @else
-                        <p class="text-gray-500 dark:text-gray-400">Belum ada tipe kamar yang tersedia</p>
+                        <div class="text-center py-12">
+                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Belum Ada Tipe Kamar</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Kost ini belum memiliki tipe kamar yang tersedia saat ini
+                            </p>
+                        </div>
                     @endif
                 </div>
                 
@@ -387,68 +500,6 @@
                         </div>
                     @endif
                 </div>
-                
-                <!-- Map Section -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Lokasi</h2>
-                    
-                    @if($kost->address && $kost->address->latitude && $kost->address->longitude)
-                        <!-- Leaflet Map -->
-                        <div 
-                            x-data="{
-                                map: null,
-                                init() {
-                                    this.$nextTick(() => {
-                                        this.map = L.map(this.$refs.mapContainer).setView([{{ $kost->address->latitude }}, {{ $kost->address->longitude }}], 15);
-                                        
-                                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                            maxZoom: 19,
-                                            attribution: '© OpenStreetMap contributors'
-                                        }).addTo(this.map);
-                                        
-                                        L.marker([{{ $kost->address->latitude }}, {{ $kost->address->longitude }}])
-                                            .addTo(this.map)
-                                            .bindPopup('{{ $kost->name }}');
-                                    });
-                                    this.$cleanup(() => {
-                                        if (this.map) {
-                                            this.map.remove();
-                                        }
-                                    });
-                                }
-                            }"
-                            class="mb-4"
-                        >
-                            <div 
-                                x-ref="mapContainer" 
-                                class="w-full h-64 md:h-96 rounded-lg border border-gray-200 dark:border-gray-700" 
-                                style="z-index: 1;"
-                            ></div>
-                        </div>
-                        
-                        <!-- Address Text -->
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            {{ $kost->address->full_address }}
-                        </p>
-                    @else
-                        <!-- Fallback: Text address only -->
-                        <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <p class="text-gray-600 dark:text-gray-400 mb-2">
-                                {{ $kost->address->full_address ?? 'Alamat tidak tersedia' }}
-                            </p>
-                            @if($kost->address && $kost->address->full_address)
-                                <a 
-                                    href="https://www.google.com/maps/search/?api=1&query={{ urlencode($kost->address->full_address) }}" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    class="text-sm text-primary-600 hover:underline"
-                                >
-                                    Lihat di Google Maps
-                                </a>
-                            @endif
-                        </div>
-                    @endif
-                </div>
             </div>
             
             <!-- Sidebar -->
@@ -456,7 +507,16 @@
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 lg:sticky lg:top-4">
                     <div class="mb-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Harga mulai dari</p>
-                        <p class="text-3xl font-bold text-primary-600">Rp 1jt<span class="text-base text-gray-500">/bulan</span></p>
+                        <p class="text-3xl font-bold text-primary-600">
+                            @if($kost->min_price)
+                                Rp {{ number_format($kost->min_price / 1000, 1, ',', '.') }}jt
+                            @else
+                                Hubungi Admin
+                            @endif
+                            @if($kost->min_price)
+                                <span class="text-base text-gray-500">/bulan</span>
+                            @endif
+                        </p>
                     </div>
                     
                     @if($avgKostRating || $avgRoomRating)
@@ -469,12 +529,21 @@
                         </div>
                     @endif
                     
-                    <a 
-                        href="{{ route('rentals.create', ['kost_id' => $kost->id]) }}"
-                        class="block w-full px-6 py-3 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors"
-                    >
-                        Booking Sekarang
-                    </a>
+                    @if($kost->roomTypes->where('available_count', '>', 0)->isNotEmpty())
+                        <a 
+                            href="#room-types"
+                            class="block w-full px-6 py-3 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+                        >
+                            Pilih Kamar
+                        </a>
+                    @else
+                        <button 
+                            disabled
+                            class="block w-full px-6 py-3 bg-gray-400 text-white text-center font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                        >
+                            Tidak Ada Kamar Tersedia
+                        </button>
+                    @endif
                     
                     <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Kontak</h4>
