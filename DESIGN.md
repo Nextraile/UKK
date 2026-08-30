@@ -7,7 +7,7 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `v1.6.3` |
+| Versi Dokumen | `v1.6.4` |
 | Terakhir Diperbarui | `2026-08-30` |
 | Tech Stack | Laravel 13 + Blade + Alpine.js 3.14 + Tailwind CSS 4.0 |
 
@@ -3741,32 +3741,257 @@ Pola layout per role akses — struktur halaman, breakpoints, dan kontainer maks
 
 ---
 
-### 4.2 Admin Layout (Sidebar Navigation)
+### 4.2 Admin/Super Admin Layout (Unified Navbar + Collapsible Sidebar)
 
 **Structure:**
 ```
-┌────────┬────────────────────────────────┐
-│        │ Top Bar (breadcrumbs)          │
-│        ├────────────────────────────────┤
-│ Sidebar│                                │
-│ (64px  │ Main Content Area              │
-│ fixed) │ (bg-gray-50)                   │
-│        │                                │
-│        │                                │
-└────────┴────────────────────────────────┘
+Admin/Super Admin Layout
+┌─────────────────────────────────────────────────────────┐
+│ Unified Navbar (<x-nav-public />)                       │
+│ Browse Kost | Profile | Dashboard | Logout              │
+│ (sticky top-0, z-50)                                    │
+├─────────────────┬───────────────────────────────────────┤
+│ Collapsible     │ Main Content Area                     │
+│ Sidebar         │ ┌───────────────────────────────────┐ │
+│ ┌─────────────┐ │ │ Header (sticky top-[4rem])       │ │
+│ │ [Toggle]    │ │ │ Toggle btn + Page title          │ │
+│ │ Admin Panel │ │ ├───────────────────────────────────┤ │
+│ │             │ │ │ Flash Messages                   │ │
+│ │ • Kelola    │ │ ├───────────────────────────────────┤ │
+│ │   Kost      │ │ │ Content                          │ │
+│ │ • Rentals   │ │ │                                   │ │
+│ │   (badge)   │ │ │                                   │ │
+│ │             │ │ │                                   │ │
+│ │ (scrollable)│ │ └───────────────────────────────────┘ │
+│ └─────────────┘ │                                       │
+│ (w-64 / w-0)    │ (flex-1, transitions smoothly)        │
+└─────────────────┴───────────────────────────────────────┘
 ```
 
-**Main Content Offset:** `ml-64` (256px sidebar width)
+**Key Components:**
 
-**Responsive:**
-- Desktop: Sidebar always visible
-- Mobile: Sidebar drawer overlay, hamburger menu
+1. **Unified Navbar** (`<x-nav-public />`)
+   - Positioned: `sticky top-0 z-50` (highest z-index, always visible)
+   - Height: `h-16` (~4rem)
+   - Contents: Logo, "Browse Kost" link, Profile dropdown, Dashboard link, Logout button
+   - Background: `bg-white dark:bg-surface-raised-dark`
+   - Border: `border-b border-border dark:border-border-dark`
+   - Consistent across all roles (Public/Tenant/Admin/Super Admin)
+
+2. **Collapsible Sidebar**
+   - Position: `fixed lg:sticky` with `top-[4rem]` (below navbar)
+   - Height: `h-[calc(100vh-4rem)]` (accounts for navbar height)
+   - Width: `w-64` (open) / `w-0` (collapsed)
+   - Transition: `transition-all duration-300 ease-in-out`
+   - Background: `bg-white dark:bg-surface-raised-dark`
+   - Border: `border-r border-border dark:border-border-dark`
+   - Z-index: `z-40` (mobile overlay) / `z-10` (desktop)
+   - Scrollable: `overflow-y-auto` (independent scroll from main content)
+
+3. **Toggle Behavior** (Alpine.js state management)
+   ```blade
+   <body x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+   ```
+   - **Desktop (≥1024px):**
+     - Default: Open (`sidebarOpen = true`)
+     - Position: `sticky top-[4rem]` (stays below navbar on scroll)
+     - Toggle: Chevron button in sidebar header (left/right icon)
+     - Main content: Shifts via flexbox (no margin offset)
+   
+   - **Mobile (<1024px):**
+     - Default: Closed (`sidebarOpen = false`)
+     - Position: `fixed` overlay with backdrop
+     - Toggle: Hamburger button in main content header
+     - Backdrop: `bg-gray-900/50` with fade transitions (`z-30`)
+     - Close: Click outside (backdrop) or X button in sidebar header
+
+4. **Main Content Area**
+   - Layout: `flex-1` (automatically fills remaining space)
+   - Background: `bg-surface dark:bg-surface-dark`
+   - Padding: `p-6 lg:p-8` (responsive padding)
+   - No fixed margin-left (content shifts via flexbox parent)
+
+5. **Sidebar Header**
+   - Toggle button: Chevron-left (collapse) / Chevron-right (expand)
+   - Mobile close button: X icon (`lg:hidden`)
+   - Dynamic `aria-label`: "Collapse sidebar" / "Expand sidebar"
+   - Section title: "Admin Panel" / "Super Admin Panel"
+
+6. **Z-index Stacking Order** (highest to lowest)
+   - Navbar: `z-50` (always on top)
+   - Sidebar: `z-40` (mobile overlay) / `z-10` (desktop)
+   - Backdrop: `z-30` (mobile only)
+   - Main content sticky header: `z-20` (below navbar)
+
+**Alpine.js State Management:**
+```blade
+<body x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+  <x-nav-public />
+  
+  <div class="flex min-h-[calc(100vh-4rem)]">
+    <!-- Mobile backdrop -->
+    <div x-show="sidebarOpen && !$screen('lg')" 
+         @click="sidebarOpen = false"
+         x-transition.opacity
+         class="fixed inset-0 bg-gray-900/50 z-30 lg:hidden"></div>
+    
+    <!-- Collapsible sidebar -->
+    <aside :class="sidebarOpen ? 'w-64' : 'w-0'"
+           class="transition-all duration-300 fixed lg:sticky top-[4rem] h-[calc(100vh-4rem)] bg-white dark:bg-surface-raised-dark border-r border-border dark:border-border-dark overflow-hidden z-40 lg:z-10">
+      
+      <!-- Sidebar header with toggle -->
+      <div class="flex items-center justify-between h-16 px-4 border-b border-border dark:border-border-dark">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-text-strong-dark">Admin Panel</h2>
+        
+        <!-- Desktop toggle (chevron) -->
+        <button type="button" @click="sidebarOpen = !sidebarOpen"
+                :aria-label="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+                class="hidden lg:flex p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-text-muted-dark dark:hover:bg-surface-muted-dark">
+          <svg x-show="sidebarOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          <svg x-show="!sidebarOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+        
+        <!-- Mobile close (X) -->
+        <button type="button" @click="sidebarOpen = false"
+                aria-label="Close sidebar"
+                class="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-text-muted-dark dark:hover:bg-surface-muted-dark">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Sidebar navigation (scrollable) -->
+      <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+        <a href="{{ route('admin.dashboard') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 dark:text-text-dark dark:hover:bg-surface-muted-dark">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+        
+        <!-- Badge count example (pending rentals) -->
+        <a href="{{ route('admin.rentals.index') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700 hover:bg-gray-100 dark:text-text-dark dark:hover:bg-surface-muted-dark">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Rentals</span>
+          @if($pendingCount > 0)
+          <span class="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-warning/10 text-warning-700">
+            {{ $pendingCount }}
+          </span>
+          @endif
+        </a>
+        
+        <!-- More nav items... -->
+      </nav>
+    </aside>
+    
+    <!-- Main content area -->
+    <main class="flex-1 bg-surface dark:bg-surface-dark">
+      <!-- Sticky header (below navbar) -->
+      <header class="sticky top-[4rem] z-20 bg-white dark:bg-surface-raised-dark border-b border-border dark:border-border-dark px-6 py-4 flex items-center gap-4">
+        <!-- Mobile hamburger toggle -->
+        <button type="button" @click="sidebarOpen = true"
+                aria-label="Open sidebar"
+                class="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-text-muted-dark dark:hover:bg-surface-muted-dark">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        
+        <!-- Desktop sidebar toggle (chevron) -->
+        <button type="button" @click="sidebarOpen = !sidebarOpen"
+                :aria-label="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+                class="hidden lg:flex p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:text-text-muted-dark dark:hover:bg-surface-muted-dark">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-text-strong-dark">Dashboard</h1>
+      </header>
+      
+      <!-- Flash messages -->
+      @if(session('success'))
+      <div class="mx-6 mt-4">
+        <x-alert type="success" :message="session('success')" dismissible />
+      </div>
+      @endif
+      
+      <!-- Page content -->
+      <div class="p-6 lg:p-8">
+        {{ $slot }}
+      </div>
+    </main>
+  </div>
+</body>
+```
+
+**Accessibility Notes:**
+
+1. **Keyboard Navigation**
+   - All toggle buttons tabbable with visible focus ring (`focus-visible:ring-2 ring-primary-500`)
+   - Sidebar links fully keyboard accessible
+   - Skip to main content link positioned above navbar (for screen readers)
+
+2. **ARIA Labels**
+   - Toggle buttons: Dynamic `aria-label` ("Collapse sidebar" / "Expand sidebar")
+   - Close button: `aria-label="Close sidebar"` (mobile)
+   - Hamburger button: `aria-label="Open sidebar"` (mobile)
+
+3. **Focus Management**
+   - Backdrop click closes sidebar (mobile UX pattern)
+   - Focus remains on trigger button after closing sidebar
+   - No focus trap (sidebar is navigation, not modal)
+
+4. **Screen Reader Support**
+   - Sidebar navigation wrapped in `<nav>` element
+   - Badge counts announced as part of link text
+   - Logout button in navbar (not buried in sidebar)
+
+**Responsive Behavior:**
+
+| Breakpoint | Sidebar Position | Default State | Toggle Location | Backdrop |
+|---|---|---|---|---|
+| Mobile (<1024px) | `fixed` overlay | Closed | Main header (hamburger) | Yes (`z-30`) |
+| Desktop (≥1024px) | `sticky top-[4rem]` | Open | Sidebar header (chevron) | No |
 
 **Token (dark pair):**
 ```html
-<aside class="w-64 bg-gray-900 dark:bg-surface-dark text-white ...">  <!-- sidebar tetap gelap di light & dark -->
-<main class="ml-64 min-h-screen bg-surface dark:bg-surface-dark">
+<body class="bg-surface text-text dark:bg-surface-dark dark:text-text-dark">
+  <nav class="bg-white dark:bg-surface-raised-dark border-b border-border dark:border-border-dark">
+  <aside class="bg-white dark:bg-surface-raised-dark border-r border-border dark:border-border-dark">
+  <main class="bg-surface dark:bg-surface-dark">
 ```
+
+**Design Decisions:**
+
+1. **Why unified navbar?** 
+   - Consistent navigation across all roles (Public/Tenant/Admin)
+   - Logout button always accessible (no need to open sidebar)
+   - "Browse Kost" link allows admins to view marketplace as users do
+
+2. **Why collapsible sidebar?**
+   - Desktop users can maximize content area when needed
+   - Mobile users get full-screen content by default
+   - Progressive disclosure: nav hidden until needed
+
+3. **Why no logout in sidebar?**
+   - Logout is a critical action (should be always visible)
+   - Unified navbar already has logout button
+   - Reduces sidebar clutter (focus on navigation items)
+
+4. **Why flexbox over margin-left?**
+   - Automatic content shift (no manual margin calculations)
+   - Smoother transitions (one element changes width, flex handles rest)
+   - Easier to maintain (no breakpoint-specific margin overrides)
 
 **Footer:** None — admin interface adalah aplikasi dashboard, bukan marketing site. Footer links (terms, privacy, contact) accessible via profile/settings menu jika diperlukan. Menghilangkan footer memaksimalkan vertical space untuk konten operasional (tables, forms, charts).
 
@@ -4494,6 +4719,7 @@ Gunakan package optimasi gambar Laravel (mis. `spatie/laravel-image-optimizer`).
 | v1.6.2 | 2026-08-20 | Registrasi `x-theme-toggle` §3.39 + inventory §3.0: dark/light theme switcher (class-based `.dark` di `<html>`, persist `localStorage.theme`, no-FOUC inline script layout head — selaras strategi §2.1); a11y `:aria-pressed`, ikon `aria-hidden`, touch target ≥44px, `focus-visible:ring-2`; dark pair token semantik. Implementasi: `resources/views/components/theme-toggle.blade.php`. | OpenCode |
 | v1.6.2 | 2026-08-30 | Update §3.6 Navigation: tambah role-based dropdown behavior notes untuk Public Navigation (Guest vs Tenant/Admin/Super Admin dropdown items), tambah spec Tenant Navigation (authenticated tenant interface dengan primary nav links Rental Saya + Cari Kost, user dropdown Profil Saya + Logout, theme toggle, responsive hamburger menu, active state route matching), update Admin Sidebar Navigation dengan role differentiation notes (Admin vs Super Admin menu items, notification badges via AdminSidebarComposer). | OpenCode |
 | v1.6.3 | 2026-08-30 | Update §3.6 Navigation: Unified navbar implementation — replaced role-based dropdown menus and tenant-specific navigation with single `<x-nav-public />` component for all roles. Authenticated users see direct links (Profile, Dashboard, Logout) instead of avatar dropdown. Dashboard link routes to role-specific page via `User::dashboardRoute()` method (tenant→/rentals, admin→/admin/dashboard, superadmin→/super-admin/dashboard). Removed Tenant Navigation section. Updated code examples to match implementation in `resources/views/components/nav-public.blade.php`. | OpenCode |
+| v1.6.4 | 2026-08-30 | Update §4.2 Admin/Super Admin Layout: Complete rewrite for unified navbar + collapsible sidebar pattern. Added layout diagram, Alpine.js state management (`sidebarOpen: window.innerWidth >= 1024`), sidebar collapse behavior (desktop: sticky toggle chevron, mobile: fixed overlay + backdrop), z-index stacking order (navbar z-50 > sidebar z-40/z-10 > backdrop z-30 > header z-20), flexbox-based content shifting (no margin-left offset), accessibility notes (dynamic aria-label, focus management, keyboard nav), responsive behavior table (desktop default open, mobile default closed), code examples with full Alpine.js + Blade implementation. Removed logout from sidebar (now in unified navbar). Design decisions documented (why unified navbar, collapsible sidebar, flexbox over margin). | OpenCode |
 ---
 
 **END OF DESIGN.md**
