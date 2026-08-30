@@ -1,12 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-            Manajemen Rental
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Manajemen Rental"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental'],
+                ]"
+            />
             <!-- Filters -->
             <div class="mb-6 flex items-center space-x-4">
                 <form method="GET" action="{{ route('admin.rentals.index') }}" class="flex items-center space-x-4">
@@ -54,25 +55,25 @@
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-800">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     ID
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Tenant
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Kost / Kamar
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Durasi
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Total
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Status
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                     Aksi
                                 </th>
                             </tr>
@@ -99,22 +100,12 @@
                                         Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
-                                        <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold
-                                            @if($rental->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @elseif($rental->status === 'paid') bg-blue-100 text-blue-800
-                                            @elseif($rental->status === 'confirmed') bg-purple-100 text-purple-800
-                                            @elseif($rental->status === 'active') bg-green-100 text-green-800
-                                            @elseif($rental->status === 'completed') bg-gray-100 text-gray-800
-                                            @else bg-red-100 text-red-800
-                                            @endif">
-                                            {{ ucfirst($rental->status) }}
-                                        </span>
+                                        <x-status-badge :status="$rental->status" type="rental" />
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                        <a href="{{ route('admin.rentals.show', $rental) }}" 
-                                           class="text-primary-600 hover:text-primary-900">
+                                        <x-touch-button variant="ghost" size="sm" href="{{ route('admin.rentals.show', $rental) }}" aria-label="Detail rental {{ $rental->user->name }}">
                                             Detail
-                                        </a>
+                                        </x-touch-button>
                                     </td>
                                 </tr>
                             @empty

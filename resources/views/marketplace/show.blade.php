@@ -63,14 +63,14 @@
                         <div class="mb-6">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Fasilitas</h3>
                             <ul class="grid grid-cols-2 gap-2">
-                                @foreach($kost->facilities as $facility)
-                                    <li class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                        <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        {{ $facility }}
-                                    </li>
-                                @endforeach
+                                    @foreach($kost->facilities as $facility)
+                                        <li class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                            <svg class="w-4 h-4 mr-2 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            {{ $facility }}
+                                        </li>
+                                    @endforeach
                             </ul>
                         </div>
                     @endif
@@ -99,7 +99,7 @@
                             <ul class="space-y-2">
                                 @foreach($kost->documentRequirements as $doc)
                                     <li class="flex items-start text-sm">
-                                        <svg class="w-4 h-4 mr-2 mt-0.5 {{ $doc->is_required ? 'text-red-500' : 'text-gray-400' }}" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg class="w-4 h-4 mr-2 mt-0.5 {{ $doc->is_required ? 'text-error-500' : 'text-gray-400' }}" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                         </svg>
                                         <div>
@@ -107,7 +107,7 @@
                                                 {{ ucfirst(str_replace('_', ' ', $doc->document_type)) }}
                                             </span>
                                             @if($doc->is_required)
-                                                <span class="text-red-600 text-xs ml-1">(Wajib)</span>
+                                                <span class="text-error-600 text-xs ml-1">(Wajib)</span>
                                             @endif
                                             @if($doc->reason)
                                                 <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">{{ $doc->reason }}</p>
@@ -146,7 +146,7 @@
                                                 @endif
                                                 Max {{ $roomType->max_occupants }} orang
                                                 •
-                                                <span class="font-medium {{ $roomType->available_count > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                <span class="font-medium {{ $roomType->available_count > 0 ? 'text-success-600' : 'text-error-600' }}">
                                                     {{ $roomType->available_count }} kamar tersedia
                                                 </span>
                                             </p>

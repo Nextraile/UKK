@@ -1,23 +1,25 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text-strong dark:text-text-strong-dark leading-tight">
-            {{ __('Edit Profil') }}
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            {{-- Back to profile link --}}
-            <div class="max-w-xl">
-                <a href="{{ route('profile.show') }}" class="inline-flex items-center text-sm text-text dark:text-text-muted-dark hover:text-text-strong dark:hover:text-text-strong-dark">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    Kembali ke Profil
-                </a>
-            </div>
+            <x-page-header 
+                title="Edit Profil"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Profil', 'url' => route('profile.show')],
+                    ['label' => 'Edit'],
+                ]"
+            >
+                <x-slot:actions>
+                    <a href="{{ route('profile.show') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                        Kembali
+                    </a>
+                </x-slot:actions>
+            </x-page-header>
 
             {{-- Status message --}}
             @if (session('status'))
-                <div class="max-w-xl rounded-md bg-green-50 p-4 text-sm font-medium text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <div class="max-w-xl rounded-md bg-success-50 p-4 text-sm font-medium text-success-600 dark:bg-success-900/30 dark:text-success-400">
                     {{ session('status') }}
                 </div>
             @endif

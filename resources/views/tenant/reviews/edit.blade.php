@@ -1,17 +1,21 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Edit Penilaian
-            </h2>
-            <a href="{{ route('rentals.show', $rental) }}" class="text-sm text-primary-600 hover:text-primary-700">
-                ← Kembali ke Detail Rental
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-12">
         <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Edit Penilaian"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Rental', 'url' => route('rentals.index')],
+                    ['label' => 'Detail', 'url' => route('rentals.show', $rental)],
+                    ['label' => 'Edit Penilaian'],
+                ]"
+            >
+                <x-slot:actions>
+                    <a href="{{ route('rentals.show', $rental) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                        ← Kembali
+                    </a>
+                </x-slot:actions>
+            </x-page-header>
             <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                 <div class="mb-6">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">

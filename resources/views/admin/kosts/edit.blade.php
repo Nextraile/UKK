@@ -12,9 +12,11 @@
         <div>
             <label for="name" class="block text-sm font-medium text-gray-700">Nama Kost <span class="text-error-600">*</span></label>
             <input type="text" name="name" id="name" value="{{ old('name', $kost->name) }}" required
-                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('name') border-error-500 @enderror"
+                   aria-describedby="{{ $errors->has('name') ? 'name-error' : '' }}"
+                   aria-invalid="{{ $errors->has('name') ? 'true' : 'false' }}">
             @error('name')
-                <p class="mt-1 text-sm text-error-700">{{ $message }}</p>
+                <p id="name-error" role="alert" class="mt-1 text-sm text-error-700">{{ $message }}</p>
             @enderror
         </div>
 
@@ -22,9 +24,11 @@
         <div>
             <label for="contact_number" class="block text-sm font-medium text-gray-700">Nomor Kontak <span class="text-error-600">*</span></label>
             <input type="text" name="contact_number" id="contact_number" value="{{ old('contact_number', $kost->contact_number) }}" required
-                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('contact_number') border-error-500 @enderror"
+                   aria-describedby="{{ $errors->has('contact_number') ? 'contact_number-error' : '' }}"
+                   aria-invalid="{{ $errors->has('contact_number') ? 'true' : 'false' }}">
             @error('contact_number')
-                <p class="mt-1 text-sm text-error-700">{{ $message }}</p>
+                <p id="contact_number-error" role="alert" class="mt-1 text-sm text-error-700">{{ $message }}</p>
             @enderror
         </div>
 
@@ -32,9 +36,11 @@
         <div>
             <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi</label>
             <textarea name="description" id="description" rows="4"
-                      class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">{{ old('description', $kost->description) }}</textarea>
+                      class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 @error('description') border-error-500 @enderror"
+                      aria-describedby="{{ $errors->has('description') ? 'description-error' : '' }}"
+                      aria-invalid="{{ $errors->has('description') ? 'true' : 'false' }}">{{ old('description', $kost->description) }}</textarea>
             @error('description')
-                <p class="mt-1 text-sm text-error-700">{{ $message }}</p>
+                <p id="description-error" role="alert" class="mt-1 text-sm text-error-700">{{ $message }}</p>
             @enderror
         </div>
 

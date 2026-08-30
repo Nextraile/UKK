@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Kost Submission</title>
+    <title>Submission Kost Baru</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -79,31 +79,31 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>New Kost Submission</h1>
+            <h1>Submission Kost Baru</h1>
         </div>
         
         <div class="content">
-            <p>Hello Super Admin,</p>
+            <p>Halo Super Admin,</p>
             
-            <p>A new kost has been submitted for review:</p>
+            <p>Kost baru telah disubmit untuk ditinjau:</p>
             
             <div class="info-box">
-                <p><strong>Kost Name:</strong> {{ $kost->name }}</p>
-                <p><strong>Owner:</strong> {{ $kost->owner->name }}</p>
-                <p><strong>Category:</strong> {{ $kost->categories->pluck('nama')->join(', ') }}</p>
+                <p><strong>Nama Kost:</strong> {{ $kost->name }}</p>
+                <p><strong>Pemilik:</strong> {{ $kost->owner->name }}</p>
+                <p><strong>Kategori:</strong> {{ $kost->categories->pluck('name')->join(', ') }}</p>
             </div>
             
-            <p>Please review the submission details and either approve or reject it.</p>
+            <p>Silakan tinjau detail submission dan setujui atau tolak.</p>
             
             <div class="button-container">
                 <a href="{{ url('/super-admin/kost-submissions/' . $kost->id) }}" class="button">
-                    Review Submission
+                    Tinjau Submission
                 </a>
             </div>
         </div>
         
         <div class="footer">
-            <p>This is an automated notification from SewaKost.</p>
+            <p>Ini adalah notifikasi otomatis dari SewaKost.</p>
         </div>
     </div>
 </body>

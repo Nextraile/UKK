@@ -262,6 +262,12 @@ Status butuh 3 nilai agar teks di atas background berwarna memenuhi kontras ≥4
 
 > **Secondary vs Warning (fase merah — jangan digabung):** `secondary-500` dan `warning` sama-sama amber hue (#F59E0B) tapi ROLE berbeda — `secondary` = aksi (harga, CTA), `warning` = status (pending, review). Nilai keduanya TETAP; jangan rename atau gabung token.
 
+**Exception — Star Ratings (UI Convention):**
+- Star rating icons use `text-yellow-400` (gold stars) — universal UI convention, NOT a semantic status
+- This is the ONLY approved hardcoded color exception in the entire design system
+- Applies to `<x-rating>` component and inline star displays (marketplace reviews, tenant reviews)
+- Do NOT migrate to `warning-*` tokens (semantically incorrect)
+
 #### Lapis 3 — Component Tokens (konsumsi)
 
 Lapis komponen = §3 Component Library: komponen memakai token Lapis 2 (surface/text/border/status) + brand primitive (primary/secondary/accent) via utility class; TIDAK mendefinisikan warna baru sendiri. Catatan sinkronisasi (Fase 3 selesai): §3 telah diselaraskan — badge/teks status memakai `text-*-700`, tombol solid `bg-error-600`, callout `text-*-700` + border `border-*-700/30`, dark pair pada contoh struktural (§3.3, §3.5, §3.10, §3.18, §4); sisa contoh ditandai "dark pair menyusul".

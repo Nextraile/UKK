@@ -4,22 +4,19 @@
 
 @section('content')
 <div class="max-w-4xl space-y-6">
-    <!-- Header with Actions -->
-    <div class="flex justify-between items-start">
-        <div>
-            <h2 class="text-xl font-bold text-gray-900">{{ $kost->name }}</h2>
-            <p class="mt-1 text-sm text-gray-500">Dibuat {{ $kost->created_at->format('d M Y') }}</p>
-        </div>
-        <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full
-            @if($kost->status === 'draft') bg-gray-100 text-gray-800
-            @elseif($kost->status === 'pending_review') bg-yellow-100 text-yellow-800
-            @elseif($kost->status === 'approved') bg-green-100 text-green-800
-            @elseif($kost->status === 'active') bg-blue-100 text-blue-800
-            @elseif($kost->status === 'rejected') bg-red-100 text-red-800
-            @endif">
-            {{ ucfirst(str_replace('_', ' ', $kost->status)) }}
-        </span>
-    </div>
+    <x-page-header 
+        :title="$kost->name"
+        subtitle="Dibuat {{ $kost->created_at->format('d M Y') }}"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Kost', 'url' => route('admin.kosts.index')],
+            ['label' => $kost->name],
+        ]"
+    >
+        <x-slot:actions>
+            <x-status-badge :status="$kost->status" type="kost" size="md" />
+        </x-slot:actions>
+    </x-page-header>
 
     <!-- Rejection Reason (if rejected) -->
     @if($kost->isRejected() && $kost->rejected_reason)
@@ -264,7 +261,7 @@
             @can('submit', $kost)
             <form method="POST" action="{{ route('admin.kosts.submit', $kost) }}" onsubmit="return confirm('Yakin ingin submit kost ini untuk review? Pastikan semua data sudah lengkap (nama, alamat, kategori, minimal 1 tipe kamar).')">
                 @csrf
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700">
                     Submit untuk Review
                 </button>
             </form>
@@ -365,7 +362,7 @@
             @can('publish', $kost)
             <form method="POST" action="{{ route('admin.kosts.publish', $kost) }}" onsubmit="return confirm('Publikasikan kost ini? Kost akan terlihat oleh tenant di marketplace.')">
                 @csrf
-                <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>

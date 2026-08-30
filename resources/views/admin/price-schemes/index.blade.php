@@ -1,20 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Paket Harga - {{ $roomType->name }}
-                </h2>
-                <p class="mt-1 text-sm text-gray-600">
-                    Atur paket harga sewa untuk tipe kamar ini
-                </p>
-            </div>
-            <a href="{{ route('admin.room-types.show', [$roomType->kost, $roomType]) }}" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Kembali ke Detail Tipe Kamar
-            </a>
-        </div>
-    </x-slot>
-
     <div class="py-12" x-data="{
         showModal: false,
         editing: false,
@@ -82,28 +66,29 @@
         }
     }">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <x-page-header 
+                title="Paket Harga - {{ $roomType->name }}"
+                subtitle="Atur paket harga sewa untuk tipe kamar ini"
+                :breadcrumbs="[
+                    ['label' => 'Dashboard', 'url' => route('dashboard')],
+                    ['label' => 'Kost', 'url' => route('admin.kosts.index')],
+                    ['label' => $roomType->kost->name, 'url' => route('admin.kosts.show', $roomType->kost)],
+                    ['label' => $roomType->name, 'url' => route('admin.room-types.show', [$roomType->kost, $roomType])],
+                    ['label' => 'Paket Harga'],
+                ]"
+            >
+                <x-slot:actions>
+                    <a href="{{ route('admin.room-types.show', [$roomType->kost, $roomType]) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                        ← Kembali
+                    </a>
+                </x-slot:actions>
+            </x-page-header>
+
             <!-- Success Message -->
             @if (session('success'))
-                <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 rounded-md bg-green-50 p-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                        </div>
-                        <div class="ml-auto pl-3">
-                            <button @click="show = false" class="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 hover:bg-green-100">
-                                <span class="sr-only">Dismiss</span>
-                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <x-alert-banner variant="success" class="mb-4" dismissible>
+                    {{ session('success') }}
+                </x-alert-banner>
             @endif
 
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
@@ -112,8 +97,9 @@
                     <div class="mb-6 flex justify-between items-center">
                         <h3 class="text-lg font-semibold text-gray-900">Daftar Paket Harga</h3>
                         <button @click="openCreate()" type="button"
-                            class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                            aria-label="Tambah paket harga baru">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
                             Tambah Paket Harga
@@ -176,7 +162,7 @@
                                             <td class="whitespace-nowrap px-6 py-4 text-sm">
                                                 <button @click="toggleActive({{ $priceScheme->id }}, {{ $priceScheme->is_active ? 'true' : 'false' }})" 
                                                     type="button"
-                                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $priceScheme->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $priceScheme->is_active ? 'bg-success/10 text-success-700' : 'bg-gray-100 text-gray-800' }}">
                                                     {{ $priceScheme->is_active ? 'Aktif' : 'Nonaktif' }}
                                                 </button>
                                             </td>
@@ -189,7 +175,7 @@
                                                     duration_value: {{ $priceScheme->duration_value }},
                                                     duration_unit: '{{ $priceScheme->duration_unit }}',
                                                     is_active: {{ $priceScheme->is_active ? 'true' : 'false' }}
-                                                })" type="button" class="text-indigo-600 hover:text-indigo-900">
+                                                })" type="button" class="text-primary-600 hover:text-primary-900">
                                                     Edit
                                                 </button>
                                                 <span class="text-gray-300">|</span>
@@ -198,7 +184,7 @@
                                                     onsubmit="return confirm('Yakin ingin menghapus paket harga ini?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">
+                                                    <button type="submit" class="text-error-600 hover:text-error-900">
                                                         Hapus
                                                     </button>
                                                 </form>
@@ -216,6 +202,7 @@
         <!-- Modal -->
         <div x-show="showModal" 
             x-cloak
+            x-trap.noscroll="showModal"
             class="fixed inset-0 z-50 overflow-y-auto" 
             aria-labelledby="modal-title" 
             role="dialog" 
@@ -265,7 +252,7 @@
                                         <!-- Name -->
                                         <div>
                                             <label for="name" class="block text-sm font-medium text-gray-700">
-                                                Nama Paket <span class="text-red-500">*</span>
+                                                Nama Paket <span class="text-error-500">*</span>
                                             </label>
                                             <input type="text" 
                                                 name="name" 
@@ -273,10 +260,10 @@
                                                 x-model="form.name"
                                                 required
                                                 maxlength="100"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('name') border-red-300 @enderror"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('name') border-error-300 @enderror"
                                                 placeholder="contoh: Bulanan, Tahunan, 6 Bulan">
                                             @error('name')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
                                             @enderror
                                         </div>
 
@@ -290,17 +277,17 @@
                                                 id="description" 
                                                 x-model="form.description"
                                                 rows="2"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('description') border-red-300 @enderror"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('description') border-error-300 @enderror"
                                                 placeholder="Opsional - keterangan tambahan tentang paket ini"></textarea>
                                             @error('description')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
                                             @enderror
                                         </div>
 
                                         <!-- Price -->
                                         <div>
                                             <label for="price" class="block text-sm font-medium text-gray-700">
-                                                Harga (Rp) <span class="text-red-500">*</span>
+                                                Harga (Rp) <span class="text-error-500">*</span>
                                             </label>
                                             <input type="number" 
                                                 name="price" 
@@ -309,10 +296,10 @@
                                                 required
                                                 min="0"
                                                 step="1"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('price') border-red-300 @enderror"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('price') border-error-300 @enderror"
                                                 placeholder="contoh: 1500000">
                                             @error('price')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
                                             @enderror
                                         </div>
 
@@ -320,7 +307,7 @@
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label for="duration_value" class="block text-sm font-medium text-gray-700">
-                                                    Durasi <span class="text-red-500">*</span>
+                                                    Durasi <span class="text-error-500">*</span>
                                                 </label>
                                                 <input type="number" 
                                                     name="duration_value" 
@@ -328,29 +315,29 @@
                                                     x-model="form.duration_value"
                                                     required
                                                     min="1"
-                                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('duration_value') border-red-300 @enderror"
+                                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('duration_value') border-error-300 @enderror"
                                                     placeholder="contoh: 1">
                                                 @error('duration_value')
-                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                    <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
                                                 @enderror
                                             </div>
 
                                             <div>
                                                 <label for="duration_unit" class="block text-sm font-medium text-gray-700">
-                                                    Satuan <span class="text-red-500">*</span>
+                                                    Satuan <span class="text-error-500">*</span>
                                                 </label>
                                                 <select 
                                                     name="duration_unit" 
                                                     id="duration_unit" 
                                                     x-model="form.duration_unit"
                                                     required
-                                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('duration_unit') border-red-300 @enderror">
+                                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error('duration_unit') border-error-300 @enderror">
                                                     <option value="day">Hari</option>
                                                     <option value="week">Minggu</option>
                                                     <option value="month">Bulan</option>
                                                 </select>
                                                 @error('duration_unit')
-                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                                    <p class="mt-1 text-sm text-error-600">{{ $message }}</p>
                                                 @enderror
                                             </div>
                                         </div>
@@ -363,7 +350,7 @@
                                                 id="is_active" 
                                                 value="1"
                                                 x-model="form.is_active"
-                                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                                class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
                                             <label for="is_active" class="ml-2 block text-sm text-gray-900">
                                                 Aktif (paket dapat dipilih penyewa)
                                             </label>
@@ -375,12 +362,12 @@
 
                         <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                             <button type="submit"
-                                class="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm">
+                                class="inline-flex w-full justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm">
                                 <span x-show="!editing">Tambah</span>
                                 <span x-show="editing">Simpan</span>
                             </button>
                             <button @click="closeModal()" type="button"
-                                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                                 Batal
                             </button>
                         </div>
