@@ -40,7 +40,7 @@
 
         <!-- Confirm Password -->
         <div class="mt-4" x-data="{ show: false }">
-            <x-input-label for="password_confirmation" value="Konfirmasi Password Baru" />
+            <x-input-label for="password_confirmation" value="Konfirmasi Password Baru" required />
 
             <div class="relative mt-1">
                 <input id="password_confirmation"
