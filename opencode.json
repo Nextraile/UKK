@@ -25,6 +25,12 @@
       "type": "local",
       "command": ["codegraph", "serve", "--mcp"],
       "enabled": false
+    },
+    "miro-mcp": {
+      "type": "remote",
+      "url": "https://mcp.miro.com/", 
+      "enabled": true,
+      "autoApprove": []
     }
   },
   "skills": {
