@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kost\Models;
 
 use Database\Factories\RoomTypeFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Kost $kost
+ * @property-read int $available_count Number of rooms with free slots
  */
 class RoomType extends Model
 {
@@ -117,5 +119,21 @@ class RoomType extends Model
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
+    }
+
+    /**
+     * Get count of available rooms with free slots.
+     *
+     * Per ADR-017, ADR-018: Calculated real-time from Room free_slots.
+     * Returns count of rooms where status='available' AND free_slots > 0.
+     */
+    public function getAvailableCountAttribute(): int
+    {
+        /** @var Collection<int, Room> $availableRooms */
+        $availableRooms = $this->rooms->where('status', 'available');
+
+        return $availableRooms->filter(function (Room $room): bool {
+            return $room->free_slots > 0;
+        })->count();
     }
 }
