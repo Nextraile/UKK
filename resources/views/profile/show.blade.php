@@ -46,11 +46,11 @@
             <div class="bg-surface-raised dark:bg-surface-raised-dark shadow-sm sm:rounded-lg overflow-hidden">
                 {{-- Avatar and name header --}}
                 <div class="px-4 py-6 sm:px-8 flex flex-col items-center sm:flex-row sm:items-center gap-6">
-                    @if ($user->avatar_path)
-                        <img src="{{ asset('storage/' . $user->avatar_path) }}"
-                             alt="Avatar"
-                             class="h-24 w-24 rounded-full object-cover border-2 border-border dark:border-border-dark" />
-                    @else
+                @if ($user->avatar_path)
+                    <img src="{{ $user->avatar_url }}"
+                         alt="Avatar"
+                         class="h-24 w-24 rounded-full object-cover border-2 border-border dark:border-border-dark" />
+                @else
                         <div class="h-24 w-24 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center border-2 border-border dark:border-border-dark">
                             <span class="text-3xl font-bold text-primary-600 dark:text-primary-400">
                                 {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}

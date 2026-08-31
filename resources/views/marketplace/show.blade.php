@@ -44,7 +44,7 @@
                     @php $firstImage = $kost->kostImages->first(); @endphp
                     @if ($firstImage)
                         <img 
-                            src="{{ Storage::url($firstImage->image_path) }}" 
+                            src="{{ $firstImage->image_url }}" 
                             alt="{{ $kost->name }}"
                             class="w-full h-96 object-cover rounded-lg"
                         >
@@ -298,7 +298,7 @@
                                         @if($thumbnail)
                                             <div class="mb-4">
                                                 <img 
-                                                    src="{{ Storage::url($thumbnail->image_path) }}" 
+                                                    src="{{ $thumbnail->image_url }}" 
                                                     alt="{{ $roomType->name }}"
                                                     class="w-full h-48 object-cover rounded-lg"
                                                 >
@@ -473,7 +473,7 @@
                                     @if($review->review_images && count($review->review_images) > 0)
                                         <div class="mt-3 flex gap-2 overflow-x-auto">
                                             @foreach($review->review_images as $imagePath)
-                                                <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 object-cover rounded border border-gray-200 dark:border-gray-700">
+                                                <img src="{{ image_url($imagePath) }}" alt="Review image" class="w-20 h-20 object-cover rounded border border-gray-200 dark:border-gray-700">
                                             @endforeach
                                         </div>
                                     @endif

@@ -53,7 +53,7 @@
                                     <div class="mt-3 mb-3">
                                         <p class="text-sm text-gray-600 mb-2">QRIS saat ini:</p>
                                         <img 
-                                            src="{{ Storage::url($kost->qris_image_path) }}" 
+                                            src="{{ image_url($kost->qris_image_path) }}" 
                                             alt="QRIS {{ $kost->name }}"
                                             class="max-w-xs border border-gray-300 rounded-lg shadow-sm"
                                         >

@@ -129,7 +129,7 @@
                                 <!-- Thumbnail Preview -->
                                 <div class="flex-shrink-0">
                                     <img 
-                                        src="{{ Storage::url($image->image_path) }}" 
+                                        src="{{ $image->image_url }}" 
                                         alt="Gambar {{ $roomType->name }}" 
                                         class="w-16 h-16 object-cover rounded border border-gray-300"
                                         loading="lazy"

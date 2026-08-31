@@ -16,13 +16,15 @@ class UserSeeder extends Seeder
      * - 1 SuperAdmin
      * - 3 Admins (kost owners)
      * - 13 Tenants (11 verified, 1 unverified, 1 soft deleted)
+     *
+     * Stores LoremFlickr avatar URLs (no downloads).
      */
     public function run(): void
     {
         $this->command->info('👤 Seeding users...');
 
         // SuperAdmin
-        User::firstOrCreate(
+        $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@sewakost.com'],
             [
                 'first_name' => 'Ahmad',
@@ -30,11 +32,12 @@ class UserSeeder extends Seeder
                 'password' => 'password', // Will be hashed by factory/model cast
                 'role' => 'superadmin',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=1',
             ]
         );
 
         // Admins (Kost Owners)
-        User::firstOrCreate(
+        $admin1 = User::firstOrCreate(
             ['email' => 'budi.admin@sewakost.com'],
             [
                 'first_name' => 'Budi',
@@ -43,10 +46,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567890',
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=2',
             ]
         );
 
-        User::firstOrCreate(
+        $admin2 = User::firstOrCreate(
             ['email' => 'siti.admin@sewakost.com'],
             [
                 'first_name' => 'Siti',
@@ -55,10 +59,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567891',
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=3',
             ]
         );
 
-        User::firstOrCreate(
+        $admin3 = User::firstOrCreate(
             ['email' => 'andi.admin@sewakost.com'],
             [
                 'first_name' => 'Andi',
@@ -67,11 +72,12 @@ class UserSeeder extends Seeder
                 'phone' => '081234567892',
                 'role' => 'admin',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=4',
             ]
         );
 
         // Tenants
-        User::firstOrCreate(
+        $tenant1 = User::firstOrCreate(
             ['email' => 'rina.tenant@example.com'],
             [
                 'first_name' => 'Rina',
@@ -79,10 +85,11 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=5',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant2 = User::firstOrCreate(
             ['email' => 'doni.tenant@example.com'],
             [
                 'first_name' => 'Doni',
@@ -90,10 +97,11 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=6',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant3 = User::firstOrCreate(
             ['email' => 'maya.tenant@example.com'],
             [
                 'first_name' => 'Maya',
@@ -101,10 +109,11 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=7',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant4 = User::firstOrCreate(
             ['email' => 'riko.tenant@example.com'],
             [
                 'first_name' => 'Riko',
@@ -112,11 +121,12 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=8',
             ]
         );
 
         // Additional tenants for rental seed data
-        User::firstOrCreate(
+        $tenant5 = User::firstOrCreate(
             ['email' => 'budi.tenant@example.com'],
             [
                 'first_name' => 'Budi',
@@ -125,10 +135,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567897',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=9',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant6 = User::firstOrCreate(
             ['email' => 'ani.tenant@example.com'],
             [
                 'first_name' => 'Ani',
@@ -137,10 +148,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567898',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=10',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant7 = User::firstOrCreate(
             ['email' => 'eko.tenant@example.com'],
             [
                 'first_name' => 'Eko',
@@ -149,10 +161,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567899',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=11',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant8 = User::firstOrCreate(
             ['email' => 'sari.tenant@example.com'],
             [
                 'first_name' => 'Sari',
@@ -161,10 +174,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567900',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=12',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant9 = User::firstOrCreate(
             ['email' => 'dedi.tenant@example.com'],
             [
                 'first_name' => 'Dedi',
@@ -173,10 +187,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567901',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=13',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant10 = User::firstOrCreate(
             ['email' => 'lina.tenant@example.com'],
             [
                 'first_name' => 'Lina',
@@ -185,10 +200,11 @@ class UserSeeder extends Seeder
                 'phone' => '081234567902',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=14',
             ]
         );
 
-        User::firstOrCreate(
+        $tenant11 = User::firstOrCreate(
             ['email' => 'tono.tenant@example.com'],
             [
                 'first_name' => 'Tono',
@@ -197,11 +213,12 @@ class UserSeeder extends Seeder
                 'phone' => '081234567903',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=15',
             ]
         );
 
         // Unverified tenant
-        User::firstOrCreate(
+        $unverified = User::firstOrCreate(
             ['email' => 'unverified@example.com'],
             [
                 'first_name' => 'Dewi',
@@ -209,6 +226,7 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => null, // NOT verified
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=16',
             ]
         );
 
@@ -221,6 +239,7 @@ class UserSeeder extends Seeder
                 'password' => 'password',
                 'role' => 'user',
                 'email_verified_at' => now(),
+                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=17',
             ]
         );
 
@@ -229,5 +248,6 @@ class UserSeeder extends Seeder
         }
 
         $this->command->info('✅ Users seeded: 17 total (1 SuperAdmin, 3 Admins, 13 Tenants)');
+        $this->command->info('   🔗 Avatar URLs generated (LoremFlickr)');
     }
 }

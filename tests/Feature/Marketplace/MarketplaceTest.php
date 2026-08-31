@@ -201,21 +201,25 @@ class MarketplaceTest extends TestCase
     /**
      * @test
      */
-    public function test_it_displays_city_only_in_kost_card(): void
+    public function test_it_displays_full_address_in_kost_card(): void
     {
         $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Test']);
         Address::factory()->create([
             'kost_id' => $kost->id,
             'city' => 'Bandung',
+            'district' => 'Coblong',
             'province' => 'Jawa Barat',
+            'postal_code' => '40132',
         ]);
 
         $response = $this->get(route('marketplace.index'));
 
         $response->assertStatus(200);
+        $response->assertSee('Coblong');
         $response->assertSee('Bandung');
-        // Province should NOT be displayed in location
-        $response->assertDontSee('Jawa Barat');
+        // Province and postal code SHOULD be displayed (fixed in marketplace controller)
+        $response->assertSee('Jawa Barat');
+        $response->assertSee('40132');
     }
 
     /**

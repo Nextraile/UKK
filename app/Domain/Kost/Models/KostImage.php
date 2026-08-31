@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Kost $kost
+ * @property-read string|null $image_url Image URL (supports external URLs and local storage)
  */
 class KostImage extends Model
 {
@@ -52,5 +53,17 @@ class KostImage extends Model
     public function kost(): BelongsTo
     {
         return $this->belongsTo(Kost::class);
+    }
+
+    /**
+     * Get the image URL for this kost image.
+     *
+     * Returns the image URL for this gallery/thumbnail image.
+     * Supports both external URLs and local storage paths via image_url() helper.
+     * Returns null if image_path is not set.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return \image_url($this->image_path);
     }
 }

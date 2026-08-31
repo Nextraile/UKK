@@ -77,7 +77,7 @@
                         <div class="relative border rounded-lg overflow-hidden group">
                             <!-- Image -->
                             <img 
-                                src="{{ Storage::url($image->image_path) }}" 
+                                src="{{ $image->image_url }}" 
                                 alt="Gambar Kost" 
                                 class="w-full h-48 object-cover"
                             >

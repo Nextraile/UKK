@@ -57,7 +57,7 @@
                     </template>
                     <template x-if="!preview">
                         @if ($user->avatar_path)
-                            <img src="{{ asset('storage/' . $user->avatar_path) }}"
+                            <img src="{{ $user->avatar_url }}"
                                  alt="Avatar saat ini"
                                  class="h-24 w-24 rounded-full object-cover border-2 border-border dark:border-border-dark" />
                         @else

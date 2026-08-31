@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read RoomType $roomType
+ * @property-read string|null $image_url Image URL (supports external URLs and local storage)
  */
 class RoomTypeImage extends Model
 {
@@ -77,5 +78,17 @@ class RoomTypeImage extends Model
     public function roomType(): BelongsTo
     {
         return $this->belongsTo(RoomType::class);
+    }
+
+    /**
+     * Get the image URL for this room type image.
+     *
+     * Returns the image URL for this room type gallery photo.
+     * Supports both external URLs and local storage paths via image_url() helper.
+     * Returns null if image_path is not set.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return \image_url($this->image_path);
     }
 }

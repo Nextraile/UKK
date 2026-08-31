@@ -52,6 +52,7 @@ use Illuminate\Support\Str;
  * @property-read Address|null $address 1:1 relation
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, RoomType> $roomTypes
+ * @property-read string|null $thumbnail_url Thumbnail image URL (supports external URLs and local storage)
  */
 class Kost extends Model
 {
@@ -260,7 +261,8 @@ class Kost extends Model
     /**
      * Get the thumbnail image URL for this kost.
      *
-     * Returns the storage URL of the first thumbnail image.
+     * Returns the image URL of the first thumbnail image.
+     * Supports both external URLs and local storage paths via image_url() helper.
      * Returns null if no thumbnail exists.
      */
     public function getThumbnailUrlAttribute(): ?string
@@ -269,7 +271,7 @@ class Kost extends Model
             ->where('is_thumbnail', true)
             ->first();
 
-        return $thumbnail ? Storage::url($thumbnail->image_path) : null;
+        return $thumbnail ? \image_url($thumbnail->image_path) : null;
     }
 
     /**

@@ -234,7 +234,7 @@
                                             <div class="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0 scroll-smooth">
                                                 <div class="flex gap-3 pb-3 min-w-max">
                                                     @foreach($rental->review->review_images as $imagePath)
-                                                        <img src="{{ Storage::url($imagePath) }}" alt="Review image" class="w-20 h-20 flex-shrink-0 object-cover rounded border border-gray-200 dark:border-gray-700">
+                                                        <img src="{{ image_url($imagePath) }}" alt="Review image" class="w-20 h-20 flex-shrink-0 object-cover rounded border border-gray-200 dark:border-gray-700">
                                                     @endforeach
                                                 </div>
                                             </div>

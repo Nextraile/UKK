@@ -27,11 +27,12 @@ class DatabaseSeeder extends Seeder
      * Execution order respects FK constraints:
      * 1. SystemUserSeeder - System user (id=1) for automated operations
      * 2. CategorySeeder - Independent master data (8 categories)
-     * 3. UserSeeder - Independent identity data (17 users)
-     * 4. DevSampleImageSeeder - Download images from picsum.photos
-     * 5. KostSeeder - Depends on users, categories, images (25 kosts, 4 cities)
-     * 6. RentalSeeder - Depends on kosts, users (20 rentals across all statuses)
-     * 7. ReviewSeeder - Depends on rentals (reviews for completed rentals)
+     * 3. UserSeeder - Independent identity data (17 users, avatar URLs)
+     * 4. DevImageUrlSeeder - Generate image URLs (no downloads)
+     * 5. DevSampleDocumentSeeder - Download document files (60 files)
+     * 6. KostSeeder - Depends on users, categories, images (25 kosts, 4 cities)
+     * 7. RentalSeeder - Depends on kosts, users, documents (20 rentals)
+     * 8. ReviewSeeder - Depends on rentals (reviews for completed rentals)
      */
     public function run(): void
     {
@@ -48,14 +49,15 @@ class DatabaseSeeder extends Seeder
 
         // Execution order (respect FK constraints)
         $this->call([
-            SystemUserSeeder::class,       // System user (id=1)
-            SuperAdminSeeder::class,       // Super Admin account (COMP-009)
-            CategorySeeder::class,         // Independent (master data) - 8 categories
-            UserSeeder::class,             // Independent (identity) - 17 users
-            DevSampleImageSeeder::class,   // Download images first
-            KostSeeder::class,             // Depends: users, categories, images - 25 kosts
-            RentalSeeder::class,           // Depends: kosts, users - 20 rentals
-            ReviewSeeder::class,           // Depends: rentals - reviews for completed
+            SystemUserSeeder::class,          // System user (id=1)
+            SuperAdminSeeder::class,          // Super Admin account (COMP-009)
+            CategorySeeder::class,            // Independent (master data) - 8 categories
+            UserSeeder::class,                // Independent (identity) - 17 users, avatar URLs
+            DevImageUrlSeeder::class,         // Generate image URLs (no downloads)
+            DevSampleDocumentSeeder::class,   // Download documents (60 files) BEFORE rentals
+            KostSeeder::class,                // Depends: users, categories, images - 25 kosts
+            RentalSeeder::class,              // Depends: kosts, users, documents - 20 rentals
+            ReviewSeeder::class,              // Depends: rentals - reviews for completed
         ]);
 
         $this->command->newLine();

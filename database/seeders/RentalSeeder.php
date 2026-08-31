@@ -6,7 +6,6 @@ namespace Database\Seeders;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\PriceScheme;
 use App\Domain\Kost\Models\Room;
 use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
@@ -45,6 +44,7 @@ class RentalSeeder extends Seeder
 
         if ($tenants->count() < 10) {
             $this->command->error('❌ Not enough verified tenants. Run UserSeeder first.');
+
             return;
         }
 
@@ -55,6 +55,7 @@ class RentalSeeder extends Seeder
 
         if ($activeKosts->count() < 5) {
             $this->command->error('❌ Not enough active kosts. Run KostSeeder first.');
+
             return;
         }
 
@@ -64,19 +65,19 @@ class RentalSeeder extends Seeder
         $statusConfig = [
             // 2 Pending rentals (payment not uploaded yet)
             ['status' => 'pending', 'count' => 2],
-            
+
             // 3 Paid rentals (payment uploaded, awaiting verification)
             ['status' => 'paid', 'count' => 3],
-            
+
             // 3 Confirmed rentals (payment verified, awaiting documents)
             ['status' => 'confirmed', 'count' => 3],
-            
+
             // 6 Active rentals (documents verified, ongoing)
             ['status' => 'active', 'count' => 6],
-            
+
             // 4 Completed rentals (rental period ended)
             ['status' => 'completed', 'count' => 4],
-            
+
             // 2 Cancelled rentals
             ['status' => 'cancelled', 'count' => 2],
         ];
@@ -105,7 +106,7 @@ class RentalSeeder extends Seeder
         // Pick random tenant and kost
         $tenant = $tenants->random();
         $kost = $activeKosts->random();
-        
+
         // Get random available room
         $room = $kost->rooms()
             ->where('status', 'available')
@@ -113,8 +114,9 @@ class RentalSeeder extends Seeder
             ->inRandomOrder()
             ->first();
 
-        if (!$room || !$room->roomType) {
+        if (! $room || ! $room->roomType) {
             $this->command->warn("⚠️  Skipping rental {$rentalNumber}: No available rooms for kost {$kost->name}");
+
             return;
         }
 
@@ -124,13 +126,14 @@ class RentalSeeder extends Seeder
             ->inRandomOrder()
             ->first();
 
-        if (!$priceScheme) {
+        if (! $priceScheme) {
             $this->command->warn("⚠️  Skipping rental {$rentalNumber}: No active price schemes");
+
             return;
         }
 
         // Calculate dates based on status (ADR-016: min start_date = today+4 days)
-        $startDate = match($status) {
+        $startDate = match ($status) {
             'pending', 'paid', 'confirmed' => now()->addDays(4),
             'active' => now()->subDays(rand(10, 80)),
             'completed' => now()->subDays(rand(100, 150)),
@@ -182,7 +185,7 @@ class RentalSeeder extends Seeder
     protected function createPayment(Rental $rental, string $rentalStatus): void
     {
         // Payment status mapping (only 3 valid values: pending, success, failed)
-        $paymentStatus = match($rentalStatus) {
+        $paymentStatus = match ($rentalStatus) {
             'pending' => 'pending',
             'paid', 'confirmed', 'active', 'completed' => 'success',
             'cancelled' => 'failed',
@@ -191,24 +194,24 @@ class RentalSeeder extends Seeder
         // Load kost relationship
         $rental->load('room.roomType.kost');
         $kost = $rental->room->roomType->kost;
-        
+
         Payment::create([
             'rental_id' => $rental->id,
             'qris_image_path' => $kost->qris_image_path ?? 'kost-images/qris-seed-placeholder.jpg',
             'amount' => $rental->grand_total,
-            'proof_of_payment_path' => in_array($rentalStatus, ['paid', 'confirmed', 'active', 'completed']) 
-                ? 'payment-proofs/seed-payment-proof-' . $rental->id . '.jpg' 
+            'proof_of_payment_path' => in_array($rentalStatus, ['paid', 'confirmed', 'active', 'completed'])
+                ? 'payment-proofs/seed-payment-proof-'.$rental->id.'.jpg'
                 : null,
             'status' => $paymentStatus,
-            'verified_by' => in_array($rentalStatus, ['confirmed', 'active', 'completed']) 
-                ? $kost->user_id 
+            'verified_by' => in_array($rentalStatus, ['confirmed', 'active', 'completed'])
+                ? $kost->user_id
                 : null,
-            'verified_at' => in_array($rentalStatus, ['confirmed', 'active', 'completed']) 
-                ? now()->subDays(rand(2, 5)) 
+            'verified_at' => in_array($rentalStatus, ['confirmed', 'active', 'completed'])
+                ? now()->subDays(rand(2, 5))
                 : null,
             'expired_at' => $rental->created_at->copy()->addHours(48),
-            'paid_at' => in_array($rentalStatus, ['paid', 'confirmed', 'active', 'completed']) 
-                ? now()->subDays(rand(3, 6)) 
+            'paid_at' => in_array($rentalStatus, ['paid', 'confirmed', 'active', 'completed'])
+                ? now()->subDays(rand(3, 6))
                 : null,
         ]);
     }
@@ -220,7 +223,7 @@ class RentalSeeder extends Seeder
     {
         // Get system user for automated status changes
         $systemUser = User::find(1); // System user from SystemUserSeeder
-        
+
         // All rentals start as pending
         RentalStatusHistory::create([
             'rental_id' => $rental->id,
@@ -245,7 +248,7 @@ class RentalSeeder extends Seeder
             // Admin verified payment - load kost owner
             $rental->load('room.roomType.kost.owner');
             $adminUser = $rental->room->roomType->kost->owner;
-            
+
             RentalStatusHistory::create([
                 'rental_id' => $rental->id,
                 'status' => 'paid',
@@ -259,7 +262,7 @@ class RentalSeeder extends Seeder
             // Admin confirmed documents
             $rental->load('room.roomType.kost.owner');
             $adminUser = $rental->room->roomType->kost->owner;
-            
+
             RentalStatusHistory::create([
                 'rental_id' => $rental->id,
                 'status' => 'confirmed',
@@ -301,16 +304,20 @@ class RentalSeeder extends Seeder
         $rental->load('room.roomType.kost.owner');
         $admin = $rental->room->roomType->kost->owner;
 
-        if (!$admin) {
+        if (! $admin) {
             $this->command->warn("⚠️  Admin not found for rental {$rental->id}, skipping documents");
+
             return;
         }
+
+        // Map rental ID to document ID (cycle through 1-20 available docs)
+        $docId = (($rental->id - 1) % 20) + 1;
 
         // KTP document
         RentalDocument::create([
             'rental_id' => $rental->id,
             'document_type' => 'ktp',
-            'document_path' => "rental-documents/seed-ktp-{$rental->id}.jpg",
+            'document_path' => "rental-documents/seed-ktp-{$docId}.jpg",
             'uploaded_at' => now()->subDays(rand(2, 3)),
             'verification_status' => 'approved',
             'verified_by' => $admin->id,
@@ -321,7 +328,7 @@ class RentalSeeder extends Seeder
         RentalDocument::create([
             'rental_id' => $rental->id,
             'document_type' => 'selfie_with_ktp',
-            'document_path' => "rental-documents/seed-selfie-{$rental->id}.jpg",
+            'document_path' => "rental-documents/seed-selfie-{$docId}.jpg",
             'uploaded_at' => now()->subDays(rand(2, 3)),
             'verification_status' => 'approved',
             'verified_by' => $admin->id,

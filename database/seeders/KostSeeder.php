@@ -46,19 +46,19 @@ class KostSeeder extends Seeder
         ['name' => 'Kost Margahayu Raya', 'address' => 'Jl. Margahayu Raya No. 245', 'district' => 'Margahayu', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40286', 'lat' => -6.9612, 'lng' => 107.6456],
         ['name' => 'Kost Ciumbuleuit View', 'address' => 'Jl. Ciumbuleuit No. 178', 'district' => 'Cidadap', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40142', 'lat' => -6.8534, 'lng' => 107.6078],
         ['name' => 'Kost Rancasari Budget', 'address' => 'Jl. A.H. Nasution No. 345', 'district' => 'Rancasari', 'city' => 'Bandung', 'province' => 'Jawa Barat', 'postal_code' => '40292', 'lat' => -6.9567, 'lng' => 107.6723],
-        
+
         // Jakarta (5 kosts)
         ['name' => 'Kost Salemba Medical', 'address' => 'Jl. Salemba Raya No. 45', 'district' => 'Senen', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '10430', 'lat' => -6.1944, 'lng' => 106.8456],
         ['name' => 'Kost Kuningan Elite', 'address' => 'Jl. HR Rasuna Said No. 123', 'district' => 'Setiabudi', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '12940', 'lat' => -6.2185, 'lng' => 106.8317],
         ['name' => 'Kost Thamrin Central', 'address' => 'Jl. MH Thamrin No. 78', 'district' => 'Menteng', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '10350', 'lat' => -6.1862, 'lng' => 106.8231],
         ['name' => 'Kost Kemang Residence', 'address' => 'Jl. Kemang Raya No. 56', 'district' => 'Mampang Prapatan', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '12730', 'lat' => -6.2615, 'lng' => 106.8172],
         ['name' => 'Kost Kelapa Gading', 'address' => 'Jl. Boulevard Raya No. 234', 'district' => 'Kelapa Gading', 'city' => 'Jakarta', 'province' => 'DKI Jakarta', 'postal_code' => '14240', 'lat' => -6.1585, 'lng' => 106.9068],
-        
+
         // Yogyakarta (3 kosts)
         ['name' => 'Kost Malioboro Heritage', 'address' => 'Jl. Malioboro No. 67', 'district' => 'Danurejan', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55271', 'lat' => -7.7926, 'lng' => 110.3650],
         ['name' => 'Kost UGM Campus', 'address' => 'Jl. Kaliurang KM 5 No. 12', 'district' => 'Sleman', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55281', 'lat' => -7.7698, 'lng' => 110.3783],
         ['name' => 'Kost Prawirotaman', 'address' => 'Jl. Prawirotaman No. 89', 'district' => 'Mergangsan', 'city' => 'Yogyakarta', 'province' => 'DI Yogyakarta', 'postal_code' => '55153', 'lat' => -7.8134, 'lng' => 110.3745],
-        
+
         // Surabaya (2 kosts)
         ['name' => 'Kost Tunjungan Plaza', 'address' => 'Jl. Tunjungan No. 89', 'district' => 'Genteng', 'city' => 'Surabaya', 'province' => 'Jawa Timur', 'postal_code' => '60275', 'lat' => -7.2615, 'lng' => 112.7382],
         ['name' => 'Kost ITS Campus', 'address' => 'Jl. Raya ITS No. 45', 'district' => 'Sukolilo', 'city' => 'Surabaya', 'province' => 'Jawa Timur', 'postal_code' => '60111', 'lat' => -7.2819, 'lng' => 112.7950],
@@ -484,14 +484,14 @@ class KostSeeder extends Seeder
 
         // Phase 3A: Vary discount by category
         $category = $kost->categories->first();
-        $discount3mo = match($category?->slug) {
+        $discount3mo = match ($category?->slug) {
             'premium' => 0.03,  // 3% (premium discounts less)
             'budget' => 0.10,   // 10% (budget encourages longer stays)
             'syariah' => 0.08,  // 8%
             default => 0.05,    // 5% default
         };
 
-        $discount6mo = match($category?->slug) {
+        $discount6mo = match ($category?->slug) {
             'premium' => 0.07,  // 7%
             'budget' => 0.18,   // 18%
             'syariah' => 0.15,  // 15%

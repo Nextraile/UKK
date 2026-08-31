@@ -32,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read string|null $avatar_url Avatar image URL (supports external URLs and local storage)
  */
 #[Fillable(['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path', 'role', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
@@ -137,5 +138,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function kosts(): HasMany
     {
         return $this->hasMany(Kost::class);
+    }
+
+    /**
+     * Get the avatar image URL for this user.
+     *
+     * Returns the image URL for the user's avatar.
+     * Supports both external URLs and local storage paths via image_url() helper.
+     * Returns null if no avatar is set.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return \image_url($this->avatar_path);
     }
 }

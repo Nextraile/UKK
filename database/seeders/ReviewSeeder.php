@@ -30,6 +30,7 @@ class ReviewSeeder extends Seeder
 
         if ($completedRentals->count() < 1) {
             $this->command->warn('⚠️  No completed rentals found. Run RentalSeeder first.');
+
             return;
         }
 
