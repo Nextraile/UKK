@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
+import focus from '@alpinejs/focus';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -17,6 +18,7 @@ L.Icon.Default.mergeOptions({
 
 // Register Alpine.js plugins
 Alpine.plugin(collapse);
+Alpine.plugin(focus);
 
 // Make Leaflet globally available for Alpine.js
 window.L = L;

@@ -331,4 +331,46 @@ class ReviewCrudTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    /**
+     * Test tenant can access create review form for completed rental.
+     */
+    public function test_tenant_can_access_create_review_form_for_completed_rental(): void
+    {
+        $tenant = User::factory()->create(['role' => 'user']);
+        $kost = Kost::factory()->create(['status' => 'active']);
+        $room = Room::factory()->create(['kost_id' => $kost->id]);
+        $rental = Rental::factory()->create([
+            'user_id' => $tenant->id,
+            'room_id' => $room->id,
+            'status' => 'completed',
+        ]);
+
+        $response = $this->actingAs($tenant)
+            ->get(route('rentals.reviews.create', $rental));
+
+        $response->assertOk();
+        $response->assertViewIs('tenant.reviews.create');
+        $response->assertViewHas('rental');
+    }
+
+    /**
+     * Test tenant cannot access create review form for non-completed rental.
+     */
+    public function test_tenant_cannot_access_create_review_form_for_non_completed_rental(): void
+    {
+        $tenant = User::factory()->create(['role' => 'user']);
+        $kost = Kost::factory()->create(['status' => 'active']);
+        $room = Room::factory()->create(['kost_id' => $kost->id]);
+        $rental = Rental::factory()->create([
+            'user_id' => $tenant->id,
+            'room_id' => $room->id,
+            'status' => 'active', // NOT completed
+        ]);
+
+        $response = $this->actingAs($tenant)
+            ->get(route('rentals.reviews.create', $rental));
+
+        $response->assertForbidden();
+    }
 }

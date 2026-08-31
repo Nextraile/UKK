@@ -62,9 +62,9 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         Route::post('/rentals', [RentalController::class, 'store'])->name('rentals.store');
         Route::get('/rentals/{rental}', [RentalController::class, 'show'])->name('rentals.show');
 
-        // Payment upload (TASK-051)
-        Route::get('/rentals/{rental}/payment', [PaymentController::class, 'show'])->name('rentals.payment.show');
-        Route::post('/rentals/{rental}/payment/upload', [PaymentController::class, 'uploadProof'])->name('rentals.payment.upload');
+        // Payment upload (TASK-051, Phase 10: modal with AJAX)
+        Route::post('/rentals/{rental}/payment', [RentalController::class, 'uploadPayment'])->name('tenant.rentals.payment.upload');
+        Route::post('/rentals/{rental}/payment/cancel', [RentalController::class, 'cancelPaymentUpload'])->name('tenant.rentals.payment.cancel');
 
         // Payment proof and QRIS download with authorization (VULN-003 fix)
         Route::get('/rentals/{rental}/payment/proof', [PaymentController::class, 'downloadProof'])
@@ -72,9 +72,13 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         Route::get('/rentals/{rental}/payment/qris', [PaymentController::class, 'downloadQris'])
             ->name('rentals.payment.qris');
 
-        // Document upload (TASK-053)
+        // Document upload (TASK-053, Phase 11: Per-card AJAX upload)
         Route::post('/rentals/{rental}/documents', [RentalController::class, 'uploadDocument'])
-            ->name('rentals.documents.upload');
+            ->name('tenant.rentals.documents.upload');
+
+        // Bulk document upload (unified: upload, replace, delete in one submission)
+        Route::post('/rentals/{rental}/documents/bulk', [RentalController::class, 'bulkUploadDocuments'])
+            ->name('tenant.rentals.documents.bulk-upload');
 
         // Document download with authorization (VULN-001 fix)
         Route::get('/rentals/documents/{document}/download', [RentalController::class, 'downloadDocument'])
@@ -185,13 +189,27 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         Route::get('rentals/{rental}', [RentalManagementController::class, 'show'])
             ->name('rentals.show');
 
-        // Payment Verification (TASK-051)
+        // Payment Verification (TASK-051, Phase 12: AJAX endpoints)
+        Route::post('rentals/{rental}/payment/approve', [RentalManagementController::class, 'approvePayment'])
+            ->name('rentals.payment.approve');
+        Route::post('rentals/{rental}/payment/reject', [RentalManagementController::class, 'rejectPayment'])
+            ->name('rentals.payment.reject');
+
+        // Document Verification (TASK-053, Phase 12: AJAX endpoints)
+        Route::post('rentals/documents/{document}/approve', [RentalManagementController::class, 'approveDocument'])
+            ->name('rentals.documents.approve');
+        Route::post('rentals/documents/{document}/reject', [RentalManagementController::class, 'rejectDocument'])
+            ->name('rentals.documents.reject');
+        Route::post('rentals/{rental}/documents/approve-all', [RentalManagementController::class, 'approveAllDocuments'])
+            ->name('rentals.documents.approve-all');
+
+        // Legacy payment verification routes (deprecated, use rentals.payment.* routes above)
         Route::post('payments/{payment}/approve', [PaymentVerificationController::class, 'approve'])
             ->name('payments.approve');
         Route::post('payments/{payment}/reject', [PaymentVerificationController::class, 'reject'])
             ->name('payments.reject');
 
-        // Document Verification (TASK-053)
+        // Legacy document verification routes (deprecated, use rentals.documents.* routes above)
         Route::post('documents/{document}/approve', [DocumentVerificationController::class, 'approve'])
             ->name('documents.approve');
         Route::post('documents/{document}/reject', [DocumentVerificationController::class, 'reject'])

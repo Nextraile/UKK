@@ -67,11 +67,10 @@ class StatusHistoryVerificationTest extends TestCase
             User::factory()->superAdmin()->create(['id' => 1, 'email' => 'system@sewakost.test']);
         }
 
-        // Create kost with owner
-        $owner = User::factory()->admin()->create();
+        // Create kost with owner (use $this->admin as owner for easier testing)
         $category = Category::factory()->create();
         $this->kost = Kost::factory()->create([
-            'user_id' => $owner->id,
+            'user_id' => $this->admin->id,
             'status' => 'active',
             'qris_image_path' => 'qris/test-qris.png',
         ]);
@@ -164,26 +163,37 @@ class StatusHistoryVerificationTest extends TestCase
     }
 
     /**
-     * Test RejectPayment records rejected status history.
+     * Test RejectPayment records pending status history (informational).
+     *
+     * Per FR-073, FR-074, FR-075: Rejection keeps status as 'pending' to allow re-upload.
      */
     public function test_reject_payment_records_rejected_status_history(): void
     {
         // Create rental in pending status
         $rental = $this->createPendingRental();
 
-        // Reject payment
+        // Reject payment (using $this->admin who is the kost owner)
         app(RejectPayment::class)->execute($rental->payment, 'Bukti pembayaran tidak jelas', $this->admin);
 
         $rental->refresh();
 
-        // Should have 2 history records: pending + rejected
+        // Should have 2 history records: initial pending + rejection note (status still pending)
         $this->assertCount(2, $rental->statusHistories);
 
-        $rejectedHistory = $rental->statusHistories()->where('status', 'rejected')->first();
-        $this->assertNotNull($rejectedHistory);
-        $this->assertEquals('rejected', $rejectedHistory->status);
-        $this->assertEquals($this->admin->id, $rejectedHistory->changed_by);
-        $this->assertStringContainsString('Bukti pembayaran tidak jelas', $rejectedHistory->internal_notes);
+        // Rejection creates informational history entry with status='pending'
+        // Get the rejection history (second record, not the first creation record)
+        $rejectionHistory = $rental->statusHistories()
+            ->where('internal_notes', 'like', '%Payment rejected by admin%')
+            ->first();
+
+        $this->assertNotNull($rejectionHistory);
+        $this->assertEquals('pending', $rejectionHistory->status);
+        $this->assertNotNull($rejectionHistory->changed_by);
+        $this->assertStringContainsString('Payment rejected by admin', $rejectionHistory->internal_notes);
+        $this->assertStringContainsString('Bukti pembayaran tidak jelas', $rejectionHistory->internal_notes);
+
+        // Rental status remains pending to allow re-upload
+        $this->assertEquals('pending', $rental->status);
     }
 
     /**

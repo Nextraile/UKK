@@ -44,7 +44,7 @@ class ReviewController extends Controller
             );
 
             return redirect()
-                ->route('tenant.rentals.show', $rental)
+                ->route('rentals.show', $rental)
                 ->with('success', 'Review berhasil dikirim.');
         } catch (\Exception $e) {
             return redirect()
@@ -85,7 +85,7 @@ class ReviewController extends Controller
             );
 
             return redirect()
-                ->route('tenant.rentals.show', $rental)
+                ->route('rentals.show', $rental)
                 ->with('success', 'Review berhasil diperbarui.');
         } catch (\Exception $e) {
             return redirect()
@@ -107,7 +107,7 @@ class ReviewController extends Controller
             app(DeleteReviewAction::class)->execute($review);
 
             return redirect()
-                ->route('tenant.rentals.show', $rental)
+                ->route('rentals.show', $rental)
                 ->with('success', 'Review berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()

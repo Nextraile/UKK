@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Rental\Models;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Kost\Models\KostDocumentRequirement;
 use Database\Factories\RentalDocumentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -53,5 +54,20 @@ class RentalDocument extends Model
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * Get the document requirement definition.
+     *
+     * Note: This relationship uses document_type as foreign key
+     * to match against KostDocumentRequirement.
+     */
+    public function documentRequirement(): BelongsTo
+    {
+        return $this->belongsTo(
+            KostDocumentRequirement::class,
+            'document_type',
+            'document_type'
+        );
     }
 }

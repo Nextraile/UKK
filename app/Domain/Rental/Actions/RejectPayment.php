@@ -20,8 +20,11 @@ class RejectPayment
     /**
      * Execute payment rejection.
      *
-     * Updates payment with rejection reason, transitions rental to rejected,
+     * Updates payment with rejection reason, keeps rental status as pending,
      * appends status history, and queues email notification.
+     *
+     * Per FR-073, FR-074, FR-075: Tenant must be able to view rejection reason
+     * and re-upload payment proof. Rental status remains 'pending' to allow re-upload.
      *
      * @param  Payment  $payment  Payment to reject
      * @param  string  $reason  Rejection reason (min 10 chars)
@@ -30,18 +33,19 @@ class RejectPayment
     public function execute(Payment $payment, string $reason, User $admin): void
     {
         DB::transaction(function () use ($payment, $reason, $admin) {
-            // 1. Update payment rejection reason
+            // 1. Update payment rejection reason (clear proof to allow re-upload)
             $payment->update([
                 'rejection_reason' => $reason,
+                'proof_of_payment_path' => null,
+                'paid_at' => null,
             ]);
 
-            // 2. Transition rental: pending/paid → rejected
+            // 2. Keep rental status as 'pending' to allow tenant re-upload
             $rental = $payment->rental;
-            $rental->update(['status' => 'rejected']);
 
-            // 3. Append status history
+            // 3. Append status history (informational, not state transition)
             $rental->statusHistories()->create([
-                'status' => 'rejected',
+                'status' => 'pending',
                 'changed_by' => $admin->id,
                 'internal_notes' => "Payment rejected by admin. Reason: {$reason}",
             ]);

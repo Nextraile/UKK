@@ -18,7 +18,7 @@
                 <strong>Kost:</strong> {{ $rental->room->roomType->kost->name }}
             </p>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-                <strong>Kamar:</strong> {{ $rental->room->roomType->name }} - {{ $rental->room->name }}
+                <strong>Kamar:</strong> {{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}
             </p>
             <p class="text-sm text-gray-600 dark:text-gray-400">
                 <strong>Periode:</strong> {{ $rental->start_date->format('d M Y') }} - {{ $rental->end_date->format('d M Y') }}

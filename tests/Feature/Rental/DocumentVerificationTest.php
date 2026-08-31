@@ -49,18 +49,18 @@ class DocumentVerificationTest extends TestCase
             'status' => 'paid',
         ]);
 
-        $file = UploadedFile::fake()->image('ktp.jpg');
+        $document = UploadedFile::fake()->image('ktp.jpg');
 
-        $response = $this->actingAs($tenant)->post(
-            route('rentals.documents.upload', $rental),
+        $response = $this->actingAs($tenant)->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => $file,
+                'type' => 'KTP',
+                'document' => $document,
             ]
         );
 
-        $response->assertRedirect(route('rentals.show', $rental));
-        $response->assertSessionHas('success');
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('rental_documents', [
             'rental_id' => $rental->id,
@@ -69,7 +69,7 @@ class DocumentVerificationTest extends TestCase
         ]);
 
         $document = $rental->rentalDocuments()->first();
-        $this->assertTrue(Storage::disk('private')->exists($document->document_path));
+        $this->assertTrue(Storage::disk('public')->exists($document->document_path));
     }
 
     /**
@@ -96,13 +96,13 @@ class DocumentVerificationTest extends TestCase
             'status' => 'paid',
         ]);
 
-        $file = UploadedFile::fake()->image('ktp.jpg');
+        $document = UploadedFile::fake()->image('ktp.jpg');
 
-        $this->actingAs($tenant)->post(
-            route('rentals.documents.upload', $rental),
+        $this->actingAs($tenant)->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => $file,
+                'type' => 'KTP',
+                'document' => $document,
             ]
         );
 
@@ -139,13 +139,13 @@ class DocumentVerificationTest extends TestCase
             'status' => 'pending', // Not paid yet
         ]);
 
-        $file = UploadedFile::fake()->image('ktp.jpg');
+        $document = UploadedFile::fake()->image('ktp.jpg');
 
-        $response = $this->actingAs($tenant)->post(
-            route('rentals.documents.upload', $rental),
+        $response = $this->actingAs($tenant)->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => $file,
+                'type' => 'KTP',
+                'document' => $document,
             ]
         );
 
@@ -185,13 +185,13 @@ class DocumentVerificationTest extends TestCase
 
         $oldPath = $rejectedDoc->document_path;
 
-        $file = UploadedFile::fake()->image('new-ktp.jpg');
+        $document = UploadedFile::fake()->image('new-ktp.jpg');
 
-        $this->actingAs($tenant)->post(
-            route('rentals.documents.upload', $rental),
+        $this->actingAs($tenant)->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => $file,
+                'type' => 'KTP',
+                'document' => $document,
             ]
         );
 
@@ -228,17 +228,18 @@ class DocumentVerificationTest extends TestCase
             'status' => 'paid',
         ]);
 
-        $file = UploadedFile::fake()->image('passport.jpg');
+        $document = UploadedFile::fake()->image('passport.jpg');
 
-        $response = $this->actingAs($tenant)->post(
-            route('rentals.documents.upload', $rental),
+        $response = $this->actingAs($tenant)->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'Passport', // Not required
-                'file' => $file,
+                'type' => 'Passport', // Not required
+                'document' => $document,
             ]
         );
 
-        $response->assertSessionHasErrors('document_type');
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('type');
     }
 
     /**
@@ -524,11 +525,11 @@ class DocumentVerificationTest extends TestCase
     {
         $rental = Rental::factory()->create(['status' => 'paid']);
 
-        $response = $this->post(
-            route('rentals.documents.upload', $rental),
+        $response = $this->postJson(
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => UploadedFile::fake()->image('ktp.jpg'),
+                'type' => 'KTP',
+                'document' => UploadedFile::fake()->image('ktp.jpg'),
             ]
         );
 
@@ -561,13 +562,13 @@ class DocumentVerificationTest extends TestCase
             'status' => 'paid',
         ]);
 
-        $file = UploadedFile::fake()->image('ktp.jpg');
+        $document = UploadedFile::fake()->image('ktp.jpg');
 
-        $response = $this->actingAs($tenant1)->post( // tenant1 tries to upload
-            route('rentals.documents.upload', $rental),
+        $response = $this->actingAs($tenant1)->postJson( // tenant1 tries to upload
+            route('tenant.rentals.documents.upload', $rental),
             [
-                'document_type' => 'KTP',
-                'file' => $file,
+                'type' => 'KTP',
+                'document' => $document,
             ]
         );
 

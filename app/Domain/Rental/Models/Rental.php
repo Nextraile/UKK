@@ -131,4 +131,75 @@ class Rental extends Model
     {
         return $this->hasOne(Review::class);
     }
+
+    /**
+     * Get current step in rental progress (1-4).
+     *
+     * Used by progress tracker component.
+     */
+    public function getCurrentStep(): int
+    {
+        return match ($this->status) {
+            'pending' => 1,
+            'paid', 'documents_pending' => 2,
+            'confirmed', 'active' => 3,
+            'completed' => 4,
+            default => 0, // cancelled, rejected, or other statuses
+        };
+    }
+
+    /**
+     * Get payment section state (active/preview/locked).
+     *
+     * Used for section visual state styling.
+     */
+    public function getPaymentSectionState(): string
+    {
+        // Active only if status is pending AND no payment proof uploaded yet
+        if ($this->status === 'pending' && ! $this->payment->proof_of_payment_path) {
+            return 'active';
+        }
+
+        // Preview for all other cases (payment uploaded, admin verified, or other statuses)
+        return 'preview';
+    }
+
+    /**
+     * Get documents section state (active/preview/locked).
+     *
+     * Used for section visual state styling.
+     */
+    public function getDocumentsSectionState(): string
+    {
+        // Locked until payment is VERIFIED by admin
+        if ($this->status === 'pending' || ($this->status === 'paid' && ! $this->payment->verified_at)) {
+            return 'locked';
+        }
+
+        // Active when payment verified and documents not yet confirmed
+        if (in_array($this->status, ['paid', 'documents_pending']) && $this->payment->verified_at) {
+            return 'active';
+        }
+
+        // Preview for all other statuses (confirmed, active, completed, cancelled)
+        return 'preview';
+    }
+
+    /**
+     * Check if rental can be cancelled by tenant.
+     *
+     * Business rule: Can cancel before start_date in specific statuses.
+     */
+    public function canBeCancelled(): bool
+    {
+        // Cannot cancel after start_date
+        if ($this->start_date->isPast()) {
+            return false;
+        }
+
+        // Can only cancel in specific statuses
+        $cancellableStatuses = ['pending', 'paid', 'documents_pending', 'confirmed'];
+
+        return in_array($this->status, $cancellableStatuses);
+    }
 }

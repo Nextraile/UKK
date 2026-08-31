@@ -3698,6 +3698,568 @@ Kelas dasar (sesuai implementasi):
 
 ---
 
+### 3.40 Progress Stepper (x-progress-stepper)
+
+API tunggal: `<x-progress-stepper :steps="$steps" :current="$currentStep" />` — Visual progress tracker untuk multi-step workflows (rental lifecycle, form submissions). Supports vertical (desktop sidebar) and horizontal (mobile collapsed chip) variants. Used in PAGE-008 (Tenant Rental Detail) untuk menunjukkan rental progress.
+
+```blade
+{{-- Desktop vertical stepper --}}
+<x-progress-stepper 
+    :steps="[
+        ['label' => 'Payment', 'status' => 'completed', 'timestamp' => '2026-08-30 10:15'],
+        ['label' => 'Upload Documents', 'status' => 'active', 'progress' => '2/3'],
+        ['label' => 'Confirmation', 'status' => 'locked'],
+        ['label' => 'Leave Review', 'status' => 'locked'],
+    ]"
+    :current="2"
+    variant="vertical"
+/>
+
+{{-- Mobile collapsed chip (expandable) --}}
+<x-progress-stepper 
+    :steps="$steps" 
+    :current="$currentStep"
+    variant="collapsed"
+    class="lg:hidden"
+/>
+```
+
+**Kelas dasar (vertical variant):**
+```html
+<ol role="list" aria-label="Rental completion progress" class="space-y-4">
+  {{-- Step 1: Completed --}}
+  <li class="flex items-start gap-3 text-green-700">
+    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 ring-2 ring-green-500 ring-offset-2">
+      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+    <div class="flex-1">
+      <h4 class="font-semibold">Payment Uploaded</h4>
+      <p class="text-sm text-gray-600">Verified Aug 30, 10:15</p>
+    </div>
+  </li>
+  
+  {{-- Step 2: Active --}}
+  <li class="flex items-start gap-3 text-primary-600" aria-current="step">
+    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 ring-2 ring-primary-500 ring-offset-2 animate-pulse">
+      <span class="h-3 w-3 rounded-full bg-primary-600"></span>
+    </span>
+    <div class="flex-1">
+      <h4 class="font-semibold">Upload Documents</h4>
+      <p class="text-sm text-gray-600">2 of 3 verified</p>
+    </div>
+  </li>
+  
+  {{-- Step 3: Locked --}}
+  <li class="flex items-start gap-3 text-gray-400 opacity-60">
+    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 border-2 border-dashed border-gray-400">
+      <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+    <div class="flex-1">
+      <h4 class="font-semibold">Confirmation</h4>
+      <p class="text-sm">Available after documents verified</p>
+    </div>
+  </li>
+  
+  {{-- Step 4: Locked --}}
+  <li class="flex items-start gap-3 text-gray-400 opacity-60">
+    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 border-2 border-dashed border-gray-400">
+      <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+      </svg>
+    </span>
+    <div class="flex-1">
+      <h4 class="font-semibold">Leave a Review</h4>
+      <p class="text-sm">Available after rental ends</p>
+    </div>
+  </li>
+</ol>
+```
+
+**Mobile collapsed variant:**
+```html
+<div x-data="{ expanded: false }" class="lg:hidden">
+  {{-- Collapsed chip (sticky top) --}}
+  <button @click="expanded = true"
+          class="sticky top-0 z-10 w-full bg-white border-b border-gray-200 px-4 py-3 text-left shadow-sm">
+    <div class="flex items-center justify-between">
+      <span class="font-semibold text-gray-900">Step 2 of 4: Upload Documents</span>
+      <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+    <div class="mt-1 flex items-center gap-1">
+      <span class="h-2 w-8 rounded-full bg-green-500"></span>
+      <span class="h-2 w-8 rounded-full bg-primary-500"></span>
+      <span class="h-2 w-8 rounded-full bg-gray-300"></span>
+      <span class="h-2 w-8 rounded-full bg-gray-300"></span>
+    </div>
+  </button>
+  
+  {{-- Expanded modal (full screen) --}}
+  <div x-show="expanded" 
+       x-cloak
+       @keydown.escape.window="expanded = false"
+       class="fixed inset-0 z-50 bg-white overflow-y-auto">
+    <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
+      <h2 class="text-lg font-semibold">Rental Progress</h2>
+      <button @click="expanded = false" class="p-2 rounded-lg hover:bg-gray-100">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="p-4">
+      {{-- Full vertical stepper (same as desktop) --}}
+      <ol role="list" class="space-y-4">
+        {{-- ... steps ... --}}
+      </ol>
+    </div>
+  </div>
+</div>
+```
+
+**Step Status Visual States:**
+| Status | Icon | Color | Ring | Animation |
+|--------|------|-------|------|-----------|
+| `completed` | Checkmark ✓ | `text-green-700` | `ring-2 ring-green-500` | None |
+| `active` | Filled dot | `text-primary-600` | `ring-2 ring-primary-500` | `animate-pulse` |
+| `locked` | Lock 🔒 | `text-gray-400 opacity-60` | `border-2 border-dashed border-gray-400` | None |
+
+**A11y:**
+- `role="list"` on `<ol>` — semantic step list
+- `aria-label="Rental completion progress"` — descriptive context
+- `aria-current="step"` on active step — screen reader announces current position
+- Each step has text label + secondary text (not icon-only) — readable without color
+- Lock icon on unavailable steps has descriptive text: "Available after..."
+- Mobile chip: `aria-expanded` on button (collapsed/expanded state)
+- Escape key closes mobile modal, focus returns to trigger button
+
+**Dark pair:** 
+- Completed: `bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 ring-green-500 dark:ring-green-600`
+- Active: `bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 ring-primary-500 dark:ring-primary-600`
+- Locked: `bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-400 dark:border-gray-600`
+
+**Responsive behavior:**
+- Desktop (≥1024px): Vertical stepper always visible in sidebar, no collapse
+- Mobile (<1024px): Collapsed chip at top (sticky), tap to expand full-screen modal
+- Tablet (768-1024px): Same as mobile (chip + modal pattern)
+
+**Usage notes:**
+- Use in sidebar for persistent progress visibility (rental detail, multi-step forms)
+- Progress bar below chip (mobile) provides quick visual feedback without opening modal
+- Step timestamps show completion time for completed steps
+- Progress counters (e.g., "2/3") show granular progress within a step
+
+---
+
+### 3.41 Document Upload Card (x-document-card)
+
+API tunggal: `<x-document-card :document="$document" :type="'tenant'|'admin'" />` — Per-document upload card dengan camera-first mobile UX. Supports tenant upload flow (camera/file picker → preview → upload) dan admin verification flow (preview → approve/reject inline actions). Used in PAGE-008 (Tenant) and PAGE-010A (Admin).
+
+```blade
+{{-- Tenant upload card (pending upload) --}}
+<x-document-card 
+    :requirement="$requirement"
+    :document="$rentalDocument"
+    type="tenant"
+    :rental-id="$rental->id"
+/>
+
+{{-- Admin verification card (pending approval) --}}
+<x-document-card 
+    :document="$rentalDocument"
+    type="admin"
+/>
+```
+
+**Kelas dasar (tenant upload, pending state):**
+```html
+<div x-data="{
+    file: null,
+    preview: null,
+    uploading: false,
+    uploaded: {{ $document?->file_path ? 'true' : 'false' }},
+    
+    selectFile(event) {
+        this.file = event.target.files[0];
+        if (!this.file) return;
+        this.preview = URL.createObjectURL(this.file);
+    },
+    
+    async uploadDocument() {
+        if (!this.file) return;
+        this.uploading = true;
+        
+        const formData = new FormData();
+        formData.append('document', this.file);
+        formData.append('type', '{{ $requirement->type }}');
+        
+        try {
+            const response = await fetch('{{ route('tenant.rentals.documents.upload', $rentalId) }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            });
+            
+            if (response.ok) {
+                this.uploaded = true;
+                this.$dispatch('toast', { type: 'success', message: 'Document uploaded!' });
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (error) {
+            this.$dispatch('toast', { type: 'error', message: 'Upload failed. Try again.' });
+        } finally {
+            this.uploading = false;
+        }
+    }
+}" class="border rounded-lg p-4" :class="uploaded ? 'border-green-500 bg-green-50' : 'border-gray-300'">
+    
+    <h4 class="font-semibold mb-2">{{ $requirement->label }}</h4>
+    
+    {{-- Preview (if file selected or uploaded) --}}
+    <template x-if="preview || uploaded">
+        <img :src="preview || '{{ $document?->file_url }}'" 
+             class="w-full h-48 object-cover rounded mb-3">
+    </template>
+    
+    {{-- Empty state placeholder --}}
+    <template x-if="!preview && !uploaded">
+        <div class="w-full h-48 bg-gray-100 rounded mb-3 flex items-center justify-center">
+            <div class="text-center text-gray-500">
+                <svg class="h-12 w-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <p class="text-sm">Tap to upload</p>
+            </div>
+        </div>
+    </template>
+    
+    {{-- File input (hidden, triggered by button) --}}
+    <input type="file" 
+           x-ref="fileInput" 
+           class="hidden"
+           accept="image/*,application/pdf" 
+           capture="environment"
+           @change="selectFile($event)">
+    
+    {{-- Actions --}}
+    <template x-if="!uploaded">
+        {{-- Select file button (before selection) --}}
+        <button x-show="!preview"
+                @click="$refs.fileInput.click()" 
+                class="btn-outline w-full h-14 mb-2 flex items-center justify-center gap-2">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Take Photo or Upload</span>
+        </button>
+        
+        {{-- Upload button (after file selected) --}}
+        <button x-show="preview && !uploading"
+                @click="uploadDocument()"
+                class="btn-primary w-full h-12">
+            Upload {{ $requirement->label }}
+        </button>
+        
+        {{-- Loading state --}}
+        <button x-show="uploading" 
+                disabled
+                class="btn-primary w-full h-12 opacity-75">
+            <svg class="animate-spin h-5 w-5 mr-2 inline" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Uploading...
+        </button>
+    </template>
+    
+    {{-- Success state --}}
+    <div x-show="uploaded" 
+         class="flex items-center gap-2 text-green-700">
+        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span class="font-medium">Uploaded</span>
+    </div>
+    
+    @if($document?->verified_at)
+        <span class="badge-success mt-2">✓ Verified</span>
+    @elseif($document?->rejected_at)
+        <div class="mt-2">
+            <span class="badge-danger">✗ Rejected</span>
+            <p class="text-sm text-red-700 mt-1">{{ $document->rejection_reason }}</p>
+            <button @click="uploaded = false; preview = null" 
+                    class="btn-primary w-full h-12 mt-2">
+                Re-upload
+            </button>
+        </div>
+    @endif
+</div>
+```
+
+**Admin verification card:**
+```html
+<div x-data="{
+    rejectingDoc: false,
+    rejectionReason: '',
+    
+    async approveDocument() {
+        try {
+            const response = await fetch('{{ route('admin.rentals.documents.approve', $document) }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            });
+            
+            if (response.ok) {
+                this.$el.classList.add('border-green-500', 'bg-green-50');
+                this.$el.querySelector('.actions').remove();
+                this.$dispatch('toast', { type: 'success', message: 'Document approved' });
+            }
+        } catch (error) {
+            this.$dispatch('toast', { type: 'error', message: 'Approval failed. Try again.' });
+        }
+    },
+    
+    async confirmReject() {
+        if (this.rejectionReason.length < 10) {
+            alert('Rejection reason must be at least 10 characters');
+            return;
+        }
+        
+        try {
+            const response = await fetch('{{ route('admin.rentals.documents.reject', $document) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ reason: this.rejectionReason })
+            });
+            
+            if (response.ok) {
+                this.$el.classList.add('border-red-500', 'bg-red-50');
+                this.rejectingDoc = false;
+                this.$dispatch('toast', { type: 'success', message: 'Document rejected' });
+            }
+        } catch (error) {
+            this.$dispatch('toast', { type: 'error', message: 'Rejection failed. Try again.' });
+        }
+    }
+}" class="border rounded-lg p-4" 
+   :class="{
+       'border-green-500 bg-green-50': {{ $document->verified_at ? 'true' : 'false' }},
+       'border-red-500 bg-red-50': {{ $document->rejected_at ? 'true' : 'false' }},
+       'border-yellow-300 bg-white': {{ !$document->verified_at && !$document->rejected_at ? 'true' : 'false' }}
+   }">
+    
+    <div class="flex items-center justify-between mb-3">
+        <h4 class="font-semibold">{{ $document->documentRequirement->label }}</h4>
+        @if($document->verified_at)
+            <span class="badge-success">✓ Verified</span>
+        @elseif($document->rejected_at)
+            <span class="badge-danger">✗ Rejected</span>
+        @endif
+    </div>
+    
+    {{-- Image preview (click = lightbox) --}}
+    <a href="{{ $document->file_url }}" target="_blank" class="block mb-3">
+        <img src="{{ $document->file_url }}" 
+             class="w-full h-64 object-cover rounded hover:opacity-90 transition-opacity">
+    </a>
+    
+    <p class="text-sm text-gray-600 mb-3">
+        Uploaded: {{ $document->created_at->format('M d, H:i') }}
+    </p>
+    
+    {{-- Actions (if not verified/rejected and not in rejection flow) --}}
+    @if(!$document->verified_at && !$document->rejected_at)
+        <template x-if="!rejectingDoc">
+            <div class="actions flex gap-2">
+                <button @click="approveDocument()" 
+                        class="btn-success flex-1 h-10">
+                    ✓ Approve
+                </button>
+                <button @click="rejectingDoc = true" 
+                        class="btn-danger flex-1 h-10">
+                    ✗ Reject
+                </button>
+            </div>
+        </template>
+        
+        {{-- Inline rejection form --}}
+        <template x-if="rejectingDoc">
+            <div class="mt-3 p-3 bg-red-50 rounded">
+                <label class="block mb-2 text-sm font-medium text-gray-700">
+                    Rejection reason:
+                </label>
+                <textarea x-ref="rejectionTextarea"
+                          x-model="rejectionReason"
+                          @keydown.escape="rejectingDoc = false"
+                          rows="3" 
+                          class="input mb-3"
+                          placeholder="e.g., Photo is blurry, ID number not visible"></textarea>
+                
+                <div class="flex gap-2">
+                    <button @click="rejectingDoc = false; rejectionReason = ''" 
+                            class="btn-outline flex-1">
+                        Cancel
+                    </button>
+                    <button @click="confirmReject()" 
+                            class="btn-danger flex-1">
+                        Confirm Rejection
+                    </button>
+                </div>
+            </div>
+        </template>
+    @endif
+    
+    {{-- Show rejection reason if rejected --}}
+    @if($document->rejected_at)
+        <div class="mt-2 text-sm text-red-700">
+            <strong>Reason:</strong> {{ $document->rejection_reason }}
+        </div>
+    @endif
+</div>
+```
+
+**Mobile-specific features:**
+- `capture="environment"` on file input → triggers rear camera directly on phones
+- Large touch targets: "Take Photo" button 56px height (80px empty state placeholder)
+- Instant preview with `URL.createObjectURL()` → user sees image before upload completes
+- Camera icon prominent (24px) → visual cue for mobile camera integration
+
+**A11y:**
+- File input labeled via `<label>` wrapping button (keyboard accessible)
+- Upload progress announced via `aria-live="polite"` (Alpine `$dispatch('toast')`)
+- Rejection textarea auto-focused when form expands
+- Escape key cancels rejection (focus returns to reject button)
+- Success/error states have text + icon (not color-only)
+
+**Dark pair:**
+- Pending: `border-gray-300 dark:border-gray-600 bg-white dark:bg-surface-raised-dark`
+- Uploaded: `border-green-500 dark:border-green-600 bg-green-50 dark:bg-green-900/20`
+- Rejected: `border-red-500 dark:border-red-600 bg-red-50 dark:bg-red-900/20`
+- Admin pending: `border-yellow-300 dark:border-yellow-600 bg-white dark:bg-surface-raised-dark`
+
+**Usage notes:**
+- Tenant cards: One card per required document, upload independently (no batch)
+- Admin cards: Grid layout (3-col desktop, 1-col mobile), inline actions eliminate modals
+- Optimistic UI: Admin approval/rejection shows instantly, server validation in background
+- File size validation: Client-side check before upload (<5MB), server-side enforcement
+
+---
+
+### 3.42 Floating Action Button (x-fab)
+
+API tunggal: `<x-fab icon="chat" :action="route('contact.owner', $owner)" label="Contact Owner" />` — Floating Action Button for primary mobile actions. Fixed bottom-right positioning, circular button with icon, optional label on hover. Used in PAGE-008 (Contact Owner) for mobile-first accessibility.
+
+```blade
+{{-- Contact owner FAB (mobile only) --}}
+<x-fab 
+    icon="chat"
+    :href="'mailto:' . $owner->email"
+    label="Contact Owner"
+    class="lg:hidden"
+/>
+
+{{-- WhatsApp FAB --}}
+<x-fab 
+    icon="whatsapp"
+    :href="'https://wa.me/' . $owner->phone"
+    label="Chat via WhatsApp"
+    class="lg:hidden"
+/>
+```
+
+**Kelas dasar:**
+```html
+<div class="fixed bottom-20 right-4 z-20 lg:hidden">
+    {{-- Label tooltip (appears on hover/focus) --}}
+    <div x-data="{ showLabel: false }" 
+         @mouseenter="showLabel = true" 
+         @mouseleave="showLabel = false"
+         @focusin="showLabel = true"
+         @focusout="showLabel = false"
+         class="relative inline-block">
+        
+        {{-- Floating label --}}
+        <span x-show="showLabel" 
+              x-cloak
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 -translate-x-2"
+              x-transition:enter-end="opacity-100 translate-x-0"
+              class="absolute right-16 top-1/2 -translate-y-1/2 whitespace-nowrap bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-lg">
+            {{ $label }}
+            {{-- Arrow pointer --}}
+            <span class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full border-8 border-transparent border-l-gray-900"></span>
+        </span>
+        
+        {{-- Button --}}
+        <a href="{{ $href }}" 
+           class="flex h-14 w-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg hover:bg-primary-700 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 transition-all duration-200 hover:scale-110"
+           aria-label="{{ $label }}">
+            {{-- Icon based on type --}}
+            @if($icon === 'chat')
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+            @elseif($icon === 'phone')
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+            @elseif($icon === 'whatsapp')
+                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+            @endif
+        </a>
+    </div>
+</div>
+```
+
+**Position & Spacing:**
+- Fixed position: `bottom-20 right-4` (above sticky action bar on mobile)
+- Z-index: `z-20` (above most content, below modals z-50)
+- Safe area: Use `bottom-[calc(5rem+env(safe-area-inset-bottom))]` for notch devices
+- Size: `h-14 w-14` (56×56px) — WCAG touch target compliant
+
+**Interaction states:**
+- Default: Primary color, shadow-lg
+- Hover: Darker shade + shadow-xl + scale-110 (lift effect)
+- Focus: ring-2 ring-primary-500 ring-offset-2 (keyboard visible)
+- Active: scale-95 (press effect)
+
+**A11y:**
+- `aria-label` required (not just icon) — "Contact Owner", "Call Phone", etc.
+- Keyboard focusable (natural `<a>` or `<button>`)
+- Focus visible indicator (ring on focus-visible)
+- Label tooltip on hover + focus (not just hover, for keyboard users)
+- Touch target 56×56px (exceeds WCAG 44×44px minimum)
+
+**Dark pair:**
+- Button: `bg-primary-600 dark:bg-primary-500 hover:bg-primary-700 dark:hover:bg-primary-600`
+- Label tooltip: `bg-gray-900 dark:bg-gray-800 text-white dark:text-gray-100`
+- Shadow: `shadow-lg dark:shadow-gray-900/50`
+
+**Usage notes:**
+- Mobile only (`lg:hidden` class) — desktop uses sidebar contact card
+- Bottom-right position = thumb-zone optimized for right-handed users
+- Single primary action per page (don't stack multiple FABs)
+- Label tooltip shows intent before tap (reduces accidental taps)
+- External links (tel:, mailto:, https://wa.me/) open native apps on mobile
+
+**Animation:**
+- Entrance: Slide up from bottom with fade (on page load)
+- Hover: Scale-110 + shadow increase (lift effect)
+- Tap: Scale-95 briefly (tactile feedback)
+- Label: Fade + slide from right (smooth transition)
+
+---
+
 ## 4. Layout Patterns
 
 Pola layout per role akses — struktur halaman, breakpoints, dan kontainer maksimum. Semua layout memakai token §2 dan komponen §3.

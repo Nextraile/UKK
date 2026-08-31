@@ -123,7 +123,7 @@
 
                 <!-- Upload Form -->
                 <form method="POST" 
-                      action="{{ route('rentals.payment.upload', $rental) }}" 
+                      action="{{ route('tenant.rentals.payment.upload', $rental) }}" 
                       enctype="multipart/form-data"
                       class="space-y-4">
                     @csrf

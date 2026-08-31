@@ -1440,65 +1440,381 @@ public function index()
 
 ---
 
-### PAGE-008: Rental Detail (Tenant View)
+### PAGE-008: Rental Detail (Tenant View) — REDESIGNED v2.0
 
 **URL:** `/rentals/{rental}`  
 **Route Name:** `rentals.show`  
 **Method:** GET  
 **Auth:** Authenticated, role:user, owner  
 **Controller:** `Tenant\RentalController@show`  
-**FR Reference:** FR-097 (View rental detail), FR-103 (Timeline display)
+**FR Reference:** FR-097 (View rental detail), FR-103 (Timeline display), FR-070 (Upload payment), FR-071 (Upload documents), FR-120 (Cancel rental)
+
+**Design Change:** Unified single-page experience. All rental lifecycle stages (payment, documents, timeline, review) visible in one view with section-based organization. Eliminates navigation fragmentation (previously 4-5 page transitions).
 
 #### Purpose
-- Complete rental information: kost, room, dates, pricing, status, timeline
-- Access to action buttons based on status (upload payment, documents, review)
+- **Single-page rental management:** All actions accessible from one unified view
+- **Clear progress guidance:** Visual progress tracker shows current step and what's next
+- **Section-based workflow:** Payment, documents, timeline, review organized as conditional sections
+- **Mobile-first:** Camera-native document upload, touch-optimized interactions, thumb-zone CTAs
+
+#### Design Principles
+- **Section states:** Active (interactive), Preview (read-only, collapsible), Locked (greyed with clear message)
+- **Progressive disclosure:** Show all sections but only active section is interactive based on rental status
+- **Context preservation:** No navigation away from detail page (payment/documents inline or modal)
+- **Transparent workflow:** Progress tracker + section states eliminate "what's next?" confusion
 
 #### Layout Structure
+
+**Mobile (< 640px):**
 ```
-2-column layout:
-- Left (70%):
-  - Rental info card (kost name, room, dates, price, status badge)
-  - Timeline (status progression stepper)
-  - Payment section (QRIS, proof, verification status)
-  - Documents section (requirements checklist, upload status)
-  - Review section (if completed, show review or prompt)
-- Right (30%, sticky):
-  - Quick actions sidebar
-  - Contact admin button
-  - Cancel rental button (if allowed)
+┌─────────────────────────────────────┐
+│ ← Rental #12345           [⋯ Menu]  │ ← App header
+├─────────────────────────────────────┤
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ Step 2 of 4: Upload Documents  ┃ │ ← Sticky progress chip (tap to expand)
+│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
+│ 📋 Rental Summary (always visible)  │
+│ ✓ Payment (preview, collapsible)    │
+│ 📋 Documents (ACTIVE, expanded)     │
+│ 🔒 Confirmation (locked)            │
+│ 📜 Timeline (collapsible)           │
+│                                  ┌──┐│
+│                               │💬││ ← FAB: Contact owner (fixed)
+│                               └──┘│
+├─────────────────────────────────────┤
+│ ┌───────────────────────────────┐ │ ← Sticky bottom bar
+│ │      [⋯ More Actions ▾]       │ │   (Cancel rental in menu)
+│ └───────────────────────────────┘ │
+└─────────────────────────────────────┘
+```
+
+**Desktop (> 1024px):**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ← Back                                    Rental #12345   [Menu] │
+├─────────────────────────────────────────────────┬───────────────┤
+│ Main Content (70%)                              │ Sidebar (30%) │
+│                                                 │ ┌───────────┐ │
+│ 📋 Rental Summary                               │ │Progress   │ │
+│ ✓ Payment (preview)                             │ │Tracker    │ │
+│ 📋 Documents (ACTIVE)                           │ │(sticky)   │ │
+│ 🔒 Confirmation (locked)                        │ │           │ │
+│                                                 │ │● Step 1✓  │ │
+│                                                 │ │● Step 2   │ │
+│                                                 │ │○ Step 3🔒 │ │
+│                                                 │ │○ Step 4🔒 │ │
+│                                                 │ └───────────┘ │
+│                                                 │ ┌───────────┐ │
+│                                                 │ │Timeline   │ │
+│                                                 │ │(scroll)   │ │
+│                                                 │ └───────────┘ │
+│                                                 │ ┌───────────┐ │
+│                                                 │ │Contact    │ │
+│                                                 │ │Owner      │ │
+│                                                 │ └───────────┘ │
+│                                                 │ ┌───────────┐ │
+│                                                 │ │[Cancel]   │ │
+│                                                 │ └───────────┘ │
+└─────────────────────────────────────────────────┴───────────────┘
 ```
 
 #### Components Used
-- `<x-status-badge />` (§3.4)
-- `<x-stepper />` varian vertical — rental timeline/status history (pending → paid → confirmed → active → completed/cancelled) dengan `aria-current="step"` (§3.11)
-- Payment section: `<x-qris-payment />` untuk display QRIS + info bank + deadline (read-only di sini; form upload di PAGE-009) (§3.22)
-- Document checklist: `<x-document-upload />` per dokumen wajib (status upload/terverifikasi) (§3.24)
-- `<x-button />` variants untuk actions
-- `<x-confirm-dialog />` — "Cancel Rental" modal (destructive, reason input wajib per FR-123) (§3.25)
 
-#### User Flow (varies by status)
-**Pending status:**
-- Primary action: "Upload Bukti Bayar" → `/rentals/{id}/payment`
-- Secondary: "Cancel Rental" → `<x-confirm-dialog>` modal confirmation
+**Existing Components:**
+- `<x-status-badge />` — Rental status, document verification status (§3.4)
+- `<x-button />` — All CTAs (upload, submit, cancel) (§3.1)
+- `<x-modal />` — Payment upload modal, cancel confirmation (§3.10)
+- `<x-alert />` — Section state messages, error states (§3.6)
 
-**Paid status:**
-- Primary: "Upload Dokumen" → scroll to documents section
-- View payment proof (approved timestamp)
+**New Components (to be added to DESIGN.md):**
+- `<x-progress-stepper />` — 4-step rental lifecycle tracker (vertical desktop, collapsible mobile)
+- `<x-document-card />` — Per-document upload card (camera button, preview, status badge)
+- `<x-fab />` — Floating Action Button for contact owner (mobile only)
+- `<x-section-state />` — Visual wrapper for active/preview/locked states
 
-**Confirmed/Active:**
-- View rental details (read-only mostly)
-- Optional: "Cancel Rental" (if before 50% duration)
+#### Section Organization & States
 
-**Completed:**
-- Primary: "Tulis Review" → `/rentals/{id}/reviews/create`
-- Or view existing review
+| Section | Pending | Paid | Documents Pending | Confirmed | Active | Completed |
+|---------|---------|------|-------------------|-----------|--------|-----------|
+| **Progress Tracker** | Step 1 active | Step 2 active | Step 2 active | Step 3 active | Step 3 ✓ | Step 4 active |
+| **Rental Summary** | Preview (always) | Preview | Preview | Preview | Preview | Preview |
+| **Payment** | 🟢 ACTIVE | 🟡 Preview ✓ | 🟡 Preview ✓ | 🟡 Preview ✓ | 🟡 Preview ✓ | 🟡 Preview ✓ |
+| **Documents** | 🔒 Locked | 🟢 ACTIVE | 🟢 ACTIVE | 🟡 Preview ✓ | 🟡 Preview ✓ | 🟡 Preview ✓ |
+| **Timeline** | Preview | Preview | Preview | Preview | Preview | Preview |
+| **Review** | Hidden | Hidden | Hidden | Hidden | Hidden | 🟢 ACTIVE |
+| **Cancel Action** | Active | Active | Active | Disabled | Disabled | Disabled |
+| **Contact Owner** | Active (always) | Active | Active | Active | Active | Active |
+
+**Visual State CSS:**
+- **🟢 Active:** `border-2 border-primary-500 bg-white shadow-md`
+- **🟡 Preview:** `border border-gray-300 bg-gray-50` (collapsible on mobile)
+- **🔒 Locked:** `border border-dashed border-gray-400 bg-gray-100 opacity-60` + lock icon + "Available after..." message
+
+#### Data Requirements
+
+```php
+// Tenant\RentalController@show
+public function show(Rental $rental)
+{
+    // Authorization: Ensure rental belongs to authenticated tenant
+    $this->authorize('view', $rental);
+    
+    // Eager load all relationships for single-page view
+    $rental->load([
+        'room.roomType.kost.address',
+        'room.roomType.kost.owner', // For contact info
+        'payment', // Payment proof and verification status
+        'rentalDocuments.documentRequirement', // All required docs
+        'statusHistories' => fn($q) => $q->latest(), // Timeline
+        'review', // If completed status
+    ]);
+    
+    // Calculate progress
+    $totalSteps = 4;
+    $currentStep = match($rental->status) {
+        'pending' => 1,
+        'paid', 'documents_pending' => 2,
+        'confirmed' => 3,
+        'active' => 3, // Same as confirmed visually
+        'completed' => 4,
+        'cancelled', 'rejected' => 0, // No active step
+    };
+    
+    // Document upload progress
+    $requiredDocs = $rental->room->roomType->kost->documentRequirements;
+    $uploadedDocs = $rental->rentalDocuments->filter(fn($d) => $d->file_path !== null);
+    $verifiedDocs = $uploadedDocs->filter(fn($d) => $d->verified_at !== null);
+    $docProgress = [
+        'total' => $requiredDocs->count(),
+        'uploaded' => $uploadedDocs->count(),
+        'verified' => $verifiedDocs->count(),
+    ];
+    
+    return view('tenant.rentals.show', compact('rental', 'currentStep', 'totalSteps', 'docProgress'));
+}
+```
+
+#### User Flows
+
+**Flow 1: Upload Payment (Status: pending)**
+1. Land on rental detail page
+2. See "Payment Required" section (ACTIVE state, primary border)
+3. Section shows: Total amount, "Show QRIS Code" collapsible button
+4. Tap "📤 Upload Payment Proof" button → Modal opens (90vw mobile, 600px desktop)
+5. Modal content:
+   - Total amount header
+   - "Show QRIS Code" collapsible (QRIS image + download button)
+   - File input: "📷 Take Photo or Upload" (triggers camera on mobile via `capture="environment"`)
+   - Optional notes textarea
+6. Select/capture payment screenshot → Preview shows in modal
+7. Tap "Upload" button → AJAX POST to `/rentals/{id}/payment`
+8. Success:
+   - Modal closes
+   - Payment section transitions: ACTIVE → Preview (✓ Verified badge)
+   - Document section transitions: Locked → ACTIVE
+   - Progress tracker updates: Step 1 ✓, Step 2 now active
+   - Toast notification: "Payment proof uploaded"
+9. Page does NOT reload (AJAX update + Alpine.js reactivity)
+
+**Flow 2: Upload Documents (Status: paid)**
+1. Payment section now Preview (collapsed on mobile, can expand to see proof)
+2. Document section now ACTIVE
+3. See list of required documents as individual cards:
+   - Each card: Document name, empty state placeholder, "📷 Take Photo or Upload" button
+4. Tap button on first card (e.g., KTP) → File picker/camera opens
+5. Select/capture image → Preview appears in card immediately (no page refresh)
+6. Tap "Upload" button on card → AJAX POST to `/rentals/{id}/documents`
+7. Success:
+   - Card shows checkmark badge "Uploaded"
+   - Upload button changes to "Replace Photo"
+   - Progress tracker updates: "[1/3]" counter
+8. Repeat for remaining documents (no batch upload, per-document flow)
+9. After all documents uploaded:
+   - Document section shows "Waiting for verification" message
+   - Section state remains ACTIVE (tenant can still replace photos)
+   - Timeline updates: "Documents uploaded" timestamp
+
+**Flow 3: Cancel Rental (Any status before active)**
+1. Mobile: Tap "⋯ More Actions" sticky bottom button → Dropdown menu shows "Cancel Rental"
+2. Desktop: See "Cancel Rental" button in sidebar Actions card
+3. Tap "Cancel Rental" → Confirmation modal opens
+4. Modal content:
+   - Warning icon + "Are you sure?"
+   - Rental summary (room, dates, amount)
+   - Reason textarea (optional)
+   - Buttons: [Go Back] [Confirm Cancellation]
+5. Tap "Confirm" → AJAX POST to `/rentals/{id}/cancel`
+6. Success:
+   - Modal closes
+   - Page reloads with status=cancelled
+   - All sections transition to read-only
+   - Timeline shows "Cancelled" timestamp + reason
+   - Toast: "Rental cancelled"
+
+**Flow 4: Contact Owner (Always available)**
+1. Mobile: Tap floating 💬 FAB (bottom-right, fixed)
+2. Desktop: See "Contact Owner" card in sidebar
+3. Contact options:
+   - 📧 Email → Opens email client (`mailto:`)
+   - ☎️ Phone → Opens phone dialer (`tel:`)
+   - 💬 WhatsApp → Opens WhatsApp chat (if available)
+
+**Flow 5: View Timeline/History (Any status)**
+1. Mobile: Tap "📜 Status Timeline [Expand]" collapsed section
+2. Desktop: Timeline visible in sidebar (scrollable)
+3. Shows status history: Created → Paid → Documents uploaded → Confirmed → Active → Completed
+4. Each entry: Timestamp, actor (tenant/admin), status badge
+
+#### Edge Cases
+
+**Payment Upload Failures:**
+- File too large (>5MB): Show inline error below file input, suggest compression
+- Invalid file type: Show error "Only images (JPG, PNG) or PDF accepted"
+- Network error during upload: Show retry button, preserve selected file in modal
+- Deadline expired: Disable upload button, show "Payment deadline passed. Rental auto-cancelled."
+
+**Document Upload Failures:**
+- Camera permission denied: Fallback to file picker, show toast "Camera not available"
+- Missing required documents: Progress tracker shows "[2/3]", locked section message updates
+- Admin rejects document: Card border → red, badge → "✗ Rejected", rejection reason shown, "Re-upload" button replaces "Upload"
+
+**Cancel Rental Edge Cases:**
+- Status = active/completed: Cancel button disabled (greyed), tooltip "Cannot cancel active/completed rental"
+- Status = cancelled: Cancel button hidden
+- Network error: Show error toast, modal stays open, allow retry
+
+**Empty States:**
+- No payment uploaded: Payment section shows QRIS + upload button (default state)
+- No documents uploaded: Cards show empty state placeholders with camera icons
+- No status history: Timeline shows only "Created" entry
 
 #### Accessibility Notes
-- Timeline `x-stepper` vertical: step aktif `aria-current="step"`; setiap step punya teks status (bukan hanya ikon/angka) agar terbaca SR
-- Status badge: warna (`x-status-badge` §3.4) bukan satu-satunya indikator — teks status selalu ada
-- QRIS image: `alt` deskriptif (mis. "QRIS pembayaran Rp 4.500.000"); tombol copy/rekening punya `aria-label` jelas
-- Document checklist: status tiap dokumen berupa teks + badge (mis. "Diverifikasi"), hasil upload diumumkan `aria-live="polite"`
-- Cancel rental via `<x-confirm-dialog>` (§3.25): focus trap, initial focus ke input reason, Esc close, restore focus ke trigger
+
+**Keyboard Navigation:**
+- All sections keyboard-focusable (tab order: Progress → Summary → Active section → Preview sections → Actions)
+- Modal focus trap (Escape closes, focus returns to trigger button)
+- File inputs: Hidden but keyboard-accessible via `<label>` click triggers
+- FAB (mobile): `tabindex="0"`, Enter/Space triggers
+
+**Screen Reader:**
+- Progress tracker: `role="progressbar"`, `aria-valuenow="{currentStep}"`, `aria-valuemax="4"`
+- Section states: 
+  - Active: `aria-current="true"`
+  - Locked: `aria-disabled="true"`, `aria-describedby="lock-message-{id}"`
+  - Preview: Normal navigation, no special ARIA
+- Status badges: `aria-label="Payment status: Verified"` (not just color)
+- Document cards: `aria-label="KTP upload: Uploaded, awaiting verification"`
+- Upload progress: `aria-live="polite"` announces "Uploading... Done."
+
+**Color Contrast:**
+- All text: min 4.5:1 (WCAG AA)
+- Locked section text: `text-gray-700` on `bg-gray-100` = 4.6:1 ✓
+- Error states: `text-red-700` on white = 4.6:1 ✓
+- Disabled buttons: 3:1 for non-text (border/background)
+
+**Touch Targets (Mobile):**
+- All buttons: min 56px height (primary CTAs)
+- Secondary buttons: min 48px height
+- Document card tap areas: min 80px height
+- FAB: 56×56px (thumb-zone optimized, bottom-right)
+- Spacing: 8px gap between adjacent targets
+
+**Responsive Design:**
+- Mobile (< 640px): Single column, sticky progress chip, FAB for contact, bottom action bar
+- Tablet (640-1024px): Single column centered (70% width), sidebar below main
+- Desktop (> 1024px): 70/30 two-column, sticky sidebar (progress + timeline + actions)
+
+#### Implementation Notes
+
+**Alpine.js State Management:**
+```javascript
+// Simplified per-document upload (no batch complexity)
+x-data="{
+  currentStep: {{ $currentStep }},
+  sections: {
+    payment: { state: '{{ $paymentState }}', expanded: false },
+    documents: { state: '{{ $documentsState }}', expanded: true },
+    timeline: { expanded: false }
+  },
+  documents: {
+    ktp: { file: null, preview: null, uploading: false, uploaded: {{ $ktp->uploaded ?? false }} },
+    selfie: { file: null, preview: null, uploading: false, uploaded: {{ $selfie->uploaded ?? false }} },
+    // ...per required doc
+  },
+  
+  async uploadDocument(type) {
+    const doc = this.documents[type];
+    doc.uploading = true;
+    
+    const formData = new FormData();
+    formData.append('document', doc.file);
+    formData.append('type', type);
+    
+    try {
+      const response = await fetch('{{ route('tenant.rentals.documents.upload', $rental) }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+      });
+      
+      if (response.ok) {
+        doc.uploaded = true;
+        this.$dispatch('toast', { type: 'success', message: 'Document uploaded!' });
+        // Update progress counter
+        this.$dispatch('update-progress');
+      }
+    } catch (error) {
+      this.$dispatch('toast', { type: 'error', message: 'Upload failed. Try again.' });
+    } finally {
+      doc.uploading = false;
+    }
+  }
+}"
+```
+
+**Backend Routes (New/Modified):**
+```php
+// routes/web.php - Tenant rental routes
+Route::middleware(['auth', 'verified'])->prefix('rentals')->name('rentals.')->group(function () {
+    Route::get('/{rental}', [RentalController::class, 'show'])->name('show');
+    
+    // AJAX endpoints for inline uploads (no separate pages)
+    Route::post('/{rental}/payment', [RentalController::class, 'uploadPayment'])->name('payment.upload');
+    Route::post('/{rental}/documents', [RentalController::class, 'uploadDocument'])->name('documents.upload');
+    Route::post('/{rental}/cancel', [RentalController::class, 'cancel'])->name('cancel');
+});
+```
+
+**Removed Routes:**
+- ~~`/rentals/{id}/payment` (GET)~~ → Merged into detail page as modal
+- ~~`/rentals/{id}/cancel` (GET)~~ → Merged into detail page as modal
+
+#### Testing Checklist
+
+**Functional Tests:**
+- [ ] Payment upload modal opens/closes correctly
+- [ ] File upload triggers camera on mobile (playwright camera emulation)
+- [ ] Document upload updates progress counter without page reload
+- [ ] Section states transition correctly based on rental status
+- [ ] Cancel modal shows confirmation, executes cancellation
+- [ ] Contact owner FAB/buttons open external apps (email/phone/WhatsApp)
+
+**Responsive Tests:**
+- [ ] Mobile (375px): Single column, sticky elements work, FAB visible
+- [ ] Tablet (768px): Layout flows correctly, sidebar below main
+- [ ] Desktop (1280px): 70/30 layout, sticky sidebar doesn't overflow
+
+**Accessibility Tests:**
+- [ ] Keyboard-only navigation works (no mouse)
+- [ ] Screen reader announces section states, upload progress
+- [ ] Focus management in modals (trap, return on close)
+- [ ] Color contrast passes (axe DevTools audit)
+
+**Edge Case Tests:**
+- [ ] File upload errors show inline messages
+- [ ] Network failures allow retry
+- [ ] Deadline expired disables upload
+- [ ] Rejected documents show rejection reason + re-upload button
 
 ---
 
@@ -2130,6 +2446,460 @@ public function store(ReviewRequest $request, Rental $rental)
 - Upload foto: dropzone keyboard-accessible; error `role="alert"`
 - Submit button disabled saat proses; label "Mengirim..."
 - Heading h1 + struktur form semantik (label-field terhubung)
+
+---
+
+### PAGE-010A: Admin — Rental Verification (Detail) — REDESIGNED v2.0
+
+**URL:** `/admin/rentals/{rental}`  
+**Route Name:** `admin.rentals.show`  
+**Method:** GET  
+**Auth:** Authenticated, role:admin, kost owner  
+**Controller:** `Admin\RentalManagementController@show`  
+**FR Reference:** FR-098 (View rentals for own kost), FR-099 (View rental detail), FR-078 (Verify payment), FR-079 (Reject payment), FR-088 (Approve documents), FR-089 (Reject documents)
+
+**Design Change:** Unified single-page verification experience. Inline approval/rejection actions eliminate modal fatigue (previously 4-6 modal-reload cycles per rental). Optimistic UI provides instant feedback without page reloads.
+
+#### Purpose
+- **Single-page rental verification:** Payment and document verification accessible from one unified view
+- **Inline actions:** Approve/reject directly on document cards, no modals (except rejection reason textarea)
+- **Optimistic UI:** Instant visual feedback, server validation happens in background
+- **Mobile-first:** Touch-optimized verification, bulk actions on desktop
+
+#### Design Principles
+- **Inline verification:** No modal interruptions, rejection reason expands below card
+- **Optimistic updates:** Show success/error immediately, rollback only on server error (<1% cases)
+- **Bulk actions (desktop):** "Approve All" / "Reject Selected" for efficient multi-document verification
+- **Section-based:** Payment verification → Document verification → Timeline → Actions
+
+#### Layout Structure
+
+**Mobile (< 640px):**
+```
+┌─────────────────────────────────────┐
+│ ← Rentals          Rental #12345    │
+├─────────────────────────────────────┤
+│ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ Verification: Pending Documents┃ │ ← Sticky status chip
+│ ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ │
+│ 🏠 Rental Info (tenant contact)     │
+│ 💳 Payment Verification (if pending)│
+│ 📋 Document Verification [2/3]      │
+│    [Bulk Actions ▼] ← Dropdown      │
+│    - Document cards (vertical)      │
+│ 📜 Timeline (collapsible)           │
+└─────────────────────────────────────┘
+```
+
+**Desktop (> 1024px):**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ← Rentals List                         Rental #12345 Verification│
+├─────────────────────────────────────────────────┬───────────────┤
+│ Main Content (70%)                              │ Sidebar (30%) │
+│                                                 │ ┌───────────┐ │
+│ 🏠 Rental Info                                  │ │Status     │ │
+│ 💳 Payment Verification (if pending)            │ │Pending    │ │
+│ 📋 Document Verification              [Actions] │ │Docs       │ │
+│    [Approve All] [Reject Selected]              │ │           │ │
+│    - Document cards (3-col grid)                │ │2 of 3     │ │
+│                                                 │ │verified   │ │
+│                                                 │ └───────────┘ │
+│                                                 │ ┌───────────┐ │
+│                                                 │ │Timeline   │ │
+│                                                 │ │(scroll)   │ │
+│                                                 │ └───────────┘ │
+│                                                 │ ┌───────────┐ │
+│                                                 │ │Contact    │ │
+│                                                 │ │Tenant     │ │
+│                                                 │ └───────────┘ │
+└─────────────────────────────────────────────────┴───────────────┘
+```
+
+#### Components Used
+
+**Existing Components:**
+- `<x-status-badge />` — Verification status, document states (§3.4)
+- `<x-button />` — Approve/reject actions (§3.1)
+- `<x-alert />` — Success/error messages (§3.6)
+- `<x-toast />` — Optimistic UI feedback (§3.6)
+
+**New Components (to be added to DESIGN.md):**
+- `<x-verification-card />` — Document card with inline approve/reject actions
+- `<x-inline-rejection-form />` — Expandable textarea for rejection reason (no modal)
+
+#### Section Organization
+
+| Section | Payment Pending | Documents Pending | All Verified |
+|---------|-----------------|-------------------|--------------|
+| **Rental Info** | Visible (always) | Visible | Visible |
+| **Payment Verification** | 🟢 ACTIVE | 🟡 Approved ✓ | 🟡 Approved ✓ |
+| **Document Verification** | Hidden (locked) | 🟢 ACTIVE | 🟡 All Verified ✓ |
+| **Timeline** | Visible | Visible | Visible |
+
+**Visual States:**
+- **🟢 Active (pending verification):** `border-yellow-300 bg-white` + approve/reject buttons enabled
+- **🟡 Verified:** `border-green-500 bg-green-50` + ✓ badge, buttons hidden
+- **🔴 Rejected:** `border-red-500 bg-red-50` + ✗ badge, rejection reason shown
+
+#### Data Requirements
+
+```php
+// Admin\RentalManagementController@show
+public function show(Rental $rental)
+{
+    // Authorization: Ensure rental belongs to admin's kost
+    $this->authorize('manageRental', $rental);
+    
+    // Eager load for single-page verification view
+    $rental->load([
+        'room.roomType.kost', // Kost info
+        'user', // Tenant info (name, email, phone)
+        'payment', // Payment proof and status
+        'rentalDocuments.documentRequirement', // All documents
+        'statusHistories' => fn($q) => $q->latest(),
+    ]);
+    
+    // Verification stats
+    $verificationStats = [
+        'payment_status' => $rental->payment?->verified_at ? 'verified' : 'pending',
+        'documents_total' => $rental->rentalDocuments->count(),
+        'documents_verified' => $rental->rentalDocuments->where('verified_at', '!=', null)->count(),
+        'documents_pending' => $rental->rentalDocuments->where('verified_at', null)->where('file_path', '!=', null)->count(),
+    ];
+    
+    return view('admin.rentals.show', compact('rental', 'verificationStats'));
+}
+```
+
+#### User Flows
+
+**Flow 1: Verify Payment (Status: pending with payment proof uploaded)**
+1. Admin opens rental detail
+2. See "Payment Verification" section (ACTIVE state, yellow border)
+3. View payment proof image (click → lightbox modal for detailed view)
+4. Read notes if tenant provided
+5. Decision:
+   
+   **Option A - Approve:**
+   - Tap "✓ Approve" button
+   - Button shows spinner (optimistic UI)
+   - AJAX POST to `/admin/rentals/{id}/payment/approve`
+   - Success (instant, no page reload):
+     - Badge changes to "✓ Approved"
+     - Section border → green
+     - Button disappears
+     - Toast: "Payment approved"
+     - Timeline updates (via Alpine.js reactivity)
+     - Document section unlocks (if was locked)
+   
+   **Option B - Reject:**
+   - Tap "✗ Reject" button
+   - Rejection form expands inline below image (animated slide-down)
+   - Form content:
+     - Textarea: "Rejection reason" (min 10 chars, required)
+     - Buttons: [Cancel] [Confirm Rejection]
+   - Admin types reason: "Bank reference number invalid"
+   - Tap "Confirm Rejection"
+   - AJAX POST to `/admin/rentals/{id}/payment/reject` with reason
+   - Success:
+     - Badge changes to "✗ Rejected"
+     - Section border → red
+     - Rejection reason displayed below image
+     - Approve/reject buttons disappear
+     - Toast: "Payment rejected, tenant notified"
+     - Timeline updates
+
+**Flow 2: Verify Documents (Status: paid, documents uploaded)**
+1. Payment already verified → Payment section in Preview state (collapsed)
+2. Document Verification section now ACTIVE
+3. See document cards (3 cards in grid on desktop, vertical stack on mobile)
+4. Each card shows:
+   - Document type label (KTP, Selfie, Family Card)
+   - Image preview (click → lightbox)
+   - Upload timestamp
+   - Approve/Reject buttons (if pending)
+
+5. **Individual verification (mobile + desktop):**
+   - Admin reviews first document (KTP)
+   - Image quality good, information matches
+   - Tap "✓ Approve" button
+   - Optimistic UI (instant):
+     - Button → spinner → disappears
+     - Card border → green
+     - Badge "✓ Verified" appears top-right
+     - Toast: "Document approved"
+   - AJAX completes in background (200ms), no visible change
+   - Repeat for remaining documents
+
+6. **Bulk approval (desktop only):**
+   - Admin reviews all 3 documents
+   - All valid and clear
+   - Tap "Approve All" button in section header
+   - Confirmation prompt: "Approve all 3 documents?"
+   - Tap "Confirm"
+   - All cards instantly transition to verified state
+   - Single toast: "All documents approved"
+   - AJAX batch request to server
+
+7. **Rejection flow (inline, no modal):**
+   - Admin sees blurry KTP image
+   - Tap "✗ Reject" button
+   - Rejection form expands below card (animated)
+   - Form has:
+     - Textarea (auto-focused): "Rejection reason"
+     - Character counter: "0/500"
+     - Buttons: [Cancel] [Confirm Rejection]
+   - Admin types: "Photo is blurry, ID number not visible. Please upload clearer image."
+   - Tap "Confirm Rejection"
+   - Optimistic UI:
+     - Card border → red
+     - Badge "✗ Rejected" appears
+     - Rejection reason displayed below image
+     - Buttons disappear
+     - Toast: "Document rejected, tenant notified"
+   - Form collapses
+   - Server validates in background, sends email to tenant
+
+**Flow 3: Mixed Verification (some approved, some rejected)**
+1. Admin approves KTP ✓
+2. Admin approves Selfie ✓
+3. Admin rejects Family Card ✗ (reason: "Document expired")
+4. Final state:
+   - Verification stats: "[2/3 verified]"
+   - Rental status remains "documents_pending"
+   - Tenant sees rejected document with reason
+   - Tenant re-uploads Family Card
+   - Cycle repeats (admin verifies new upload)
+
+**Flow 4: Contact Tenant**
+1. See "Contact Tenant" card in sidebar (desktop) or section (mobile)
+2. Tenant info displayed: Name, email, phone
+3. Action buttons:
+   - 📧 Email → Opens email client
+   - ☎️ Phone → Opens phone dialer
+   - 💬 WhatsApp → Opens WhatsApp chat
+
+#### Edge Cases
+
+**Payment Verification:**
+- Payment proof missing: Section shows "Waiting for tenant to upload proof"
+- Image failed to load: Show placeholder + "Image unavailable" message
+- Network error during approval: Show error toast, button returns to enabled state
+- Concurrent admin action: Server returns 409 Conflict, show "Already verified by another admin"
+
+**Document Verification:**
+- Document not uploaded yet: Card shows "Pending upload" badge (greyed, no actions)
+- Invalid file format (backend validation failed): Show error "Document type not supported"
+- All documents rejected: Rental status remains "documents_pending", tenant must re-upload all
+- Tenant re-uploads during admin review: Show notification "Tenant uploaded new version. Refresh to review."
+
+**Bulk Actions:**
+- "Approve All" with mix of pending/verified: Only approve pending docs (skip already verified)
+- "Reject Selected" with no selection: Disable button, show tooltip "Select documents to reject"
+- Network timeout during bulk action: Rollback optimistic updates, show error "Some documents failed, please retry individually"
+
+**Optimistic UI Rollback:**
+- Server returns 500 error: Revert card to pending state, show error toast
+- Validation failed (e.g., reason too short): Revert, show inline error below textarea
+- User refreshes during AJAX: Page reloads with server state (correct source of truth)
+
+#### Accessibility Notes
+
+**Keyboard Navigation:**
+- All buttons keyboard-focusable (tab order: Payment approve/reject → Documents → Timeline)
+- Rejection textarea auto-focused when form expands
+- Escape key collapses rejection form (returns focus to reject button)
+- Enter in textarea submits rejection (if min length met)
+
+**Screen Reader:**
+- Document cards: `aria-label="KTP document: Pending verification"`
+- Verification buttons: `aria-label="Approve KTP document"` (not just icon)
+- Status badges: `aria-label="Document status: Verified"` (color + text)
+- Rejection form: `aria-describedby="rejection-hint"` → "Minimum 10 characters required"
+- Optimistic updates: `aria-live="polite"` announces "Document approved" (via toast)
+
+**Color Contrast:**
+- Pending state: `border-yellow-300` meets 3:1 for UI elements ✓
+- Approved badge: `bg-green-50 text-green-700` = 4.6:1 ✓
+- Rejected badge: `bg-red-50 text-red-700` = 4.6:1 ✓
+- Disabled buttons: `opacity-50` with text-gray-600 = 3.2:1 (acceptable for disabled state)
+
+**Touch Targets (Mobile):**
+- Approve/Reject buttons: 48×48px min (stacked vertically on mobile)
+- Document cards: Full-width tap area for image (opens lightbox)
+- Rejection textarea: Auto-expands to fit content, min 80px height
+- Bulk actions dropdown: 56px height trigger button
+
+**Responsive Design:**
+- Mobile (< 640px): Single column, vertical card stack, dropdown bulk actions
+- Tablet (640-1024px): 2-column document grid, inline bulk actions
+- Desktop (> 1024px): 3-column document grid, sidebar with stats/timeline/contact
+
+#### Implementation Notes
+
+**Alpine.js State Management:**
+```javascript
+x-data="{
+  verifying: false,
+  documents: @json($rental->rentalDocuments),
+  
+  async approveDocument(docId) {
+    // Optimistic UI update
+    const doc = this.documents.find(d => d.id === docId);
+    doc.verified_at = new Date().toISOString();
+    doc.verifying = true;
+    
+    try {
+      const response = await fetch(`/admin/rentals/documents/${docId}/approve`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+      });
+      
+      if (!response.ok) throw new Error('Server error');
+      
+      // Success: Already updated optimistically
+      this.$dispatch('toast', { type: 'success', message: 'Document approved' });
+      
+    } catch (error) {
+      // Rollback optimistic update
+      doc.verified_at = null;
+      this.$dispatch('toast', { type: 'error', message: 'Approval failed. Try again.' });
+    } finally {
+      doc.verifying = false;
+    }
+  },
+  
+  rejectingDoc: null,
+  rejectionReason: '',
+  
+  startReject(docId) {
+    this.rejectingDoc = docId;
+    this.rejectionReason = '';
+    this.$nextTick(() => this.$refs.rejectionTextarea?.focus());
+  },
+  
+  async confirmReject(docId) {
+    if (this.rejectionReason.length < 10) {
+      alert('Rejection reason must be at least 10 characters');
+      return;
+    }
+    
+    const doc = this.documents.find(d => d.id === docId);
+    doc.rejected_at = new Date().toISOString();
+    doc.rejection_reason = this.rejectionReason;
+    
+    try {
+      const response = await fetch(`/admin/rentals/documents/${docId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: JSON.stringify({ reason: this.rejectionReason })
+      });
+      
+      if (!response.ok) throw new Error('Server error');
+      
+      this.rejectingDoc = null;
+      this.$dispatch('toast', { type: 'success', message: 'Document rejected' });
+      
+    } catch (error) {
+      // Rollback
+      doc.rejected_at = null;
+      doc.rejection_reason = null;
+      this.$dispatch('toast', { type: 'error', message: 'Rejection failed. Try again.' });
+    }
+  }
+}"
+```
+
+**Backend Routes (AJAX endpoints):**
+```php
+// routes/web.php - Admin rental verification routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin/rentals')->name('admin.rentals.')->group(function () {
+    Route::get('/', [RentalManagementController::class, 'index'])->name('index');
+    Route::get('/{rental}', [RentalManagementController::class, 'show'])->name('show');
+    
+    // Payment verification (AJAX)
+    Route::post('/{rental}/payment/approve', [RentalManagementController::class, 'approvePayment'])->name('payment.approve');
+    Route::post('/{rental}/payment/reject', [RentalManagementController::class, 'rejectPayment'])->name('payment.reject');
+    
+    // Document verification (AJAX)
+    Route::post('/documents/{document}/approve', [RentalManagementController::class, 'approveDocument'])->name('documents.approve');
+    Route::post('/documents/{document}/reject', [RentalManagementController::class, 'rejectDocument'])->name('documents.reject');
+    
+    // Bulk actions (desktop)
+    Route::post('/{rental}/documents/approve-all', [RentalManagementController::class, 'approveAllDocuments'])->name('documents.approve-all');
+});
+```
+
+**Controller Actions:**
+```php
+// Admin\RentalManagementController
+public function approveDocument(RentalDocument $document)
+{
+    $this->authorize('manageRental', $document->rental);
+    
+    $document->update([
+        'verified_at' => now(),
+        'verified_by' => auth()->id(),
+    ]);
+    
+    // Auto-confirm rental if all documents verified
+    if ($document->rental->allDocumentsVerified()) {
+        $document->rental->update(['status' => 'confirmed']);
+        event(new RentalConfirmed($document->rental));
+    }
+    
+    return response()->json(['success' => true]);
+}
+
+public function rejectDocument(RentalDocument $document, Request $request)
+{
+    $request->validate([
+        'reason' => 'required|string|min:10|max:500',
+    ]);
+    
+    $this->authorize('manageRental', $document->rental);
+    
+    $document->update([
+        'verified_at' => null,
+        'rejection_reason' => $request->reason,
+        'rejected_at' => now(),
+        'rejected_by' => auth()->id(),
+    ]);
+    
+    // Notify tenant via email
+    event(new DocumentRejected($document));
+    
+    return response()->json(['success' => true]);
+}
+```
+
+#### Testing Checklist
+
+**Functional Tests:**
+- [ ] Payment approval updates status without page reload
+- [ ] Payment rejection shows inline reason form, submits correctly
+- [ ] Document approval transitions card to verified state
+- [ ] Document rejection shows reason, tenant receives email
+- [ ] Bulk "Approve All" verifies all pending documents
+- [ ] Optimistic UI rollback works on server error
+
+**Responsive Tests:**
+- [ ] Mobile (375px): Vertical stack, dropdown bulk actions
+- [ ] Tablet (768px): 2-column grid, inline bulk actions
+- [ ] Desktop (1280px): 3-column grid, sidebar visible
+
+**Accessibility Tests:**
+- [ ] Keyboard-only navigation works
+- [ ] Screen reader announces approval/rejection
+- [ ] Focus management in rejection forms
+- [ ] Color contrast passes (axe DevTools)
+
+**Edge Case Tests:**
+- [ ] Concurrent verification shows conflict message
+- [ ] Network timeout allows retry
+- [ ] Mixed verification (some approved, some rejected) updates status correctly
+- [ ] Tenant re-upload during admin review shows notification
 
 ---
 

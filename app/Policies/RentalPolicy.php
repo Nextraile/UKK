@@ -88,6 +88,16 @@ class RentalPolicy
     }
 
     /**
+     * Determine if user can update rental (for document management).
+     *
+     * Same as uploadDocument - allows tenant to manage documents.
+     */
+    public function update(User $user, Rental $rental): bool
+    {
+        return $this->uploadDocument($user, $rental);
+    }
+
+    /**
      * Determine if admin can verify document for rental.
      *
      * Admin can verify if they own the kost.

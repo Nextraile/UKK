@@ -34,7 +34,7 @@
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-gray-600">Kamar:</dt>
-                        <dd class="font-medium">{{ $rental->room->name }}</dd>
+                        <dd class="font-medium">Kamar {{ $rental->room->code }}</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-gray-600">Periode:</dt>

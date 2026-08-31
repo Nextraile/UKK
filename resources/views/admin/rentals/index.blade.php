@@ -94,7 +94,7 @@
                             </td>
                             <td class="px-6 py-4 text-sm">
                                 <div class="font-medium text-gray-900">{{ $rental->room->roomType->kost->name }}</div>
-                                <div class="text-gray-500">{{ $rental->room->roomType->name }} - {{ $rental->room->name }}</div>
+                                <div class="text-gray-500">{{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}</div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                 {{ $rental->duration_value }} {{ __($rental->duration_unit) }}

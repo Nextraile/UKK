@@ -15,7 +15,7 @@ Bukti pembayaran untuk booking **{{ $rental->room->roomType->kost->name }}** dit
 
 Silakan upload ulang bukti pembayaran yang sesuai.
 
-@component('mail::button', ['url' => route('rentals.payment.show', $rental)])
+@component('mail::button', ['url' => route('rentals.show', $rental)])
 Upload Ulang Bukti Pembayaran
 @endcomponent
 

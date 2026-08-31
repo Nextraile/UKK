@@ -23,17 +23,17 @@ class ReviewPolicy
     {
         // Must be the rental owner
         if ($user->id !== $rental->user_id) {
-            return false;
+            abort(403, 'Anda tidak memiliki akses untuk membuat review pada rental ini.');
         }
 
         // Rental must be completed
         if ($rental->status !== 'completed') {
-            return false;
+            abort(403, 'Review hanya dapat dibuat untuk rental yang sudah selesai (status: completed). Status rental saat ini: '.$rental->status);
         }
 
         // Must not already have a review
         if ($rental->review()->exists()) {
-            return false;
+            abort(403, 'Rental ini sudah memiliki review. Anda dapat mengedit review yang ada.');
         }
 
         return true;

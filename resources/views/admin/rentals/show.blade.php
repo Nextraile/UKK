@@ -2,7 +2,7 @@
     title="Detail Rental #{{ $rental->id }} - SewaKost"
     variant="full-width">
     
-    <div class="py-12">
+    <div class="py-12" x-data="rentalVerification()">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <x-page-header 
                 title="Detail Rental #{{ $rental->id }}"
@@ -17,22 +17,29 @@
                     </a>
                 </x-slot:actions>
             </x-page-header>
-            <!-- Flash Messages -->
-            @if(session('success'))
-                <div class="mb-6 rounded-lg bg-success/10 p-4 dark:bg-success-900/20">
-                    <p class="text-sm font-semibold text-success-700 dark:text-success-200">
-                        {{ session('success') }}
-                    </p>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="mb-6 rounded-lg bg-error/10 p-4 dark:bg-error-900/20">
-                    <p class="text-sm font-semibold text-error-700 dark:text-error-200">
-                        {{ $errors->first() }}
-                    </p>
-                </div>
-            @endif
+            <!-- Toast Notification Area -->
+            <div x-show="toast.show" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="mb-6 rounded-lg p-4"
+                 :class="{
+                     'bg-success-50 border border-success-200': toast.type === 'success',
+                     'bg-error-50 border border-error-200': toast.type === 'error',
+                     'bg-warning-50 border border-warning-200': toast.type === 'warning'
+                 }">
+                <p class="text-sm font-semibold"
+                   :class="{
+                       'text-success-700': toast.type === 'success',
+                       'text-error-700': toast.type === 'error',
+                       'text-warning-700': toast.type === 'warning'
+                   }"
+                   x-text="toast.message"></p>
+            </div>
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <!-- Left Column (2/3 width) -->
@@ -56,7 +63,7 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Kamar</dt>
                                 <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $rental->room->roomType->name }} - {{ $rental->room->name }}
+                                    {{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}
                                 </dd>
                             </div>
                             <div>
@@ -97,210 +104,185 @@
                         </dl>
                     </x-card>
 
-                    <!-- Payment Verification Card -->
+                    <!-- Payment Verification Section -->
                     @if($rental->status === 'pending' && $rental->payment->proof_of_payment_path)
-                        <x-card>
+                        <div class="border-2 rounded-lg p-6 transition-all"
+                             :class="payment.verified_at || payment.rejected_at ? 'border-gray-300 bg-gray-50' : 'border-primary-500 bg-white'">
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
                                 Verifikasi Pembayaran
                             </h3>
                             
-                            <div class="mb-4 rounded-lg bg-warning-light p-4 dark:bg-warning-900/20">
-                                <p class="text-sm font-semibold text-warning-700 dark:text-warning-200">
+                            <div x-show="!payment.verified_at && !payment.rejected_at" 
+                                 class="mb-4 rounded-lg bg-warning-50 border border-warning-200 p-4">
+                                <p class="text-sm font-semibold text-warning-700">
                                     Tenant telah mengupload bukti pembayaran. Silakan verifikasi.
                                 </p>
                             </div>
 
+                            <!-- Payment Proof Display -->
                             <div class="mb-4">
                                 <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Bukti Pembayaran:</p>
                                 <img src="{{ route('rentals.payment.proof', $rental) }}" 
                                      alt="Bukti pembayaran" 
-                                     class="h-auto max-w-md rounded-lg border border-gray-300">
+                                     @click="openLightbox('{{ route('rentals.payment.proof', $rental) }}')"
+                                     class="h-auto max-w-md rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity">
+                                @if($rental->payment->notes)
+                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                        <strong>Catatan dari tenant:</strong> {{ $rental->payment->notes }}
+                                    </p>
+                                @endif
                             </div>
 
-                            <div class="space-y-3">
-                                <!-- Approve Form -->
-                                <form method="POST" action="{{ route('admin.payments.approve', $rental->payment) }}">
-                                    @csrf
-                                    <button type="submit" 
-                                            class="w-full rounded-md bg-success-600 px-4 py-2 text-sm font-semibold text-white hover:bg-success-700"
-                                            onclick="return confirm('Approve pembayaran ini?')">
-                                        ✓ Approve Payment
-                                    </button>
-                                </form>
-
-                                <!-- Reject Form (Modal trigger) -->
-                                <button type="button"
-                                        x-data
-                                        @click="$dispatch('open-modal', 'reject-payment-{{ $rental->payment->id }}')"
-                                        class="w-full rounded-md border border-error-600 px-4 py-2 text-sm font-semibold text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20">
-                                    ✗ Reject Payment
+                            <!-- Verification Actions -->
+                            <div x-show="!payment.verified_at && !payment.rejected_at" 
+                                 class="mt-4 flex flex-col sm:flex-row gap-3">
+                                <button @click="approvePayment()"
+                                        :disabled="payment.verifying"
+                                        class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-success-600 text-white font-semibold rounded-lg hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    <span x-show="!payment.verifying">Approve Payment</span>
+                                    <span x-show="payment.verifying" class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Approving...
+                                    </span>
+                                </button>
+                                <button @click="rejectingPayment = !rejectingPayment"
+                                        class="flex-1 px-4 py-2 border-2 border-error-600 text-error-600 font-semibold rounded-lg hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-500 transition-colors">
+                                    Reject Payment
                                 </button>
                             </div>
-                        </x-card>
 
-                        <!-- Reject Payment Modal -->
-                        <x-modal name="reject-payment-{{ $rental->payment->id }}" focusable>
-                            <form method="POST" action="{{ route('admin.payments.reject', $rental->payment) }}" class="p-6">
-                                @csrf
-
-                                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                    Reject Pembayaran
-                                </h2>
-
-                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                    Berikan alasan penolakan pembayaran (wajib, minimal 10 karakter).
-                                </p>
-
-                                <div class="mt-6">
-                                    <x-input-label for="rejection_reason" value="Alasan Penolakan" />
-                                    <textarea id="rejection_reason" 
-                                              name="rejection_reason" 
-                                              rows="4" 
-                                              required
-                                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                              placeholder="Contoh: Bukti transfer tidak jelas / Jumlah nominal tidak sesuai / ..."></textarea>
-                                    <x-input-error :messages="$errors->get('rejection_reason')" class="mt-2" />
+                            <!-- Inline Rejection Form -->
+                            <div x-show="rejectingPayment" 
+                                 x-collapse
+                                 class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Alasan Penolakan <span class="text-error-600">*</span>
+                                </label>
+                                <textarea x-model="paymentRejectionReason"
+                                          x-ref="paymentRejectTextarea"
+                                          rows="3"
+                                          placeholder="Contoh: Bukti transfer tidak jelas, nominal tidak sesuai, referensi bank salah..."
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                          minlength="10"></textarea>
+                                <p class="text-xs text-gray-500 mt-1">Minimum 10 karakter</p>
+                                
+                                <div class="mt-3 flex gap-2">
+                                    <button @click="rejectingPayment = false; paymentRejectionReason = ''"
+                                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500">
+                                        Cancel
+                                    </button>
+                                    <button @click="confirmRejectPayment()"
+                                            :disabled="paymentRejectionReason.length < 10"
+                                            class="px-4 py-2 bg-error-600 text-white font-semibold rounded-lg hover:bg-error-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Confirm Rejection
+                                    </button>
                                 </div>
+                            </div>
 
-                                <div class="mt-6 flex justify-end space-x-3">
-                                    <x-secondary-button x-on:click="$dispatch('close')">
-                                        Batal
-                                    </x-secondary-button>
-
-                                    <x-danger-button type="submit">
-                                        Reject Payment
-                                    </x-danger-button>
-                                </div>
-                            </form>
-                        </x-modal>
-                    @elseif($rental->payment->status === 'success')
-                        <x-card>
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Status Pembayaran</h3>
-                            <div class="flex items-center rounded-lg bg-success/10 p-4 dark:bg-success-900/20">
-                                <svg class="h-6 w-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p class="ml-3 text-sm font-semibold text-success-700 dark:text-success-200">
-                                    Pembayaran terverifikasi pada {{ $rental->payment->verified_at->format('d M Y H:i') }}
+                            <!-- Approved State -->
+                            <div x-show="payment.verified_at"
+                                 x-cloak
+                                 class="mt-4 p-4 bg-success-50 border border-success-200 rounded-lg">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-100 text-success-800">
+                                    Approved
+                                </span>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    Payment diverifikasi. Menunggu tenant upload dokumen.
                                 </p>
                             </div>
-                        </x-card>
+
+                            <!-- Rejected State -->
+                            <div x-show="payment.rejected_at"
+                                 x-cloak
+                                 class="mt-4 p-4 bg-error-50 border border-error-200 rounded-lg">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error-100 text-error-800">
+                                    Rejected
+                                </span>
+                                <p class="text-sm text-error-700 mt-2" x-text="'Alasan: ' + payment.rejection_reason"></p>
+                            </div>
+                        </div>
+                    @elseif($rental->payment->status === 'success')
+                        <div class="border-2 border-gray-300 bg-gray-50 rounded-lg p-6">
+                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Status Pembayaran</h3>
+                            <div class="flex items-start gap-3 rounded-lg bg-success-50 border border-success-200 p-4">
+                                <svg class="h-6 w-6 text-success-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-semibold text-success-700">
+                                        Payment Approved
+                                    </p>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        Diverifikasi pada {{ $rental->payment->verified_at->format('d M Y H:i') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     @endif
 
-                    <!-- Document Verification Section (Stub) -->
+                    <!-- Document Verification Section -->
                     @if($rental->status === 'paid' || $rental->status === 'documents_pending')
-                        <x-card>
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
-                                Verifikasi Dokumen
-                            </h3>
+                        <div class="border-2 rounded-lg p-6 transition-all"
+                             :class="allDocumentsVerified() ? 'border-gray-300 bg-gray-50' : 'border-primary-500 bg-white'">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                    Verifikasi Dokumen
+                                </h3>
+                                <span class="text-sm text-gray-600" x-text="verifiedDocCount() + '/' + totalDocCount() + ' verified'"></span>
+                                
+                                <!-- Bulk Actions (Desktop only) -->
+                                <button @click="approveAllDocuments()"
+                                        x-show="verifiedDocCount() < totalDocCount() && hasPendingDocs()"
+                                        class="hidden lg:inline-flex items-center px-4 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+                                    Approve All
+                                </button>
+                            </div>
                             
-                            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                                Tenant perlu mengupload dokumen administrasi. Status saat ini:
-                            </p>
+                            <div x-show="!anyDocumentUploaded()" 
+                                 class="mb-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
+                                <p class="text-sm text-gray-600">
+                                    ⏳ Menunggu tenant mengupload dokumen administrasi.
+                                </p>
+                            </div>
 
-                            <div class="space-y-2">
+                            <!-- Document Cards Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach($rental->room->roomType->kost->documentRequirements as $requirement)
                                     @php
                                         $document = $rental->rentalDocuments->firstWhere('document_type', $requirement->document_type);
+                                        $docIndex = $loop->index;
                                     @endphp
-                                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                                    {{ $requirement->document_type }}
-                                                    @if($requirement->is_required)
-                                                        <span class="ml-1 text-error-600">*</span>
-                                                    @endif
-                                                </p>
-                                                @if($document)
-                                                    <p class="text-xs text-gray-600 dark:text-gray-400">
-                                                        Status: {{ ucfirst($document->verification_status) }}
-                                                    </p>
-                                                @else
-                                                    <p class="text-xs text-gray-500 italic">Belum diupload</p>
-                                                @endif
-                                            </div>
-                                            @if($document && $document->verification_status === 'pending')
-                                                <div class="flex gap-2">
-                                                    <form method="POST" action="{{ route('admin.documents.approve', $document) }}" class="inline">
-                                                        @csrf
-                                                        <button type="submit" 
-                                                                class="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                                                                onclick="return confirm('Approve dokumen {{ $requirement->document_type }}?')">
-                                                            Approve
-                                                        </button>
-                                                    </form>
-                                                    <button type="button"
-                                                            x-data
-                                                            @click="$dispatch('open-modal', 'reject-document-{{ $document->id }}')"
-                                                            class="text-sm text-error-600 hover:text-error-700 font-medium">
-                                                        Reject
-                                                    </button>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        @if($document)
-                                            <!-- Document Preview -->
-                                            <div class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
-                                                @if(str_ends_with($document->document_path, '.pdf'))
-                                                    <a href="{{ route('admin.rentals.documents.show', $document) }}" 
-                                                       target="_blank" 
-                                                       class="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">
-                                                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                                        </svg>
-                                                        View PDF Document
-                                                    </a>
-                                                @else
-                                                    <img src="{{ route('admin.rentals.documents.show', $document) }}" 
-                                                         alt="{{ $requirement->document_type }}" 
-                                                         class="max-w-xs rounded border border-gray-300 dark:border-gray-600">
-                                                @endif
-                                            </div>
-                                        @endif
-
-                                        @if($document && $document->verification_status === 'pending')
-                                            <!-- Reject Document Modal -->
-                                            <x-modal name="reject-document-{{ $document->id }}" focusable>
-                                                <form method="POST" action="{{ route('admin.documents.reject', $document) }}" class="p-6">
-                                                    @csrf
-                                                    
-                                                    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                                        Reject Dokumen: {{ $requirement->document_type }}
-                                                    </h2>
-                                                    
-                                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                                        Berikan alasan penolakan dokumen (minimal 10 karakter).
-                                                    </p>
-                                                    
-                                                    <div class="mt-6">
-                                                        <x-input-label for="rejection_reason_{{ $document->id }}" value="Alasan Penolakan" />
-                                                        <textarea id="rejection_reason_{{ $document->id }}" 
-                                                                  name="rejection_reason" 
-                                                                  rows="4" 
-                                                                  required
-                                                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                                                  placeholder="Contoh: Foto KTP tidak jelas / Data tidak sesuai / ..."></textarea>
-                                                        <x-input-error :messages="$errors->get('rejection_reason')" class="mt-2" />
-                                                    </div>
-                                                    
-                                                    <div class="mt-6 flex justify-end space-x-3">
-                                                        <x-secondary-button x-on:click="$dispatch('close')">
-                                                            Batal
-                                                        </x-secondary-button>
-                                                        
-                                                        <x-danger-button type="submit">
-                                                            Reject Document
-                                                        </x-danger-button>
-                                                    </div>
-                                                </form>
-                                            </x-modal>
-                                        @endif
-                                    </div>
+                                    
+                                    <x-document-card 
+                                        :requirement="$requirement"
+                                        :document="$document"
+                                        type="admin"
+                                        :rentalId="$rental->id"
+                                        :docIndex="$docIndex"
+                                    />
                                 @endforeach
                             </div>
-                        </x-card>
+                        </div>
+                    @elseif($rental->status === 'confirmed' || $rental->status === 'active' || $rental->status === 'completed')
+                        <div class="border-2 border-gray-300 bg-gray-50 rounded-lg p-6">
+                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Dokumen Terverifikasi</h3>
+                            <div class="flex items-start gap-3 rounded-lg bg-success-50 border border-success-200 p-4">
+                                <svg class="h-6 w-6 text-success-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-semibold text-success-700">
+                                        ✓ All Documents Approved
+                                    </p>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        Semua dokumen telah diverifikasi. Rental sudah dikonfirmasi.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     @endif
 
                     <!-- Status History Timeline -->
@@ -345,24 +327,23 @@
                 </div>
 
                 <!-- Right Column (1/3 width) — Actions Sidebar -->
-                <div class="space-y-6">
-                    <!-- Quick Actions -->
-                    <x-card>
-                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Aksi Admin</h3>
-                        <div class="space-y-3">
-                            @if($rental->status === 'pending' && $rental->payment->proof_of_payment_path)
-                                <button class="block w-full rounded-md bg-success-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-success-700">
-                                    Verifikasi Pembayaran
-                                </button>
-                            @endif
-                            
-                            @if($rental->status === 'paid')
-                                <button class="block w-full rounded-md bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-700">
-                                    Verifikasi Dokumen
-                                </button>
-                            @endif
-                        </div>
-                    </x-card>
+                <div class="space-y-6 lg:sticky lg:top-6">
+                    <!-- Verification Stats -->
+                    @if($rental->status === 'paid' || $rental->status === 'documents_pending')
+                        <x-card>
+                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Verification Stats</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Documents</span>
+                                    <span class="text-sm font-semibold" x-text="verifiedDocCount() + '/' + totalDocCount()"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary-600 h-2 rounded-full transition-all" 
+                                         :style="'width: ' + (totalDocCount() > 0 ? (verifiedDocCount() / totalDocCount() * 100) : 0) + '%'"></div>
+                                </div>
+                            </div>
+                        </x-card>
+                    @endif
 
                     <!-- Tenant Contact Info -->
                     <x-card>
@@ -373,6 +354,10 @@
                             @if($rental->user->phone)
                                 <p class="text-gray-600 dark:text-gray-400">{{ $rental->user->phone }}</p>
                             @endif
+                            <a href="mailto:{{ $rental->user->email }}" 
+                               class="mt-3 block w-full text-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+                                Contact Tenant
+                            </a>
                         </div>
                     </x-card>
 
@@ -404,4 +389,329 @@
             </div>
         </div>
     </div>
+
+    <!-- Image Lightbox Modal -->
+    <div x-show="lightbox.show"
+         x-cloak
+         x-trap.inert.noscroll="lightbox.show"
+         @click="lightbox.show = false"
+         @keydown.escape.window="lightbox.show = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Image preview"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        <div @click.stop class="relative max-w-4xl w-full">
+            <button @click="lightbox.show = false" 
+                    class="absolute -top-10 right-0 text-white hover:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+                    aria-label="Close image preview">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <img :src="lightbox.url" alt="Full size" class="w-full h-auto rounded-lg">
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function rentalVerification() {
+            return {
+                // Payment state
+                payment: {
+                    id: {{ $rental->payment->id }},
+                    verified_at: @json($rental->payment->verified_at),
+                    rejected_at: @json($rental->payment->rejection_reason ? now() : null),
+                    rejection_reason: @json($rental->payment->rejection_reason),
+                    verifying: false
+                },
+                rejectingPayment: false,
+                paymentRejectionReason: '',
+
+                // Documents state
+                documents: [
+                    @foreach($rental->room->roomType->kost->documentRequirements as $req)
+                        @php
+                            $doc = $rental->rentalDocuments->firstWhere('document_type', $req->document_type);
+                        @endphp
+                        {
+                            id: {{ $doc?->id ?? 'null' }},
+                            type: @json($req->document_type),
+                            uploaded: {{ $doc && $doc->document_path ? 'true' : 'false' }},
+                            verified_at: @json($doc?->verified_at),
+                            rejected_at: @json($doc && $doc->rejection_reason ? now() : null),
+                            rejection_reason: @json($doc?->rejection_reason),
+                            verifying: false
+                        }{{ $loop->last ? '' : ',' }}
+                    @endforeach
+                ],
+                rejectingDoc: null,
+                rejectionReason: '',
+
+                // Toast notifications
+                toast: {
+                    show: false,
+                    type: 'success',
+                    message: ''
+                },
+
+                // Lightbox
+                lightbox: {
+                    show: false,
+                    url: ''
+                },
+
+                // Initialize
+                init() {
+                    // Show flash message if exists
+                    @if(session('success'))
+                        this.showToast('success', '{{ session('success') }}');
+                    @elseif($errors->any())
+                        this.showToast('error', '{{ $errors->first() }}');
+                    @endif
+
+                    // Auto-focus rejection textarea when opened
+                    this.$watch('rejectingPayment', (value) => {
+                        if (value) {
+                            this.$nextTick(() => this.$refs.paymentRejectTextarea?.focus());
+                        }
+                    });
+                },
+
+                // Toast helpers
+                showToast(type, message) {
+                    this.toast = { show: true, type, message };
+                    setTimeout(() => {
+                        this.toast.show = false;
+                    }, 5000);
+                },
+
+                // Lightbox
+                openLightbox(url) {
+                    this.lightbox = { show: true, url };
+                },
+
+                // Payment verification
+                async approvePayment() {
+                    if (this.payment.verifying) return;
+
+                    // Optimistic update
+                    this.payment.verifying = true;
+                    this.payment.verified_at = new Date().toISOString();
+
+                    try {
+                        const response = await fetch('{{ route('admin.rentals.payment.approve', $rental) }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showToast('success', 'Payment approved successfully');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'Approval failed');
+                        }
+                    } catch (error) {
+                        // Rollback optimistic update
+                        this.payment.verified_at = null;
+                        this.showToast('error', error.message || 'Approval failed. Please try again.');
+                    } finally {
+                        this.payment.verifying = false;
+                    }
+                },
+
+                async confirmRejectPayment() {
+                    if (this.paymentRejectionReason.length < 10) {
+                        alert('Rejection reason must be at least 10 characters');
+                        return;
+                    }
+
+                    // Optimistic update
+                    this.payment.rejected_at = new Date().toISOString();
+                    this.payment.rejection_reason = this.paymentRejectionReason;
+                    this.rejectingPayment = false;
+
+                    try {
+                        const response = await fetch('{{ route('admin.rentals.payment.reject', $rental) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                rejection_reason: this.paymentRejectionReason 
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showToast('success', 'Payment rejected, tenant notified');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'Rejection failed');
+                        }
+                    } catch (error) {
+                        // Rollback
+                        this.payment.rejected_at = null;
+                        this.payment.rejection_reason = null;
+                        this.showToast('error', error.message || 'Rejection failed. Please try again.');
+                    }
+                },
+
+                // Document verification helpers
+                verifiedDocCount() {
+                    return this.documents.filter(d => d.verified_at).length;
+                },
+
+                totalDocCount() {
+                    return this.documents.length;
+                },
+
+                allDocumentsVerified() {
+                    return this.verifiedDocCount() === this.totalDocCount();
+                },
+
+                anyDocumentUploaded() {
+                    return this.documents.some(d => d.uploaded);
+                },
+
+                hasPendingDocs() {
+                    return this.documents.some(d => d.uploaded && !d.verified_at && !d.rejected_at);
+                },
+
+                // Document verification actions
+                async approveDocument(docId) {
+                    const doc = this.documents.find(d => d.id === docId);
+                    if (!doc || doc.verifying) return;
+
+                    // Optimistic update
+                    doc.verified_at = new Date().toISOString();
+                    doc.verifying = true;
+
+                    try {
+                        const response = await fetch(`/admin/rentals/documents/${docId}/approve`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showToast('success', 'Document approved');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'Approval failed');
+                        }
+                    } catch (error) {
+                        // Rollback
+                        doc.verified_at = null;
+                        this.showToast('error', error.message || 'Approval failed. Please try again.');
+                    } finally {
+                        doc.verifying = false;
+                    }
+                },
+
+                startReject(docId) {
+                    this.rejectingDoc = docId;
+                    this.rejectionReason = '';
+                    this.$nextTick(() => this.$refs['rejectionTextarea' + docId]?.focus());
+                },
+
+                async confirmRejectDocument(docId) {
+                    if (this.rejectionReason.length < 10) {
+                        alert('Rejection reason must be at least 10 characters');
+                        return;
+                    }
+
+                    const doc = this.documents.find(d => d.id === docId);
+                    if (!doc) return;
+
+                    // Optimistic update
+                    doc.rejected_at = new Date().toISOString();
+                    doc.rejection_reason = this.rejectionReason;
+                    this.rejectingDoc = null;
+
+                    try {
+                        const response = await fetch(`/admin/rentals/documents/${docId}/reject`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                rejection_reason: this.rejectionReason 
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showToast('success', 'Document rejected, tenant notified');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'Rejection failed');
+                        }
+                    } catch (error) {
+                        // Rollback
+                        doc.rejected_at = null;
+                        doc.rejection_reason = null;
+                        this.showToast('error', error.message || 'Rejection failed. Please try again.');
+                    }
+                },
+
+                async approveAllDocuments() {
+                    const pendingDocs = this.documents.filter(d => d.uploaded && !d.verified_at && !d.rejected_at);
+                    
+                    if (pendingDocs.length === 0) return;
+
+                    if (!confirm(`Approve all ${pendingDocs.length} documents?`)) return;
+
+                    // Optimistic update
+                    pendingDocs.forEach(doc => {
+                        doc.verified_at = new Date().toISOString();
+                    });
+
+                    try {
+                        const response = await fetch('{{ route('admin.rentals.documents.approve-all', $rental) }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showToast('success', 'All documents approved');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'Bulk approval failed');
+                        }
+                    } catch (error) {
+                        // Rollback
+                        pendingDocs.forEach(doc => {
+                            doc.verified_at = null;
+                        });
+                        this.showToast('error', error.message || 'Bulk approval failed. Try individually.');
+                    }
+                }
+            }
+        }
+    </script>
+    @endpush
 </x-base-layout>

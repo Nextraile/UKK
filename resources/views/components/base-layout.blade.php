@@ -54,7 +54,6 @@
             <div class="mb-6 text-center">
                 <a href="/">
                     <div class="flex items-center justify-center gap-2">
-                        <x-application-logo class="w-10 h-10 fill-current text-primary-600 dark:text-primary-500" />
                         <span class="text-2xl font-bold text-text-strong dark:text-text-strong-dark">SewaKost</span>
                     </div>
                 </a>

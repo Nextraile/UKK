@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Identity\Models\User;
+use App\Domain\Rental\Actions\RejectPayment;
+use App\Domain\Rental\Actions\VerifyDocument;
+use App\Domain\Rental\Actions\VerifyPayment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -111,5 +116,170 @@ class RentalManagementController extends Controller
         return response()->file(
             Storage::disk('private')->path($document->document_path)
         );
+    }
+
+    /**
+     * Approve payment (AJAX endpoint for Phase 12).
+     *
+     * FR-072: Admin approve payment
+     */
+    public function approvePayment(Rental $rental): JsonResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $rental);
+
+        try {
+            /** @var User $admin */
+            $admin = auth()->user();
+
+            app(VerifyPayment::class)->execute($rental->payment, $admin);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment approved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject payment (AJAX endpoint for Phase 12).
+     *
+     * FR-073: Admin reject payment with reason
+     */
+    public function rejectPayment(Request $request, Rental $rental): JsonResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $rental);
+
+        // Validate rejection reason
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|min:10|max:500',
+        ]);
+
+        try {
+            /** @var User $admin */
+            $admin = auth()->user();
+
+            app(RejectPayment::class)->execute(
+                $rental->payment,
+                $validated['rejection_reason'],
+                $admin
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment rejected, tenant notified',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve document (AJAX endpoint for Phase 12).
+     *
+     * FR-088: Admin verifies document
+     */
+    public function approveDocument(RentalDocument $document): JsonResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $document->rental);
+
+        try {
+            app(VerifyDocument::class)->execute($document, true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document approved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject document (AJAX endpoint for Phase 12).
+     *
+     * FR-089: Admin rejects document with reason
+     */
+    public function rejectDocument(Request $request, RentalDocument $document): JsonResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $document->rental);
+
+        // Validate rejection reason
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|min:10|max:500',
+        ]);
+
+        try {
+            app(VerifyDocument::class)->execute(
+                $document,
+                false,
+                $validated['rejection_reason']
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document rejected, tenant notified',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Approve all pending documents in bulk (AJAX endpoint for Phase 12).
+     *
+     * FR-088: Admin verifies document (bulk action)
+     */
+    public function approveAllDocuments(Rental $rental): JsonResponse
+    {
+        // Authorization: admin must own the kost
+        $this->authorize('viewAsAdmin', $rental);
+
+        try {
+            // Get all pending documents (properly typed)
+            $pendingDocuments = $rental->rentalDocuments()
+                ->where('verification_status', 'pending')
+                ->get();
+
+            if ($pendingDocuments->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No pending documents to approve',
+                ], 400);
+            }
+
+            // Approve each document
+            /** @var RentalDocument $document */
+            foreach ($pendingDocuments as $document) {
+                app(VerifyDocument::class)->execute($document, true);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "All {$pendingDocuments->count()} documents approved successfully",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

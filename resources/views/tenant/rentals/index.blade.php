@@ -221,7 +221,7 @@
                                         <x-status-badge :status="$rental->status" type="rental" />
                                     </div>
                                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $rental->room->roomType->name }} - {{ $rental->room->name }}
+                                        {{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}
                                     </p>
                                     <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                                         <span class="flex items-center gap-1">

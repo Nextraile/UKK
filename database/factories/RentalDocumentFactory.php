@@ -55,6 +55,14 @@ class RentalDocumentFactory extends Factory
     }
 
     /**
+     * Indicate that the document is verified (alias for approved).
+     */
+    public function verified(): static
+    {
+        return $this->approved();
+    }
+
+    /**
      * Indicate that the document is rejected.
      */
     public function rejected(string $reason = 'Dokumen tidak jelas, mohon upload ulang dengan kualitas lebih baik.'): static
