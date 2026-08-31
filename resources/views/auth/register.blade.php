@@ -143,15 +143,6 @@
             <x-input-error id="password_confirmation-error" :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <!-- Terms -->
-        <div class="block mt-4">
-            <label for="terms" class="inline-flex items-center">
-                <input id="terms" type="checkbox" class="rounded dark:bg-surface-dark border-border-strong dark:border-border-dark text-primary-600 shadow-xs focus:ring-primary-500 dark:focus:ring-primary-600 dark:focus:ring-offset-surface-raised-dark" name="terms" required aria-describedby="terms-error" />
-                <span class="ms-2 text-sm text-text dark:text-text-muted-dark">Setuju syarat dan ketentuan</span>
-            </label>
-            <x-input-error id="terms-error" :messages="$errors->get('terms')" class="mt-2" />
-        </div>
-
         <!-- Submit -->
         <div class="mt-6">
             <x-primary-button class="w-full justify-center">
