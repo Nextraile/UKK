@@ -18,9 +18,6 @@
       "autoApprove": []
     }
   },
-  "skills": {
-    "path": "./.opencode/skills"
-  },
   "permission": {
     "skill": {
       "*": "allow"
