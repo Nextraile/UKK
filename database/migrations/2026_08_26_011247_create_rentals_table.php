@@ -30,11 +30,16 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
 
-            // Status & cancellation
-            $table->enum('status', ['pending', 'paid', 'confirmed', 'active', 'completed', 'cancelled'])
+            // Status & cancellation (consolidated from multiple migrations)
+            $table->enum('status', ['pending', 'paid', 'rejected', 'documents_pending', 'confirmed', 'active', 'completed', 'cancelled'])
                 ->default('pending');
             $table->text('cancelled_reason')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+
+            // Lifecycle timestamps (consolidated from 2026_08_26_081156 and 2026_08_26_085054)
+            $table->timestamp('confirmed_at')->nullable();
+            $table->timestamp('activated_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
 
             $table->timestamps();
 

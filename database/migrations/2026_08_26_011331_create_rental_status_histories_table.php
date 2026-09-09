@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('rental_id')->constrained('rentals')->onDelete('cascade');
 
-            $table->enum('status', ['pending', 'paid', 'confirmed', 'active', 'completed', 'cancelled']);
+            // Status enum (consolidated from multiple migrations: includes documents_pending and rejected)
+            $table->enum('status', ['pending', 'paid', 'rejected', 'documents_pending', 'confirmed', 'active', 'completed', 'cancelled']);
             $table->foreignId('changed_by')->constrained('users')->onDelete('restrict');
             $table->text('internal_notes')->nullable();
 

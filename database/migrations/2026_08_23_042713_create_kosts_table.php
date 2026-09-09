@@ -27,9 +27,11 @@ return new class extends Migration
             $table->string('account_number', 50)->nullable();
             $table->string('account_holder_name', 150)->nullable();
             $table->enum('status', ['draft', 'pending_review', 'approved', 'active', 'rejected'])->default('draft');
+            $table->timestamp('submitted_at')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('rejected_at')->nullable();
             $table->text('rejected_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
