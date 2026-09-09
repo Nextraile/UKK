@@ -29,14 +29,17 @@ class AdminAccountRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255'],
+            'phone' => ['required', 'string', 'regex:/^08[0-9]{8,11}$/'],
         ];
 
         // Email uniqueness: ignore current admin on update
         if ($this->isMethod('POST')) {
             $rules['email'][] = Rule::unique('users', 'email');
+            $rules['phone'][] = Rule::unique('users', 'phone');
             $rules['password'] = ['required', 'string', 'min:8'];
         } else {
             $rules['email'][] = Rule::unique('users', 'email')->ignore($this->route('admin'));
+            $rules['phone'][] = Rule::unique('users', 'phone')->ignore($this->route('admin'));
         }
 
         return $rules;
@@ -56,6 +59,9 @@ class AdminAccountRequest extends FormRequest
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah terdaftar dalam sistem.',
+            'phone.required' => 'Nomor telepon wajib diisi.',
+            'phone.regex' => 'Nomor telepon harus format 08******** (10-13 digit).',
+            'phone.unique' => 'Nomor telepon sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
         ];

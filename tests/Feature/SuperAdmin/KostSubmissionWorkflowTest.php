@@ -7,7 +7,13 @@ namespace Tests\Feature\SuperAdmin;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Mail\KostApprovedMail;
 use App\Domain\Kost\Mail\KostRejectedMail;
+use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Kost\Models\KostDocumentRequirement;
+use App\Domain\Kost\Models\KostImage;
+use App\Domain\Kost\Models\PriceScheme;
+use App\Domain\Kost\Models\RoomType;
+use App\Domain\Kost\Models\RoomTypeImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -82,19 +88,32 @@ class KostSubmissionWorkflowTest extends TestCase
 
     public function test_super_admin_can_view_submission_detail(): void
     {
+        $category = Category::factory()->create();
         $kost = Kost::factory()->pendingReview()->create([
             'name' => 'Kost Detail Test',
             'description' => 'Comfortable kost near campus',
             'facilities' => ['WiFi', 'AC'],
             'rules' => ['No smoking', 'No pets'],
         ]);
+        $kost->categories()->attach($category);
 
         $response = $this->actingAs($this->superAdmin)
             ->get(route('super-admin.kost-submissions.show', $kost));
 
         $response->assertOk();
-        // View expects address relation - skip content assertions for now
-        // TODO: Create Address factory and test content after COMP-002 Phase 6
+
+        // Verify new relations are eager loaded
+        $submission = $response->viewData('submission');
+        $this->assertTrue($submission->relationLoaded('kostImages'));
+        $this->assertTrue($submission->relationLoaded('documentRequirements'));
+        $this->assertTrue($submission->relationLoaded('roomTypes'));
+
+        // Verify room types have nested relations loaded if any exist
+        if ($submission->roomTypes->isNotEmpty()) {
+            $firstRoomType = $submission->roomTypes->first();
+            $this->assertTrue($firstRoomType->relationLoaded('roomTypeImages'));
+            $this->assertTrue($firstRoomType->relationLoaded('priceSchemes'));
+        }
     }
 
     public function test_super_admin_can_approve_pending_submission(): void
@@ -334,5 +353,117 @@ class KostSubmissionWorkflowTest extends TestCase
             return $mail->hasTo($kost->owner->email)
                 && $mail->kost->id === $kost->id;
         });
+    }
+
+    public function test_submission_detail_displays_kost_images(): void
+    {
+        $category = Category::factory()->create();
+        $kost = Kost::factory()->pendingReview()->create();
+        $kost->categories()->attach($category);
+
+        // Create kost images
+        KostImage::factory()->count(3)->create(['kost_id' => $kost->id]);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->get(route('super-admin.kost-submissions.show', $kost));
+
+        $response->assertOk();
+        $response->assertSee('Kost Images (3)');
+        $response->assertViewHas('submission', function ($submission) {
+            return $submission->kostImages->count() === 3;
+        });
+    }
+
+    public function test_submission_detail_displays_payment_configuration(): void
+    {
+        $category = Category::factory()->create();
+        $kost = Kost::factory()->pendingReview()->create([
+            'qris_image_path' => 'qris/test.png',
+            'bank_name' => 'BCA',
+            'account_number' => '1234567890',
+            'account_holder_name' => 'John Doe',
+        ]);
+        $kost->categories()->attach($category);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->get(route('super-admin.kost-submissions.show', $kost));
+
+        $response->assertOk();
+        $response->assertSee('Payment Configuration');
+        $response->assertSee('QRIS');
+        $response->assertSee('Bank Transfer');
+    }
+
+    public function test_submission_detail_displays_document_requirements(): void
+    {
+        $category = Category::factory()->create();
+        $kost = Kost::factory()->pendingReview()->create();
+        $kost->categories()->attach($category);
+
+        // Create document requirements
+        KostDocumentRequirement::factory()->create([
+            'kost_id' => $kost->id,
+            'document_type' => 'ktp',
+            'is_required' => true,
+            'reason' => 'Untuk verifikasi identitas',
+        ]);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->get(route('super-admin.kost-submissions.show', $kost));
+
+        $response->assertOk();
+        $response->assertSee('Document Requirements (1)');
+        $response->assertSee('Ktp'); // Formatted title case
+        $response->assertSee('Wajib');
+        $response->assertSee('Untuk verifikasi identitas');
+    }
+
+    public function test_submission_detail_displays_enhanced_room_type_details(): void
+    {
+        $category = Category::factory()->create();
+        $kost = Kost::factory()->pendingReview()->create();
+        $kost->categories()->attach($category);
+
+        $roomType = RoomType::factory()->create([
+            'kost_id' => $kost->id,
+            'name' => 'Standard Room',
+            'room_size' => '3x4 m',
+            'max_occupants' => 2,
+        ]);
+
+        // Create room type image
+        RoomTypeImage::factory()->create(['room_type_id' => $roomType->id]);
+
+        // Create multiple price schemes
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType->id,
+            'name' => '1 Month',
+            'duration_value' => 1,
+            'duration_unit' => 'month',
+            'price' => 1500000,
+            'is_active' => true,
+        ]);
+
+        PriceScheme::factory()->create([
+            'room_type_id' => $roomType->id,
+            'name' => '3 Month',
+            'duration_value' => 3,
+            'duration_unit' => 'month',
+            'price' => 4000000,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->get(route('super-admin.kost-submissions.show', $kost));
+
+        $response->assertOk();
+        $response->assertSee('Standard Room');
+        $response->assertSee('3x4 m');
+        $response->assertSee('Max 2 orang');
+        $response->assertSee('Price Schemes:');
+        $response->assertSee('1 Month');
+        $response->assertSee('3 Month');
+        $response->assertSee('1.500.000'); // Indonesian number format
+        $response->assertSee('4.000.000');
     }
 }

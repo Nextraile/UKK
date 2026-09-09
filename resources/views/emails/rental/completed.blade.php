@@ -1,23 +1,24 @@
-@component('mail::message')
-# Rental Selesai
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->user->first_name},",
+])
 
-Halo {{ $rental->user->name }},
+@section('content')
+    <p style="margin:0 0 8px 0;">
+        Rental Anda untuk <strong>{{ $rental->room->roomType->kost->name }}</strong> telah selesai. Terima kasih!
+    </p>
 
-Rental Anda untuk **{{ $rental->room->roomType->kost->name }}** telah selesai.
+    @component('emails.components.panel')
+        <p style="margin:0;"><strong style="color:#111827;">Periode:</strong> {{ $rental->start_date->format('d M Y') }} - {{ $rental->end_date->format('d M Y') }}</p>
+    @endcomponent
 
-@component('mail::panel')
-**Periode:** {{ $rental->start_date->format('d M Y') }} - {{ $rental->end_date->format('d M Y') }}
-@endcomponent
+    <p style="margin:16px 0;"><strong style="color:#111827;">Bagikan Pengalaman Anda:</strong></p>
+    <p style="margin:0 0 16px 0;">
+        Bantu calon penyewa lain dengan membagikan review tentang kost ini.
+    </p>
 
-## Bagikan Pengalaman Anda
-
-Bantu calon penyewa lain dengan membagikan review tentang kost ini.
-
-@component('mail::button', ['url' => route('rentals.show', $rental)])
-Tulis Review
-@endcomponent
-
-Terima kasih telah menggunakan layanan kami!
-
-{{ config('app.name') }}
-@endcomponent
+    @include('emails.components.button', [
+        'url' => route('rentals.show', $rental),
+        'text' => 'Tulis Review',
+        'variant' => 'secondary'
+    ])
+@endsection

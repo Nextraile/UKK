@@ -38,7 +38,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $submission->name }}</div>
                                 <div class="text-sm text-gray-500">{{ $submission->roomTypes->count() }} room types</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $submission->owner->name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $submission->owner->first_name }} {{ $submission->owner->last_name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $submission->categories->pluck('name')->join(', ') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $submission->updated_at->format('d M Y, H:i') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

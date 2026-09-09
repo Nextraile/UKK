@@ -66,12 +66,6 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         Route::post('/rentals/{rental}/payment', [RentalController::class, 'uploadPayment'])->name('tenant.rentals.payment.upload');
         Route::post('/rentals/{rental}/payment/cancel', [RentalController::class, 'cancelPaymentUpload'])->name('tenant.rentals.payment.cancel');
 
-        // Payment proof and QRIS download with authorization (VULN-003 fix)
-        Route::get('/rentals/{rental}/payment/proof', [PaymentController::class, 'downloadProof'])
-            ->name('rentals.payment.proof');
-        Route::get('/rentals/{rental}/payment/qris', [PaymentController::class, 'downloadQris'])
-            ->name('rentals.payment.qris');
-
         // Document upload (TASK-053, Phase 11: Per-card AJAX upload)
         Route::post('/rentals/{rental}/documents', [RentalController::class, 'uploadDocument'])
             ->name('tenant.rentals.documents.upload');
@@ -79,10 +73,6 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         // Bulk document upload (unified: upload, replace, delete in one submission)
         Route::post('/rentals/{rental}/documents/bulk', [RentalController::class, 'bulkUploadDocuments'])
             ->name('tenant.rentals.documents.bulk-upload');
-
-        // Document download with authorization (VULN-001 fix)
-        Route::get('/rentals/documents/{document}/download', [RentalController::class, 'downloadDocument'])
-            ->name('rentals.documents.download');
 
         // Rental cancellation (TASK-054)
         Route::get('/rentals/{rental}/cancel', [RentalController::class, 'cancelForm'])
@@ -101,6 +91,20 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
             ->name('rentals.reviews.update');
         Route::delete('/rentals/{rental}/reviews', [ReviewController::class, 'destroy'])
             ->name('rentals.reviews.destroy');
+    });
+
+    // Payment proof and QRIS download with authorization (moved outside role:user to allow admin access)
+    // VULN-003 fix: Authorization handled by RentalPolicy::viewPaymentProof
+    Route::middleware('auth')->group(function () {
+        Route::get('/rentals/{rental}/payment/proof', [PaymentController::class, 'downloadProof'])
+            ->name('rentals.payment.proof');
+        Route::get('/rentals/{rental}/payment/qris', [PaymentController::class, 'downloadQris'])
+            ->name('rentals.payment.qris');
+
+        // Document download with authorization (VULN-001 fix)
+        // Authorization handled by RentalPolicy::viewDocument (tenant + admin access)
+        Route::get('/rentals/documents/{document}/download', [RentalController::class, 'downloadDocument'])
+            ->name('rentals.documents.download');
     });
 
     // Admin Kost Management (COMP-002: Kost Publication)
@@ -232,7 +236,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
             ->name('kost-submissions.reject');
 
         // Category Management (COMP-003: Kost Configuration)
-        Route::resource('categories', CategoryController::class);
+        Route::resource('categories', CategoryController::class)->except(['show']);
 
         // Admin Account Management (COMP-009, FR-111—FR-116)
         Route::resource('admins', AdminManagementController::class)

@@ -209,17 +209,6 @@
             role="dialog" 
             aria-modal="true">
             <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <!-- Background overlay -->
-                <div x-show="showModal" 
-                    x-transition:enter="ease-out duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="ease-in duration-200"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-                    @click="closeModal()"
-                    class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
-                    aria-hidden="true"></div>
 
                 <!-- Center modal -->
                 <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>

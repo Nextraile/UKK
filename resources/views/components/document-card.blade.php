@@ -19,8 +19,8 @@
 
 @php
     $documentExists = $document && $document->document_path;
-    $isVerified = $document && $document->verified_at;
-    $isRejected = $document && $document->rejection_reason;
+    $isVerified = $document && $document->verification_status === 'approved';
+    $isRejected = $document && $document->verification_status === 'rejected';
     $isPending = $documentExists && !$isVerified && !$isRejected;
     
     // Card border/background states
@@ -166,14 +166,14 @@
             {{-- Existing uploaded document --}}
             <div class="relative group">
                 <img 
-                    src="{{ Storage::url($document->document_path) }}" 
+                    src="{{ route('rentals.documents.download', $document) }}" 
                     alt="{{ $requirement->document_type }}"
                     class="w-full h-48 object-cover rounded-lg border border-gray-200">
                 
                 {{-- Overlay on hover for desktop --}}
                 <div class="hidden lg:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg items-center justify-center">
                     <a 
-                        href="{{ Storage::url($document->document_path) }}" 
+                        href="{{ route('rentals.documents.download', $document) }}" 
                         target="_blank"
                         class="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
                         Lihat Ukuran Penuh
@@ -216,12 +216,12 @@
     @if($type === 'admin' && $documentExists)
         <div class="space-y-2">
             {{-- Verification Buttons (shown when pending) --}}
-            <div x-show="documents[{{ $docIndex }}] && !documents[{{ $docIndex }}].verified_at && !documents[{{ $docIndex }}].rejected_at" 
+            <div x-show="documents[{{ $docIndex }}]?.verification_status === 'pending'" 
                  class="flex gap-2">
                 <button @click="approveDocument({{ $document->id }})"
                         :disabled="documents[{{ $docIndex }}]?.verifying"
-                        class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-success-600 text-white text-sm font-semibold rounded-lg hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    <span x-show="!documents[{{ $docIndex }}]?.verifying">✓ Approve</span>
+                        class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <span x-show="!documents[{{ $docIndex }}]?.verifying">Approve</span>
                     <span x-show="documents[{{ $docIndex }}]?.verifying" role="status" aria-live="polite" aria-atomic="true" class="flex items-center gap-1">
                         <svg class="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -232,7 +232,7 @@
                 </button>
                 <button @click="startReject({{ $document->id }})"
                         class="flex-1 px-3 py-2 border-2 border-error-600 text-error-600 text-sm font-semibold rounded-lg hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-500 transition-colors">
-                    ✗ Reject
+                    Reject
                 </button>
             </div>
 
@@ -262,20 +262,20 @@
             </div>
 
             {{-- Verified State --}}
-            <div x-show="documents[{{ $docIndex }}]?.verified_at" 
+            <div x-show="documents[{{ $docIndex }}]?.verification_status === 'approved'" 
                  x-cloak
                  class="p-3 bg-success-50 border border-success-200 rounded-lg">
                 <p class="text-xs text-success-700 font-semibold">
-                    ✓ Verified by admin
+                    Verified by admin
                 </p>
             </div>
 
             {{-- Rejected State --}}
-            <div x-show="documents[{{ $docIndex }}]?.rejected_at" 
+            <div x-show="documents[{{ $docIndex }}]?.verification_status === 'rejected'" 
                  x-cloak
                  class="p-3 bg-error-50 border border-error-200 rounded-lg">
                 <p class="text-xs text-error-700 font-semibold">
-                    ✗ Rejected
+                    Rejected
                 </p>
                 <p class="text-xs text-error-600 mt-1" x-text="'Reason: ' + documents[{{ $docIndex }}]?.rejection_reason"></p>
             </div>

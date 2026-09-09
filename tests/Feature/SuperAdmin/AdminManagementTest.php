@@ -77,6 +77,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'New',
                 'last_name' => 'Admin',
                 'email' => 'newadmin@example.com',
+                'phone' => '081234567890',
                 'password' => 'password123',
             ]);
 
@@ -85,6 +86,7 @@ class AdminManagementTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'newadmin@example.com',
+            'phone' => '081234567890',
             'role' => 'admin',
             'first_name' => 'New',
             'last_name' => 'Admin',
@@ -104,6 +106,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'Email',
                 'last_name' => 'Test',
                 'email' => 'emailtest@example.com',
+                'phone' => '081234567891',
                 'password' => 'password123',
             ]);
 
@@ -122,6 +125,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'No',
                 'last_name' => 'Password',
                 'email' => 'nopass@example.com',
+                'phone' => '081234567892',
                 // password missing
             ]);
 
@@ -137,6 +141,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'Duplicate',
                 'last_name' => 'Email',
                 'email' => 'existing@example.com',
+                'phone' => '081234567893',
                 'password' => 'password123',
             ]);
 
@@ -150,10 +155,133 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'Short',
                 'last_name' => 'Password',
                 'email' => 'shortpass@example.com',
+                'phone' => '081234567894',
                 'password' => 'short', // Only 5 characters
             ]);
 
         $response->assertSessionHasErrors('password');
+    }
+
+    public function test_validation_requires_phone_on_create(): void
+    {
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('super-admin.admins.store'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@example.com',
+                'password' => 'password123',
+                // phone missing
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
+    }
+
+    public function test_validation_requires_valid_phone_format(): void
+    {
+        // Invalid format: doesn't start with 08
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('super-admin.admins.store'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john@example.com',
+                'phone' => '0712345678', // Invalid: starts with 07
+                'password' => 'password123',
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
+
+        // Invalid format: too short
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('super-admin.admins.store'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john2@example.com',
+                'phone' => '081234', // Invalid: too short (< 10 digits)
+                'password' => 'password123',
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
+
+        // Invalid format: too long
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('super-admin.admins.store'), [
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'email' => 'john3@example.com',
+                'phone' => '08123456789012345', // Invalid: too long (> 13 digits)
+                'password' => 'password123',
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
+    }
+
+    public function test_phone_must_be_unique(): void
+    {
+        // Create admin with specific phone
+        User::factory()->create([
+            'role' => 'admin',
+            'phone' => '081234567890',
+        ]);
+
+        // Try to create another admin with same phone
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('super-admin.admins.store'), [
+                'first_name' => 'Jane',
+                'last_name' => 'Doe',
+                'email' => 'jane@example.com',
+                'phone' => '081234567890', // Duplicate phone
+                'password' => 'password123',
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
+    }
+
+    public function test_phone_can_stay_same_on_update(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'phone' => '081234567890',
+        ]);
+
+        // Update admin keeping same phone
+        $response = $this->actingAs($this->superAdmin)
+            ->patch(route('super-admin.admins.update', $admin), [
+                'first_name' => 'Updated',
+                'last_name' => 'Name',
+                'email' => $admin->email,
+                'phone' => '081234567890', // Same phone
+            ]);
+
+        $response->assertRedirect(route('super-admin.admins.index'));
+        $this->assertDatabaseHas('users', [
+            'id' => $admin->id,
+            'phone' => '081234567890',
+        ]);
+    }
+
+    public function test_phone_must_be_unique_on_update(): void
+    {
+        // Create two admins with different phones
+        $admin1 = User::factory()->create([
+            'role' => 'admin',
+            'phone' => '081234567890',
+        ]);
+
+        $admin2 = User::factory()->create([
+            'role' => 'admin',
+            'phone' => '089876543210',
+        ]);
+
+        // Try to update admin2 with admin1's phone
+        $response = $this->actingAs($this->superAdmin)
+            ->patch(route('super-admin.admins.update', $admin2), [
+                'first_name' => $admin2->first_name,
+                'last_name' => $admin2->last_name,
+                'email' => $admin2->email,
+                'phone' => '081234567890', // admin1's phone
+            ]);
+
+        $response->assertSessionHasErrors(['phone']);
     }
 
     // ==================== UPDATE TESTS ====================
@@ -165,6 +293,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => 'Updated',
                 'last_name' => 'Name',
                 'email' => $this->admin->email,
+                'phone' => $this->admin->phone,
             ]);
 
         $response->assertRedirect(route('super-admin.admins.index'));
@@ -182,6 +311,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => $this->admin->first_name,
                 'last_name' => $this->admin->last_name,
                 'email' => 'newemail@example.com',
+                'phone' => $this->admin->phone,
             ]);
 
         $this->admin->refresh();
@@ -195,6 +325,7 @@ class AdminManagementTest extends TestCase
                 'first_name' => $this->admin->first_name,
                 'last_name' => $this->admin->last_name,
                 'email' => $this->admin->email,
+                'phone' => $this->admin->phone,
                 'role' => 'superadmin', // Attempt to escalate privilege
             ]);
 

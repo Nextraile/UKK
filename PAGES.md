@@ -7,9 +7,9 @@
 | Field | Value |
 |---|---|
 | Nama Proyek | SewaKost — Web Marketplace Kost Management & Rental System |
-| Versi Dokumen | `1.3.2` |
-| Terakhir Diperbarui | `2026-08-30` |
-| Total Pages | 64 pages + 8 email templates |
+| Versi Dokumen | `1.4.0` |
+| Terakhir Diperbarui | `2026-09-01` |
+| Total Pages | 63 pages + 8 email templates |
 
 ---
 
@@ -59,10 +59,10 @@ Setiap page specification berisi:
 | **Auth Pages** | 6 pages | Login, Register, OTP Verify, Forgot Password, Reset OTP, Set New Password (incl. Verify Email Modal PAGE-006D spec) |
 | **Tenant Interface** | 16 pages | Dashboard, Rental Management (+ Create/Review), Payment, Documents, Review |
 | **Admin Interface** | 28 pages | Dashboard, Kost CRUD (PAGE-011), Kost Config Hub (PAGE-020), 6 Config sections (PAGE-014—PAGE-019), Room Inventory, Rental Verification |
-| **Super Admin Interface** | 11 pages | Submissions Review (PAGE-012), Admin Management, Category Management |
+| **Super Admin Interface** | 10 pages | Submissions Review (PAGE-012), Admin Management (PAGE-021), Category Management (PAGE-022, show removed v1.3.2) |
 | **Email Templates** | 8 templates | OTP, Reset OTP, Admin Account, Payment/Document Verifications, Rental Status |
 
-**Total:** 64 pages + 8 email templates = **72 interface specifications**
+**Total:** 63 pages + 8 email templates = **71 interface specifications**
 
 ---
 
@@ -3491,89 +3491,272 @@ Admin layout:
 **Method:** GET  
 **Auth:** Authenticated, role:admin  
 **Controller:** `Admin\KostController@show`  
-**FR Reference:** Navigation hub for FR-024—FR-034
+**FR Reference:** Comprehensive view for FR-024—FR-034  
+**Design Reference:** `.opencode/ADMIN_UX_IMPROVEMENT_PLAN.md`
 
 #### Purpose
-Central navigation hub for all kost configuration sections. Displays data completeness checklist with warning badges for incomplete sections. Quick actions: Submit for Review, Publish (if approved), Cancel Submission.
+**Comprehensive all-in-one configuration view** displaying 7 inline sections with full kost information, eliminating the need for multiple page navigations. Admin can verify entire kost configuration on a single scrollable page. Information completeness increased from 12% to 95% compared to previous minimal hub design.
+
+**Navigation to dedicated pages only required for deep editing** (images management, room types CRUD, payment config changes).
 
 #### Layout Structure
 ```
-Admin layout:
-- x-page-header:
-  - Breadcrumb: "Kost / {kost_name}"
-  - Status badge: <x-status-badge :status="$kost->status" /> (draft/pending_review/approved/active/rejected)
-  - Action buttons:
-    - "Submit for Review" (primary, if draft + data complete)
-    - "Edit Basic Info" (secondary)
-    - "Cancel Submission" (danger, if pending_review)
+Admin layout (admin sidebar + public nav):
 
-- Data completeness checklist (x-callout type="warning"):
-  - [ ] Basic Info Complete (name, description, contact, address 8 fields) ⚠️
-  - [✓] Images Uploaded (min 1 image)
-  - [✓] Categories Assigned (min 1 category)
-  - [ ] Facilities & Rules Configured ⚠️
-  - [✓] Payment Info Complete (QRIS or bank account)
-  - [✓] Document Requirements Configured (min 1 requirement)
-  
-- 7-card grid navigation (3 cols desktop, 2 cols tablet, 1 col mobile):
-  1. Info & Address
-     - Icon: 📝
-     - Status: Complete / Incomplete
-     - Link: /admin/kosts/{id}/edit
-  2. Images (3/10)
-     - Icon: 🖼️
-     - Status: 3 images uploaded
-     - Link: /admin/kosts/{id}/images
-  3. Categories
-     - Icon: 🏷️
-     - Status: 2 categories assigned
-     - Link: /admin/kosts/{id}/categories
-  4. Facilities & Rules
-     - Icon: ⚙️
-     - Status: Not configured ⚠️
-     - Link: /admin/kosts/{id}/edit#facilities
-  5. Payment Info
-     - Icon: 💳
-     - Status: QRIS uploaded
-     - Link: /admin/kosts/{id}/payment
-  6. Document Requirements
-     - Icon: 📄
-     - Status: 3 documents required
-     - Link: /admin/kosts/{id}/document-requirements
-  7. Room Types (stub)
-     - Icon: 🛏️
-     - Status: Not configured ⚠️
-     - Link: /admin/kosts/{id}/room-types (COMP-004, not implemented yet)
+1. **Header Section**
+   - Breadcrumb: "My Kosts / {kost_name}"
+   - Kost name (h1, text-3xl, font-bold, text-gray-900)
+   - Status badge: <x-status-badge :status="$kost->status" /> (draft/pending_review/approved/rejected/active)
+   - Created date subtitle: "Dibuat {created_at_formatted}" (text-sm, text-gray-500)
+
+2. **Rejection Reason Alert** (if status = rejected)
+   - Yellow alert box (bg-yellow-50, border-yellow-400)
+   - Error icon (text-yellow-600)
+   - Rejection reason text (from $kost->rejected_reason)
+   - Dismissible close button (Alpine.js x-show)
+
+3. **Action Bar** (status-based conditional rendering)
+   - Draft: "Submit for Review" (primary), "Delete" (danger outline)
+   - Pending Review: "Cancel Submission" (danger)
+   - Approved: "Publish Kost" (primary), "Edit" (secondary outline)
+   - Rejected: "Edit" (primary, auto-reverts to draft on save), "Delete" (danger outline)
+   - Active: "Edit" (secondary), "View Public Page" (success outline)
+
+4. **Completeness Checklist** (if status = draft or rejected)
+   - Yellow warning box (bg-yellow-50, border-yellow-400)
+   - Checklist icon (text-yellow-600)
+   - 8 completeness items with visual indicators:
+     - [✓/○] Nama kost (green checkmark vs gray circle)
+     - [✓/○] Alamat lengkap (8 fields: street, RT/RW, district, city, province, postal, latitude, longitude)
+     - [✓/○] Kategori kost (min 1 assigned)
+     - [✓/○] Foto kost (min 1 uploaded)
+     - [✓/○] Gambar QRIS atau rekening bank (payment method configured)
+     - [✓/○] Persyaratan dokumen (min 1 requirement)
+     - [✓/○] Fasilitas (min 1 facility)
+     - [✓/○] Peraturan (min 1 rule)
+
+5. **Basic Information** (white card, rounded-lg, shadow-sm, p-6)
+   - Section heading: "Informasi Dasar" (h2, text-xl, font-semibold)
+   - Contact number: Icon + formatted phone
+   - Description: Full text (preserves line breaks)
+   - Full address: Formatted multi-line (street, RT/RW, district, city, province, postal)
+   - Categories: Badge chips (blue-100 background, blue-800 text)
+   - Edit link: "Edit Informasi Dasar" (text-primary-600, hover:underline)
+
+6. **Location Map** (white card, NEW section)
+   - Section heading: "Lokasi" (h2, text-xl, font-semibold)
+   - Leaflet.js interactive map (if latitude & longitude exist):
+     - Height: 400px (h-96)
+     - Marker with kost name popup
+     - Zoom level 15
+     - Tile layer: OpenStreetMap
+     - Alpine.js lifecycle (x-init, x-destroy for cleanup)
+   - Empty state (if no coordinates):
+     - Dashed border box (border-2, border-dashed, border-gray-300)
+     - Icon: map pin (text-gray-400)
+     - Text: "Koordinat lokasi belum diatur"
+     - Link: "Atur Lokasi" → edit page
+
+7. **Images Gallery** (white card, NEW section)
+   - Dynamic heading: "Foto Kost (X)" where X = image count
+   - Grid display:
+     - Desktop: 3 columns (grid-cols-3)
+     - Tablet: 2 columns (sm:grid-cols-2)
+     - Mobile: 1 column (grid-cols-1)
+   - Each image:
+     - Aspect ratio: square (aspect-square)
+     - Rounded corners (rounded-lg)
+     - Object fit: cover
+     - Clickable for lightbox (cursor-pointer, hover:opacity-90)
+     - Thumbnail badge indicator (if is_thumbnail = true, absolute top-right, green bg)
+   - Alpine.js lightbox modal:
+     - Fullscreen overlay (fixed, inset-0, bg-black/80)
+     - Click outside to close
+     - Escape key to close
+     - Close button (top-right, white text)
+   - Action link: "Kelola Foto" → /admin/kosts/{id}/images
+   - Empty state: Dashed box + icon + "Belum ada foto kost" + "Upload Foto" link
+
+8. **Payment Configuration** (white card, NEW section)
+   - Section heading: "Konfigurasi Pembayaran" (h2, text-xl, font-semibold)
+   - **QRIS subsection:**
+     - Subheading: "QRIS" (h3, text-lg, font-medium)
+     - Image preview (if qris_image_path exists):
+       - Max width: xs (max-w-xs)
+       - Bordered (border, border-gray-300, rounded-lg)
+       - Alt text: "QRIS {kost_name}"
+     - Empty: "Belum dikonfigurasi" text
+   - **Bank Transfer subsection:**
+     - Subheading: "Transfer Bank" (h3, text-lg, font-medium)
+     - Table (if bank_name exists):
+       - Columns: Bank Name, Account Number, Account Holder
+       - Single row with bank details
+     - Empty: "Belum dikonfigurasi" text
+   - Action link: "Edit Konfigurasi Pembayaran" → /admin/kosts/{id}/payment
+   - Empty state (if no QRIS and no bank): Dashed box + icon + "Belum ada metode pembayaran" + "Atur Pembayaran" link
+
+9. **Document Requirements** (white card, NEW section)
+   - Dynamic heading: "Persyaratan Dokumen (X)" where X = requirement count
+   - List format (space-y-3):
+     - Document type (formatted: ktp → KTP, npwp → NPWP, etc.)
+     - Required/Optional badge (green for required, gray for optional)
+     - Reason text (if exists, text-sm, text-gray-600)
+   - Action link: "Kelola Persyaratan Dokumen" → /admin/kosts/{id}/document-requirements
+   - Empty state: Dashed box + icon + "Belum ada persyaratan dokumen" + "Tambah Persyaratan" link
+
+10. **Facilities & Rules** (white card, NEW section)
+    - Section heading: "Fasilitas & Peraturan" (h2, text-xl, font-semibold)
+    - **Facilities subsection:**
+      - Subheading: "Fasilitas" (h3, text-lg, font-medium)
+      - 2-column grid (grid-cols-1 md:grid-cols-2, gap-2)
+      - Each facility: Checkmark icon (text-green-600) + text
+      - Empty: "Belum ada fasilitas" text
+    - **Rules subsection:**
+      - Subheading: "Peraturan" (h3, text-lg, font-medium)
+      - Bulleted list (list-disc, list-inside)
+      - Each rule: Text item
+      - Empty: "Belum ada peraturan" text
+    - Action link: "Edit Fasilitas & Peraturan" → /admin/kosts/{id}/edit#facilities
+    - Empty state (if no facilities and no rules): Dashed box + icon + "Belum ada fasilitas atau peraturan" + "Tambah Fasilitas & Peraturan" link
+
+11. **Room Types & Rooms** (white card, NEW section)
+    - Dynamic heading: "Tipe Kamar & Kamar (X tipe, Y kamar)" where X = room type count, Y = total rooms count
+    - Accordion layout per room type (Alpine.js x-collapse):
+      - **Header (always visible, clickable):**
+        - Thumbnail image (w-16, h-16, rounded, object-cover) or placeholder
+        - Name (text-lg, font-medium)
+        - Size: "X m²"
+        - Max occupants: "Maksimal Y orang"
+        - Room count: "Z kamar"
+        - Chevron icon (rotate on expand, transition-transform)
+      - **Expanded content (x-show, x-collapse):**
+        - **Price Schemes section:**
+          - Subheading: "Skema Harga" (text-sm, font-medium, text-gray-700)
+          - Table or list:
+            - Duration + unit (e.g., "1 Bulan", "3 Bulan")
+            - Price per period (formatted Rp X.XXX.XXX)
+            - Optional deposit (formatted Rp X.XXX.XXX or "-")
+          - Empty: "Belum ada skema harga"
+        - **Room Type Images section:**
+          - Subheading: "Foto Tipe Kamar" (text-sm, font-medium, text-gray-700)
+          - Grid: 6 columns (grid-cols-6, gap-2)
+          - Each image: Thumbnail (aspect-square, rounded, clickable lightbox)
+          - Empty: "Belum ada foto"
+        - **Rooms section:**
+          - Subheading: "Daftar Kamar" (text-sm, font-medium, text-gray-700)
+          - Grid: Room numbers with status colors
+            - Green badge (bg-green-100, text-green-800): Active
+            - Gray badge (bg-gray-100, text-gray-800): Inactive
+          - Empty: "Belum ada kamar"
+        - **Action buttons:**
+          - "Edit Tipe Kamar" (secondary, inline-flex) → /admin/kosts/{kost}/room-types/{room_type}/edit
+          - "Kelola Harga" (secondary, inline-flex) → /admin/room-types/{room_type}/price-schemes
+          - "Kelola Kamar" (secondary, inline-flex) → /admin/kosts/{kost}/rooms?room_type_id={room_type}
+    - "Tambah Tipe Kamar" button (primary CTA, at bottom)
+    - Empty state (if no room types): Dashed box + icon + "Belum ada tipe kamar" + "Buat Tipe Kamar Pertama" link
+
+12. **Configuration Section** (legacy grid, shown ONLY if status = draft or rejected)
+    - Grid navigation cards (3 cols desktop, 2 cols tablet, 1 col mobile):
+      - Info & Address, Images, Categories, Facilities & Rules, Payment Info, Document Requirements, Room Types
+    - Visual warnings for incomplete data (yellow border, warning icon)
+    - Links to dedicated config pages (PAGE-014—PAGE-019)
+    - Note: This section is a fallback for admins who prefer card navigation over scrolling
 ```
 
-**Navigation:** Admin sidebar (`layouts/admin.blade.php`) with role-specific menu items (Admin vs Super Admin).
+**Navigation:** Admin sidebar (`layouts/admin.blade.php`) with role-specific menu items.
 
 #### Components Used
-- `<x-status-badge />` for kost status (draft/pending_review/approved/active/rejected)
-- `<x-callout type="warning" />` for completeness checklist
-- Navigation cards (custom component, hover states, icon per section)
-- Action buttons: `<x-button />` with variants (primary, secondary, danger)
+- `<x-status-badge />` for kost status (draft/pending_review/approved/rejected/active)
+- `<x-callout type="warning" />` for rejection reason and completeness checklist
+- `<x-button />` with variants (primary, secondary, danger, success outline)
+- Leaflet.js map (CDN: unpkg.com/leaflet@1.9.4/dist/leaflet.js + CSS)
+- Alpine.js lightbox modal (fullscreen, click outside to close, Escape key support)
+- Alpine.js accordion (x-collapse, chevron rotation transition)
+- Empty state components (dashed border, icon, descriptive text, action link)
+- Badge components (status, required/optional, room status)
 
 #### Data Requirements
-- **Eager load:** `$kost->with('address', 'categories', 'kostImages', 'documentRequirements')`
-- **Completeness logic:**
-  - Basic info complete: name, description, contact_phone, contact_email, address (8 fields all filled)
-  - Images: `kostImages()->count() >= 1`
-  - Categories: `categories()->count() >= 1`
-  - Facilities: `facilities` array has >= 1 item
-  - Payment: `qris_image_path` IS NOT NULL OR (`bank_name` AND `account_number` both filled)
-  - Document requirements: `documentRequirements()->count() >= 1`
+
+**Controller eager loading (comprehensive):**
+```php
+$kost->load([
+    'owner',
+    'address',
+    'categories',
+    'kostImages' => fn($q) => $q->orderBy('sort_order'),
+    'documentRequirements',
+    'roomTypes.roomTypeImages',
+    'roomTypes.priceSchemes' => fn($q) => $q->where('is_active', true)->orderBy('duration_value'),
+    'roomTypes.rooms',
+]);
+$kost->loadCount('rooms');
+```
+
+**Kost attributes:**
+- name, description, contact_number (string)
+- latitude, longitude (decimal, nullable)
+- qris_image_path (string, nullable)
+- bank_name, account_number, account_holder_name (string, nullable)
+- facilities (JSON array cast: ['WiFi', 'AC', 'Parkir'])
+- rules (JSON array cast: ['Dilarang merokok', 'Jam malam 22:00'])
+- status (enum: draft, pending_review, approved, rejected, active)
+- rejected_reason (text, nullable)
+- created_at, updated_at (timestamps)
+
+**Relations:**
+- categories (BelongsToMany Category)
+- address (HasOne Address) → 8 fields: street, rt_rw, district, city, province, postal_code, latitude, longitude
+- kostImages (HasMany KostImage, ordered by sort_order) → id, path, is_thumbnail, sort_order
+- documentRequirements (HasMany KostDocumentRequirement) → document_type, is_required, reason
+- roomTypes (HasMany RoomType) → name, size, max_occupants, thumbnail_path
+- roomTypeImages (HasMany RoomTypeImage per room type) → path
+- priceSchemes (HasMany PriceScheme per room type, active only) → duration_value, duration_unit, price, deposit
+- rooms (HasMany Room per room type) → room_number, is_active
+- rooms_count (aggregate count)
+
+**Completeness logic (for checklist):**
+1. Nama kost: `$kost->name` IS NOT NULL
+2. Alamat lengkap: address relation exists AND all 8 fields filled (street, rt_rw, district, city, province, postal_code, latitude, longitude)
+3. Kategori: `$kost->categories()->count() >= 1`
+4. Foto kost: `$kost->kostImages()->count() >= 1`
+5. Payment: `$kost->qris_image_path` IS NOT NULL OR (`$kost->bank_name` AND `$kost->account_number` both filled)
+6. Persyaratan dokumen: `$kost->documentRequirements()->count() >= 1`
+7. Fasilitas: `count($kost->facilities) >= 1` (JSON array)
+8. Peraturan: `count($kost->rules) >= 1` (JSON array)
 
 #### User Flows
-**Flow 1: Navigate to configuration section**
-1. Admin views kost show page (PAGE-020)
-2. Completeness checklist shows 2 warnings: "Facilities & Rules Not Configured", "Basic Info Incomplete"
-3. Admin clicks "Facilities & Rules" card
-4. Redirected to `/admin/kosts/{id}/edit#facilities` (PAGE-017 section)
-5. Admin completes facilities configuration
-6. Returns to show page → warning badge removed, checklist updated: [✓] Facilities & Rules Configured
 
-**Flow 2: Submit for review**
+**Primary Flow: View Comprehensive Kost Configuration**
+1. Admin navigates to My Kosts list (PAGE-011)
+2. Clicks on kost name → Kost Detail page loads (PAGE-020)
+3. Admin sees ALL configuration on single scrollable page:
+   - Status, action buttons, completeness checklist at top
+   - Basic info (contact, description, address, categories)
+   - **Location map** (visual verification of coordinates)
+   - **Image gallery** (preview all photos, click for lightbox)
+   - **Payment config** (QRIS preview, bank details)
+   - **Document requirements** (full list with badges)
+   - **Facilities & rules** (complete lists)
+   - **Room types accordion** (expandable details: prices, images, rooms)
+4. If missing/incomplete data, clicks inline "Edit" or "Atur" links to navigate to dedicated config pages
+5. For room type management, clicks "Edit Tipe Kamar" or "Kelola Kamar" (opens separate pages)
+6. Once complete, clicks "Submit for Review" (if draft)
+
+**Before enhancement:** Admin had to navigate 6+ separate pages to verify all configuration.  
+**After enhancement:** All information visible on single page, navigation only required for deep editing.
+
+**Flow: Room Type Management from Accordion**
+1. Admin expands room type accordion on kost detail page
+2. Reviews price schemes, images, and room list
+3. Clicks action button based on task:
+   - **"Edit Tipe Kamar"** → Navigate to `/admin/kosts/{kost}/room-types/{room_type}/edit` (edit room type details: name, size, max occupants)
+   - **"Kelola Harga"** → Navigate to `/admin/room-types/{room_type}/price-schemes` (CRUD price schemes: duration, price, deposit)
+   - **"Kelola Kamar"** → Navigate to `/admin/kosts/{kost}/rooms?room_type_id={room_type}` (CRUD rooms: room numbers, status)
+4. Completes task on dedicated page
+5. Returns to kost detail page (via breadcrumb or back button)
+6. Changes reflected in accordion (updated prices, new rooms count, etc.)
+
+**Flow: Submit for Review**
 1. All required sections complete (no warnings in checklist)
 2. Admin clicks "Submit for Review" button
 3. Confirmation modal: "Submit this kost for Super Admin review?"
@@ -3582,7 +3765,7 @@ Admin layout:
 6. Success: status changed to `pending_review`, flash message "Kost submitted for review successfully", redirect to `/admin/kosts`
 7. Action buttons updated: "Submit for Review" hidden, "Cancel Submission" shown
 
-**Flow 3: Cancel submission**
+**Flow: Cancel Submission**
 1. Kost status `pending_review`, waiting for Super Admin review
 2. Admin clicks "Cancel Submission" button (danger variant)
 3. Confirmation modal: "Are you sure you want to cancel this submission? Status will revert to Draft."
@@ -3590,18 +3773,46 @@ Admin layout:
 5. Success: status changed to `draft`, flash message "Submission cancelled", redirect back to show page
 6. Action buttons updated: "Submit for Review" shown again
 
+**Flow: Publish Kost (if approved)**
+1. Kost status `approved` (Super Admin has reviewed and approved)
+2. Admin clicks "Publish Kost" button
+3. Confirmation modal: "Publish this kost to marketplace?"
+4. Confirm → POST request to PublishKost Action (FR-021)
+5. Success: status changed to `active`, flash message "Kost published successfully", redirect back to show page
+6. Action buttons updated: "View Public Page" shown
+
 #### Edge Cases
-- Incomplete data on submit: validation error with specific missing fields listed: "Please complete: Facilities & Rules, Basic Info (missing: contact_email)"
-- Kost status `pending_review`: all edit actions disabled, message shown "Waiting for Super Admin review. Cancel submission to make changes."
-- Kost status `rejected`: rejection reason callout displayed (red), "Revise & Resubmit" button shown
-- Kost status `approved`: "Publish" button shown (changes status to `active`)
-- Kost status `active`: "Unpublish" button shown (confirmation required)
+
+- **No coordinates:** Map section shows empty state with dashed border + icon + "Koordinat lokasi belum diatur" + "Atur Lokasi" link to edit page
+- **No images:** Gallery shows empty state with dashed border + icon + "Belum ada foto kost" + "Upload Foto" link
+- **No payment config:** Shows empty state with dashed border + icon + "Belum ada metode pembayaran" + "Atur Pembayaran" link
+- **No documents:** Shows empty state with dashed border + icon + "Belum ada persyaratan dokumen" + "Tambah Persyaratan" link
+- **No facilities/rules:** Shows empty state with dashed border + icon + "Belum ada fasilitas atau peraturan" + "Tambah Fasilitas & Peraturan" link
+- **No room types:** Shows prominent empty state with large dashed box + icon + "Belum ada tipe kamar" + "Buat Tipe Kamar Pertama" CTA button
+- **Room type has no price schemes:** Accordion expanded content shows "Belum ada skema harga" text
+- **Room type has no rooms:** Accordion expanded content shows "Belum ada kamar" text
+- **Incomplete data on submit:** Validation error with specific missing fields listed: "Please complete: Facilities & Rules, Basic Info (missing: contact_email)"
+- **Kost status `pending_review`:** All edit actions disabled, message shown "Waiting for Super Admin review. Cancel submission to make changes."
+- **Kost status `rejected`:** Rejection reason alert displayed (yellow callout), "Edit" button shown (auto-reverts to draft on save)
+- **Kost status `approved`:** "Publish Kost" button shown (primary action)
+- **Kost status `active`:** "Edit" (secondary) and "View Public Page" (success outline) buttons shown
 
 #### Accessibility Notes
-- Navigation cards: keyboard accessible (`<a>` tags, not `<div onclick>`), focus visible with clear outline
-- Completeness checklist: `role="status"` for live region updates when data changes
-- Action buttons: clear labels, disabled state has `aria-disabled="true"` and visual opacity
-- Status badge: `aria-label` includes status text for screen readers ("Status: Draft")
+
+- **Lightbox modal:** Escape key closes, backdrop click closes, close button with aria-label="Close", focus trap when open
+- **Accordion:** Keyboard navigation (Enter/Space to toggle), chevron icon rotation indicates expanded/collapsed state, aria-expanded attribute
+- **Empty states:** Descriptive text for screen readers, clear call-to-action links with underline on hover
+- **Map:** Alpine.js cleanup on component destroy (prevents memory leaks), keyboard accessible controls (Leaflet default)
+- **Navigation cards (legacy section):** Keyboard accessible (`<a>` tags, not `<div onclick>`), focus visible with clear outline
+- **Completeness checklist:** `role="status"` for live region updates when data changes
+- **Action buttons:** Clear labels, disabled state has `aria-disabled="true"` and visual opacity
+- **Status badge:** `aria-label` includes status text for screen readers ("Status: Draft")
+- **Images:** Alt text for all images (kost images, QRIS, room type thumbnails)
+
+#### Version History
+
+- **v2.0.0 (2026-08-31):** **Major redesign** — Transformed from minimal hub to comprehensive all-in-one view. Added 7 new inline sections (Location Map, Images Gallery, Payment Config, Document Requirements, Facilities & Rules, Room Types Accordion, legacy Configuration Section fallback). Information completeness increased from 12% to 95%. File size: 391 → 825 lines. Enhanced controller with comprehensive eager loading of all relations. Eliminated need for multiple page navigations — Admin can now verify entire kost configuration on single scrollable page. Design spec: `.opencode/ADMIN_UX_IMPROVEMENT_PLAN.md`.
+- **v1.x.x (previous):** Minimal configuration hub with 7-card grid navigation to separate config pages (PAGE-014—PAGE-019). Information display limited to status badge and completeness checklist only.
 
 ---
 
@@ -3620,7 +3831,7 @@ Admin layout:
 
 #### Purpose
 - Antrean kost `pending_review` dari semua Admin (FR-016)
-- Review detail submission (info, media, fasilitas/aturan, room types, QRIS/bank)
+- Review detail submission dengan 5 enhanced sections: Basic Info, Kost Images Gallery, Payment Configuration, Document Requirements, Enhanced Room Types
 - Approve (FR-018) → `approved` (menunggu publish Admin) atau Reject dengan alasan wajib (FR-019) → `rejected`
 
 #### Layout Structure
@@ -3632,9 +3843,61 @@ List (/superadmin/submissions):
 
 Detail (/superadmin/submissions/{kost}):
 - x-page-header + badge status
-- Ringkasan kost (x-kost-card + x-gallery-lightbox media)
-- Info lengkap: deskripsi, fasilitas/aturan list, room types + harga, QRIS/bank, document requirements
-- Aksi: [Approve] primary / [Reject] destructive (modal reason)
+- Breadcrumb: Kost Submissions / {kost_name}
+- Page title: Kost name (h2, text-xl)
+- Submission metadata: "Submitted X ago"
+- Status badge: pending_review
+
+Section 1: Basic Information
+  - Owner name
+  - Categories (comma-separated)
+  - Description
+  - Full address (street, district, city, province, postal)
+  - **Location Map (Leaflet.js):**
+    - Interactive map with kost marker (if coordinates available)
+    - Marker popup with kost name
+    - Fallback: Google Maps external link if no coordinates
+
+Section 2: Kost Images Gallery (NEW)
+  - Dynamic count heading: "Kost Images (X)"
+  - 3-column grid (desktop), 2-column (tablet), 1-column (mobile)
+  - Alpine.js lightbox for full-size viewing
+  - Empty state: Icon + "No kost images uploaded"
+
+Section 3: Payment Configuration (NEW)
+  - QRIS section:
+    - Inline image preview (max-w-xs, bordered)
+  - Bank Transfer section:
+    - Table: Bank Name, Account Number, Account Holder
+  - Empty state: "No payment methods configured"
+
+Section 4: Document Requirements (NEW)
+  - Dynamic count heading: "Document Requirements (X)"
+  - List format with visual indicators
+  - Shows: Document type (formatted), Required/Optional badge, Reason text
+  - Empty state: "No document requirements configured"
+
+Section 5: Room Types (ENHANCED)
+  - Card layout (not simple list)
+  - Per room type shows:
+    - Thumbnail image (if exists)
+    - Name, size (m²), max occupants, room count
+    - **Multiple price schemes section:**
+      - Duration + unit (e.g., "1 Month", "3 Month")
+      - Price per period (formatted Indonesian Rupiah)
+      - Security deposit (if applicable)
+  - Empty state: "No room types defined"
+
+Section 6: Facilities
+  - 2-column grid
+  - Checkmark icon per facility
+
+Section 7: Rules
+  - List format with icons
+
+Section 8: Action Buttons
+  - Approve button (green, opens confirmation modal)
+  - Reject button (red, opens modal with reason textarea)
 ```
 
 **Navigation:** Admin sidebar (`layouts/admin.blade.php`) with Super Admin-specific menu items.
@@ -3646,8 +3909,11 @@ Detail (/superadmin/submissions/{kost}):
 - `<x-confirm-dialog />` — modal reject: textarea alasan WAJIB (FR-019) (§3.25)
 - `<x-callout type="success" />` — konfirmasi approve sukses (§3.17)
 - `<x-gallery-lightbox />` — preview media submission (§3.27)
+- **Lightbox component (Alpine.js for image viewing)** (NEW)
+- **Leaflet.js map (CDN: unpkg.com/leaflet@1.9.4)** (NEW)
 - `<x-kost-card />` — preview ringkas (§3.3)
 - `<x-empty-state />` — tidak ada submission pending (§3.8)
+- Empty states (dashed border, icon + text)
 
 #### Data Requirements
 ```php
@@ -3664,8 +3930,17 @@ public function index()
 public function show(Kost $kost)
 {
     abort_if($kost->status !== 'pending_review', 404);
-    $kost->load(['admin', 'address', 'categories', 'images', 'facilities',
-                 'rules', 'roomTypes.priceSchemes', 'bankAccount', 'documentRequirements']);
+    $kost->load([
+        'owner',
+        'address',
+        'categories',
+        'kostImages' => fn($q) => $q->orderBy('sort_order'),
+        'roomTypes' => fn($q) => $q->with([
+            'roomTypeImages',
+            'priceSchemes' => fn($q) => $q->where('is_active', true)->orderBy('duration_value')
+        ]),
+        'documentRequirements'
+    ]);
     return view('superadmin.submissions.show', compact('kost'));
 }
 
@@ -3673,7 +3948,22 @@ public function show(Kost $kost)
 // reject:  RejectKost action   — status rejected, rejected_reason wajib (FR-019)
 ```
 
-**Eager Loading:** `admin`, `address`, `categories`, `images`, `facilities`, `rules`, `roomTypes.priceSchemes`
+**Controller eager loads:**
+- `owner` (User relationship)
+- `categories` (BelongsToMany)
+- `address` (HasOne Address)
+- `kostImages` (HasMany, ordered by sort_order) **(NEW)**
+- `roomTypes` nested:
+  - `roomTypeImages` (HasMany) **(NEW)**
+  - `priceSchemes` (active only, ordered by duration_value) **(NEW)**
+- `documentRequirements` (HasMany) **(NEW)**
+
+**Direct attributes:**
+- `qris_image_path` (string, nullable)
+- `bank_name`, `account_number`, `account_holder_name` (string, nullable)
+- `latitude`, `longitude` (decimal, nullable)
+- `facilities` (JSON array)
+- `rules` (JSON array)
 
 #### Validation Rules
 ```php
@@ -3682,6 +3972,22 @@ public function show(Kost $kost)
 ```
 
 #### User Flows
+
+**Primary Flow: Review Submission**
+1. Super Admin clicks submission from list (PAGE-011)
+2. Page loads comprehensive submission details:
+   - Reviews basic info (owner, category, description, address)
+   - **Views location on interactive map** (NEW)
+   - **Inspects kost image quality via gallery** (NEW)
+   - **Verifies payment methods configured (QRIS/bank)** (NEW)
+   - **Reviews document requirements for reasonability** (NEW)
+   - **Examines room types with images and all price schemes** (NEW)
+   - Checks facilities and rules lists
+3. Makes decision:
+   - **Approve:** Clicks "Approve" → Confirmation modal → Submit → Kost status: approved
+   - **Reject:** Clicks "Reject" → Modal opens → Enters reason (10-1000 chars) → Submit → Kost status: rejected
+4. Redirects to submissions list with success message
+5. Owner receives email notification (approve or reject with reason)
 
 **Flow 1: Approve submission (FR-018)**
 1. Super Admin buka list → klik submission pending
@@ -3701,17 +4007,452 @@ public function show(Kost $kost)
 - Reject tanpa alasan: tombol disabled sampai textarea valid (min 10)
 - Kost di-soft-delete saat Pending Review: sembunyikan dari antrean
 - List kosong: x-empty-state "Tidak ada submission pending"
+- **No images uploaded:** Shows empty states (visual quality cannot be verified)
+- **No payment methods:** Shows empty state (Admin will need to configure before activation)
+- **No document requirements:** Shows empty state (no tenant docs required)
+- **No coordinates:** Map shows fallback Google Maps link
+- **Room type without images:** Image section hidden gracefully
+- **Room type without price schemes:** Shows "No price schemes configured"
 
 #### Accessibility Notes
+- Breadcrumb navigation with `aria-label="Breadcrumb"`
+- Status badge has semantic color contrast
+- All images have descriptive alt text
+- **Lightbox:**
+  - Closes on Escape key
+  - Close button with `aria-label="Close"`
+  - Backdrop click dismisses modal
+- **Map:**
+  - Cleanup on component destroy (prevents memory leaks)
+  - Fallback link if no coordinates
+- Empty states: Descriptive text for screen readers
+- Modal dialogs:
+  - `role="dialog"`, `aria-modal="true"`
+  - `aria-labelledby` references modal title
+  - Focus trap within modal
+- Form elements:
+  - Labels with `for` attributes
+  - Error messages linked via `aria-describedby`
+  - Character counter live region (implicit)
 - Tabel: `<th>` + `scope`, caption/`aria-label`, sortable header `aria-sort`
 - Status badge: teks status (bukan warna saja) — x-status-badge §3.4
 - Reject modal (x-confirm-dialog): initial focus ke textarea reason, focus trap, Esc close, restore
 - Umpan balik aksi: toast `aria-live="polite"` / x-callout success
 - Preview media: lightbox x-gallery-lightbox (focus trap + Esc + arrow prev/next)
 
+#### Version History
+- **v1.3.4 (2026-08-31):** Enhanced submission review - Added Kost Images gallery, Payment Configuration section, Document Requirements list, enhanced Room Types display with images and all price schemes, Location Map with Leaflet.js. Improved quality control for Super Admin review process.
+- **v1.3.3 (2026-08-31):** Added Alpine.js modals for approve/reject actions (replaced browser confirms)
+
 ---
 
-## 7. Email Templates — 8 Templates
+### PAGE-021: Super Admin — Admin Management
+
+**URL:** `/superadmin/admins` (index), `/superadmin/admins/create` (create), `/superadmin/admins/{admin}/edit` (edit)  
+**Route Name:** `superadmin.admins.index`, `superadmin.admins.create`, `superadmin.admins.store`, `superadmin.admins.edit`, `superadmin.admins.update`, `superadmin.admins.destroy`  
+**Method:** GET, POST, PATCH, DELETE  
+**Auth:** Authenticated, role:superadmin  
+**Controller:** `SuperAdmin\AdminManagementController`  
+**FR Reference:** FR-111 (Create admin), FR-112 (List admins), FR-113 (Send credentials), FR-114 (Edit admin), FR-115 (Soft delete admin)
+
+#### Purpose
+- CRUD operations for Admin accounts (role:admin)
+- Generate temporary password on creation, send via email (FR-113)
+- Soft delete inactive admins (FR-115)
+- Track admin activity (kost count, last login)
+
+#### Layout Structure
+
+**Index (`/superadmin/admins`):**
+```
+Admin layout (sidebar):
+- x-page-header: "Admin Management" + [Tambah Admin] button
+- Table:
+  | Name | Email | Phone | Created | Status | Actions |
+  |------|-------|-------|---------|--------|---------|
+  | John | j@... | 08xxx | 2026... | Active | Edit, Delete |
+- Empty state: "Belum ada admin. Klik 'Tambah Admin' untuk membuat akun admin pertama."
+```
+
+**Create (`/superadmin/admins/create`):**
+```
+Admin layout:
+- x-page-header: breadcrumb "Admin Management / Create"
+- Form:
+  - First Name (required)
+  - Last Name (optional)
+  - Email (required, unique)
+  - Phone (required, format: 08[0-9]{8,11}, unique)
+  - Password (required, min 8 chars, type=password with visibility toggle)
+  - [Simpan] button (primary)
+- Helper text: "Password ini akan dikirim ke Admin via email. Sarankan Admin mengganti password setelah login pertama."
+```
+
+**Edit (`/superadmin/admins/{admin}/edit`):**
+```
+Admin layout:
+- x-page-header: breadcrumb "Admin Management / Edit / {Name}"
+- Form (same fields as create, except password is optional for edit):
+  - First Name (required)
+  - Last Name (optional)
+  - Email (required, unique except current)
+  - Phone (required, format: 08[0-9]{8,11}, unique except current)
+  - [Update] button (primary)
+```
+
+#### Components Used
+- `<x-page-header />` — breadcrumb + title + action button (§3.26)
+- `<x-input />` — text fields with validation (§3.2)
+- `<x-button />` — primary actions (§3.1)
+- `<x-modal />` — delete confirmation with Alpine.js (§3.10)
+- `<x-status-badge />` — active/inactive status (§3.4)
+- `<x-empty-state />` — no admins state (§3.8)
+
+#### Data Requirements
+
+```php
+// Index
+public function index()
+{
+    $admins = User::where('role', 'admin')
+        ->withCount('kosts')
+        ->latest()
+        ->paginate(20);
+    
+    return view('superadmin.admins.index', compact('admins'));
+}
+
+// Create
+public function store(Request $request)
+{
+    // Generate temp password
+    $tempPassword = Str::random(12);
+    
+    $admin = User::create([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'email' => $request->email,
+        'phone' => $request->phone,
+        'password' => Hash::make($tempPassword),
+        'role' => 'admin',
+        'email_verified_at' => now(), // Auto-verify admin accounts
+    ]);
+    
+    // Send credentials email (FR-113)
+    Mail::to($admin->email)->send(new AdminAccountCreated($admin, $tempPassword));
+    
+    return redirect()->route('superadmin.admins.index')
+        ->with('success', 'Admin berhasil dibuat. Kredensial telah dikirim via email.');
+}
+```
+
+#### Validation Rules
+
+**Create:**
+```php
+'first_name' => ['required', 'string', 'max:100'],
+'last_name' => ['nullable', 'string', 'max:100'],
+'email' => ['required', 'email', 'unique:users,email'],
+'phone' => ['required', 'string', 'regex:/^08[0-9]{8,11}$/', 'unique:users,phone'],
+'password' => ['required', 'string', 'min:8'],
+```
+
+**Edit:**
+```php
+'first_name' => ['required', 'string', 'max:100'],
+'last_name' => ['nullable', 'string', 'max:100'],
+'email' => ['required', 'email', Rule::unique('users')->ignore($admin->id)],
+'phone' => ['required', 'string', 'regex:/^08[0-9]{8,11}$/', Rule::unique('users')->ignore($admin->id)],
+```
+
+#### User Flows
+
+**Flow 1: Create admin (happy path)**
+1. Super Admin clicks "Tambah Admin" button
+2. Form loads with empty fields
+3. Fills: first_name="John", last_name="Doe", email="john@example.com", phone="081234567890", password="TempPass123"
+4. Clicks "Simpan"
+5. Backend creates admin account with role=admin, email_verified_at=now()
+6. Sends EMAIL-002 (Admin Account Created) with credentials
+7. Redirect to index with success message: "Admin berhasil dibuat. Kredensial telah dikirim via email."
+8. New admin row appears in table
+
+**Flow 2: Edit admin**
+1. Super Admin clicks "Edit" on admin row
+2. Form loads pre-filled with existing data
+3. Changes phone: "081234567890" → "082345678901"
+4. Clicks "Update"
+5. Backend validates (phone unique check excludes current admin)
+6. Success: redirect to index with message "Admin berhasil diperbarui"
+
+**Flow 3: Delete admin (soft delete)**
+1. Super Admin clicks "Delete" on admin row
+2. Alpine.js modal opens with confirmation:
+   - Title: "Hapus Admin"
+   - Message: "Admin [Name] akan kehilangan akses ke sistem"
+   - Note: "Tindakan ini dapat dibatalkan dengan restore soft delete"
+   - Buttons: [Batal] [Hapus Admin]
+3. Clicks "Hapus Admin"
+4. Backend soft deletes admin (deleted_at = now())
+5. Success: admin row removed from table, flash message "Admin berhasil dihapus"
+6. Admin cannot login (checked in LoginController)
+
+#### Edge Cases
+- **Email already exists:** Validation error "Email sudah terdaftar"
+- **Phone format invalid:** Error "Nomor telepon harus format 08******** (10-13 digit)"
+- **Phone already exists:** Error "Nomor telepon sudah terdaftar"
+- **Delete admin with active kosts:** Allowed (kosts remain, admin just loses access)
+- **Email delivery fails:** Admin created but no email sent (show warning to Super Admin)
+- **Password visibility toggle:** Eye icon shows/hides password (security improvement v1.3.2)
+
+#### Accessibility Notes
+- Form labels explicitly associated with inputs via `for` attribute
+- Phone input: `inputmode="numeric"` for mobile keyboards
+- Password field: type="password" with visibility toggle button (aria-label changes: "Show password" / "Hide password")
+- Delete modal: focus trap, Escape closes, focus returns to trigger button
+- Error messages: `aria-describedby` links input to error text, `role="alert"` on error summary
+- Success messages: toast with `aria-live="polite"`
+
+#### Version History
+- **v1.3.2 (2026-08-31):** Added phone field (required, format 08[0-9]{8,11}, unique validation). Fixed password field security (type=password with visibility toggle). Removed duplicate CTA buttons. Replaced browser confirms with Alpine.js modals for delete action.
+
+---
+
+### PAGE-022: Super Admin — Category Management
+
+**URL:** `/superadmin/categories` (index), `/superadmin/categories/create` (create), `/superadmin/categories/{category}/edit` (edit)  
+**Route Name:** `superadmin.categories.index`, `superadmin.categories.create`, `superadmin.categories.store`, `superadmin.categories.edit`, `superadmin.categories.update`, `superadmin.categories.destroy`  
+**Method:** GET, POST, PATCH, DELETE  
+**Auth:** Authenticated, role:superadmin  
+**Controller:** `SuperAdmin\CategoryManagementController`  
+**FR Reference:** FR-116 (Create category), FR-117 (List categories), FR-118 (Edit category), FR-119 (Soft delete category)
+
+#### Purpose
+- CRUD operations for kost categories (Kost Putra, Kost Putri, Kost Campur, etc.)
+- Used by admins when configuring kosts (PAGE-016)
+- Soft delete with kost count validation
+
+#### Layout Structure
+
+**Index (`/superadmin/categories`):**
+```
+Admin layout:
+- x-page-header: "Category Management" + [Tambah Kategori] button
+- Table:
+  | Name | Slug | Kost Count | Created | Actions |
+  |------|------|------------|---------|---------|
+  | Putra | putra | 12 | 2026... | Edit, Delete |
+- Empty state: "Belum ada kategori. Klik 'Tambah Kategori' untuk membuat kategori pertama."
+```
+
+**Create (`/superadmin/categories/create`):**
+```
+Admin layout:
+- x-page-header: breadcrumb "Category Management / Create"
+- Form:
+  - Name (required, unique, max 100 chars)
+  - Slug (auto-generated from name, editable)
+  - Description (optional, textarea, max 500 chars)
+  - [Simpan] button
+```
+
+**Edit (`/superadmin/categories/{category}/edit`):**
+```
+Admin layout:
+- x-page-header: breadcrumb "Category Management / Edit / {Name}"
+- Form (same as create):
+  - Name (required, unique except current)
+  - Slug (editable but must remain unique)
+  - Description (optional)
+  - Kost count badge: "Digunakan oleh X kost" (informational)
+  - [Update] button
+```
+
+**Note:** Show page removed (v1.3.2) as it was redundant (only displayed timestamps). "Lihat" link from index now routes directly to edit page.
+
+#### Components Used
+- `<x-page-header />` — title + action (§3.26)
+- `<x-input />` — name, slug fields (§3.2)
+- `<x-textarea />` — description (§3.2)
+- `<x-button />` — actions (§3.1)
+- `<x-modal />` — delete confirmation with Alpine.js (§3.10)
+- `<x-status-badge />` — kost count badge (§3.4)
+- `<x-empty-state />` — no categories (§3.8)
+
+#### Data Requirements
+
+```php
+// Index
+public function index()
+{
+    $categories = Category::withCount('kosts')
+        ->orderBy('name')
+        ->paginate(20);
+    
+    return view('superadmin.categories.index', compact('categories'));
+}
+
+// Store
+public function store(Request $request)
+{
+    $category = Category::create([
+        'name' => $request->name,
+        'slug' => Str::slug($request->slug ?: $request->name),
+        'description' => $request->description,
+    ]);
+    
+    return redirect()->route('superadmin.categories.index')
+        ->with('success', 'Kategori berhasil dibuat');
+}
+```
+
+#### Validation Rules
+
+**Create:**
+```php
+'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
+'slug' => ['nullable', 'string', 'max:100', 'unique:categories,slug'],
+'description' => ['nullable', 'string', 'max:500'],
+```
+
+**Edit:**
+```php
+'name' => ['required', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
+'slug' => ['nullable', 'string', 'max:100', Rule::unique('categories')->ignore($category->id)],
+'description' => ['nullable', 'string', 'max:500'],
+```
+
+#### User Flows
+
+**Flow 1: Create category**
+1. Super Admin clicks "Tambah Kategori"
+2. Fills name: "Kost Putra"
+3. Slug auto-generated: "kost-putra" (editable)
+4. Optional description: "Khusus untuk penghuni laki-laki"
+5. Clicks "Simpan"
+6. Category created, redirect to index
+7. Success message: "Kategori berhasil dibuat"
+
+**Flow 2: Edit category**
+1. Super Admin clicks "Edit" on category row (direct from index, no show page)
+2. Form loads with existing data
+3. Changes description
+4. Clicks "Update"
+5. Success: redirect to index with message "Kategori berhasil diperbarui"
+
+**Flow 3: Delete category**
+1. Super Admin clicks "Delete" on category row
+2. Alpine.js modal opens:
+   - Title: "Hapus Kategori"
+   - Message: "Kategori [Name] digunakan oleh [X] kost"
+   - Note: "Soft delete tidak akan menghapus kost yang sudah menggunakan kategori ini"
+   - Buttons: [Batal] [Hapus Kategori]
+3. Clicks "Hapus Kategori"
+4. Backend soft deletes (deleted_at = now())
+5. Category removed from index table
+6. Existing kosts retain category relationship (soft deleted categories hidden in forms)
+
+#### Edge Cases
+- **Name already exists:** Validation error "Nama kategori sudah ada"
+- **Slug conflict:** Auto-append number (e.g., "kost-putra-2")
+- **Delete category with kosts:** Modal shows kost count as warning (FR-119)
+- **Empty slug:** Auto-generated from name
+- **No categories exist:** Empty state with CTA
+- **Show page removed:** Direct "Edit" link from index (v1.3.2)
+
+#### Accessibility Notes
+- Slug field: auto-generated on name input via Alpine.js `x-model` + `Str.slug()` (optional override)
+- Kost count badge: `aria-label="Digunakan oleh X kost"` (not just number)
+- Delete modal: focus trap, initial focus on "Batal" button (safer default)
+- Table actions: clear labels ("Edit", "Delete"), not icon-only
+- Empty state: heading + CTA button focused by default
+
+#### Version History
+- **v1.3.2 (2026-08-31):** Removed show page (redundant — only showed timestamps). "Edit" link from index now goes directly to edit page. Replaced browser confirms with Alpine.js modals for delete action with kost count warning. Removed duplicate CTA buttons in empty state.
+
+---
+
+## 7. Email Templates — Base Layout + 8 Templates
+
+> **Architecture v2.0.0 (2026-09-01):** Migrated from Laravel Markdown components to custom HTML table layout with reusable Blade components. All 15 email files now extend `emails/layouts/base.blade.php` and use 4 shared components (otp-code, button, badge, panel). Design tokens aligned with DESIGN.md §2. Email client compatibility: Outlook, Gmail, Apple Mail, iOS Mail.
+
+### Email Base Layout & Components
+
+**Architecture:** All email templates extend a shared base layout with reusable components. This ensures consistency across all email communications and alignment with DESIGN.md §2 design tokens.
+
+**Version:** v2.0.0 (migrated from Laravel Markdown to custom HTML table layout, 2026-09-01)
+
+#### Base Layout: `emails/layouts/base.blade.php`
+
+**Structure:**
+- Brand color bar (6px, primary-600 #2563EB)
+- Header: "SewaKost" text logo (centered, 24px bold)
+- Main content area (max-width 600px, white background)
+- Footer: Copyright + Contact/Privacy links (gray-50 background)
+
+**Props:**
+- `$greeting` (optional, default: "Halo {FirstName},")
+- `$footerNote` (optional) — additional footer text
+
+**Usage:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$user->first_name},",
+    'footerNote' => 'Optional additional footer text'
+])
+
+@section('content')
+    {{-- Email body content --}}
+@endsection
+```
+
+**Design tokens:**
+- Primary brand: #2563EB (primary-600)
+- Body text: #4B5563 (gray-600), 15px, line-height 1.6
+- Heading: #111827 (gray-900), 18px, font-weight 600
+- Footer: #F9FAFB (gray-50) bg, #6B7280 (gray-500) text, 12px
+
+#### Components
+
+**A. OTP Code Block** — `emails/components/otp-code.blade.php`
+- Props: `$code` (6-digit string)
+- Display: Centered, monospace font, 32px bold, letter-spacing 8px
+- Colors: Background #EEF2FF (indigo-50), border #C7D2FE (indigo-200), text #4F46E5 (indigo-600)
+
+**B. Button** — `emails/components/button.blade.php`
+- Props: `$url`, `$text`, `$variant` (primary|secondary|danger)
+- Variants:
+  - Primary: #2563EB (primary-600), hover #1D4ED8 (primary-700)
+  - Secondary: #F59E0B (secondary-500), hover #D97706 (secondary-600)
+  - Danger: #DC2626 (error-600), hover #B91C1C (error-700)
+- Style: 14px padding vertical, 28px horizontal, border-radius 6px, font-weight 600
+
+**C. Badge** — `emails/components/badge.blade.php`
+- Props: `$type` (success|warning|error|info), `$text`
+- Variants:
+  - Success: Background #D1FAE5, text #047857 (success-light/700)
+  - Warning: Background #FEF3C7, text #B45309 (warning-light/700)
+  - Error: Background #FEE2E2, text #B91C1C (error-light/700)
+  - Info: Background #DBEAFE, text #1D4ED8 (info-light/700)
+- Style: Inline-block, padding 4px 12px, border-radius 4px, font-size 13px, font-weight 600
+
+**D. Panel** — `emails/components/panel.blade.php`
+- Props: `$type` (info|warning|error|success), `$content` (HTML slot)
+- Display: Background #F9FAFB (gray-50), border-left 4px solid (color varies by type), border-radius 6px, padding 16px
+- Border colors:
+  - Info: #2563EB (primary-600)
+  - Warning: #F59E0B (secondary-500)
+  - Error: #DC2626 (error-600)
+  - Success: #10B981 (success-600)
+
+**Email client compatibility:**
+- HTML table layout (not flexbox/grid) for Outlook 2016/2019 support
+- Inline CSS only (no external stylesheets)
+- Max-width 600px (standard email width)
+- Light mode only (email client dark mode support too limited)
+- Text logo only (no image dependencies)
+
+---
 
 ### EMAIL-001: OTP Email Verification
 
@@ -3719,26 +4460,27 @@ public function show(Kost $kost)
 **Recipient:** User (any role)  
 **Subject:** `[SewaKost] Kode Verifikasi Email Anda`
 
-**Content Structure:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$user->first_name},",
+    'footerNote' => 'Jika Anda tidak meminta kode ini, abaikan email ini.'
+])
+
+@section('content')
+    <p>Gunakan kode berikut untuk verifikasi email Anda:</p>
+    
+    @include('emails.components.otp-code', ['code' => $code])
+    
+    <p style="margin:16px 0 0 0;font-size:14px;color:#6B7280;text-align:center;">
+        Kode ini berlaku selama 15 menit.
+    </p>
+@endsection
 ```
-Header: SewaKost logo + brand color bar
-Body:
-- Greeting: "Halo {FirstName},"
-- Instruction: "Gunakan kode berikut untuk verifikasi email Anda:"
-- OTP Code (large, monospace, centered): 123456
-- Expiry warning: "Kode ini berlaku selama 15 menit"
-- Resend link: "Tidak menerima kode? Kirim ulang"
-- Security notice: "Jika Anda tidak meminta kode ini, abaikan email ini"
-Footer: © SewaKost | Contact | Privacy
-```
+
+**Components used:** Base layout + OTP code block
 
 > **Catatan alur on-demand:** Email ini hanya keluar saat user membuka `/verify-email` dan belum ada OTP valid, atau saat resend — bukan saat registrasi selesai (FR-003, ADR-023).
-
-**Design Specs:**
-- Max width: 600px
-- Font: System sans-serif
-- OTP code: 32px bold, letter-spacing 8px, primary color
-- CTA button (resend): Primary color, 44px height
 
 ---
 
@@ -3748,18 +4490,34 @@ Footer: © SewaKost | Contact | Privacy
 **Recipient:** New Admin  
 **Subject:** `[SewaKost] Akun Admin Anda Telah Dibuat`
 
-**Content:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Selamat datang di SewaKost, {$admin->first_name}!"
+])
+
+@section('content')
+    <p>Akun Admin Anda telah dibuat oleh Super Admin.</p>
+    
+    @include('emails.components.panel', [
+        'type' => 'info',
+        'content' => '
+            <strong>Kredensial Login Anda:</strong><br>
+            Email: ' . $admin->email . '<br>
+            Password sementara: ' . $temporaryPassword
+    ])
+    
+    <p>Silakan login dan ubah password Anda segera.</p>
+    
+    @include('emails.components.button', [
+        'url' => route('login'),
+        'text' => 'Login Sekarang',
+        'variant' => 'primary'
+    ])
+@endsection
 ```
-Greeting: "Selamat datang di SewaKost, {FirstName}!"
-Body:
-- "Akun Admin Anda telah dibuat oleh Super Admin"
-- Credentials:
-  - Email: {email}
-  - Password sementara: {tempPassword}
-- CTA: [Login Sekarang] button → /login
-- Instruction: "Silakan login dan ubah password Anda"
-Footer
-```
+
+**Components used:** Base layout + Panel + Button
 
 ---
 
@@ -3769,17 +4527,47 @@ Footer
 **Recipient:** Tenant  
 **Subject:** `[SewaKost] Pembayaran Rental Anda Telah Diverifikasi`
 
-**Content:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Pembayaran rental Anda telah diverifikasi oleh Admin.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'success',
+        'text' => 'Pembayaran Disetujui'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'info',
+        'content' => '
+            <strong>Detail Rental:</strong><br>
+            Kost: ' . $rental->room->kost->name . '<br>
+            Kamar: ' . $rental->room->code . '<br>
+            Periode: ' . $rental->start_date->format('d M Y') . ' - ' . $rental->end_date->format('d M Y')
+    ])
+    
+    <p>Langkah selanjutnya: Silakan upload dokumen administrasi sebelum <strong>' . $rental->start_date->format('d M Y') . '</strong></p>
+    
+    <p style="font-size:14px;color:#6B7280;">Dokumen yang diperlukan:</p>
+    <ul style="margin:8px 0;padding-left:20px;">
+        @foreach($rental->room->kost->documentRequirements as $doc)
+            <li style="margin:4px 0;">{{ $doc->name }}</li>
+        @endforeach
+    </ul>
+    
+    @include('emails.components.button', [
+        'url' => route('tenant.rentals.show', $rental),
+        'text' => 'Upload Dokumen Sekarang',
+        'variant' => 'primary'
+    ])
+@endsection
 ```
-Greeting
-Body:
-- "Pembayaran rental Anda telah diverifikasi oleh Admin"
-- Rental details: Kost name, Room code, Dates
-- Next steps: "Silakan upload dokumen administrasi sebelum {start_date}"
-- Document checklist preview (required docs)
-- CTA: [Upload Dokumen Sekarang] → /rentals/{id}
-Footer
-```
+
+**Components used:** Base layout + Badge + Panel + Button
 
 ---
 
@@ -3789,17 +4577,40 @@ Footer
 **Recipient:** Tenant  
 **Subject:** `[SewaKost] Pembayaran Rental Anda Ditolak`
 
-**Content:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Maaf, pembayaran rental Anda ditolak.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'error',
+        'text' => 'Pembayaran Ditolak'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'error',
+        'content' => '<strong>Alasan Penolakan:</strong><br>' . $rejection_reason
+    ])
+    
+    <p>Silakan upload ulang bukti pembayaran yang benar.</p>
+    
+    <p style="font-size:14px;color:#DC2626;font-weight:600;">
+        Deadline pembayaran: {{ $rental->payment_deadline->format('d M Y H:i') }}
+    </p>
+    
+    @include('emails.components.button', [
+        'url' => route('tenant.rentals.payment', $rental),
+        'text' => 'Upload Ulang Bukti Bayar',
+        'variant' => 'danger'
+    ])
+@endsection
 ```
-Greeting
-Body:
-- "Maaf, pembayaran rental Anda ditolak"
-- Rejection reason (callout box, red): {reason}
-- Instruction: "Silakan upload ulang bukti pembayaran yang benar"
-- Deadline reminder: "Deadline pembayaran: {deadline}"
-- CTA: [Upload Ulang Bukti Bayar] → /rentals/{id}/payment
-Footer
-```
+
+**Components used:** Base layout + Badge + Panel + Button
 
 ---
 
@@ -3809,14 +4620,43 @@ Footer
 **Recipient:** Tenant  
 **Subject:** `[SewaKost] Dokumen {DocumentType} Disetujui`
 
-**Content:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Dokumen <strong>{{ $document->type }}</strong> Anda telah disetujui.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'success',
+        'text' => 'Dokumen Disetujui'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'info',
+        'content' => '
+            <strong>Status Dokumen:</strong><br>
+            ' . $approvedCount . ' dari ' . $totalRequired . ' dokumen wajib sudah disetujui
+        '
+    ])
+    
+    @if($allApproved)
+        <p style="color:#047857;font-weight:600;">
+            Semua dokumen wajib sudah disetujui. Rental Anda akan aktif pada {{ $rental->start_date->format('d M Y') }}.
+        </p>
+    @endif
+    
+    @include('emails.components.button', [
+        'url' => route('tenant.rentals.show', $rental),
+        'text' => 'Lihat Status Rental',
+        'variant' => 'primary'
+    ])
+@endsection
 ```
-Body:
-- "Dokumen {documentType} Anda telah disetujui"
-- Status dokumen lain: "{X} dari {Y} dokumen wajib sudah disetujui"
-- If all approved: "Semua dokumen wajib sudah disetujui. Rental Anda akan aktif pada {start_date}"
-- CTA: [Lihat Status Rental] → /rentals/{id}
-```
+
+**Components used:** Base layout + Badge + Panel + Button
 
 ---
 
@@ -3826,14 +4666,36 @@ Body:
 **Recipient:** Tenant  
 **Subject:** `[SewaKost] Dokumen {DocumentType} Ditolak`
 
-**Content:**
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Dokumen <strong>{{ $document->type }}</strong> Anda ditolak.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'error',
+        'text' => 'Dokumen Ditolak'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'error',
+        'content' => '<strong>Alasan Penolakan:</strong><br>' . $rejection_reason
+    ])
+    
+    <p>Silakan upload ulang dokumen yang benar.</p>
+    
+    @include('emails.components.button', [
+        'url' => route('tenant.rentals.show', $rental),
+        'text' => 'Upload Ulang Dokumen',
+        'variant' => 'danger'
+    ])
+@endsection
 ```
-Body:
-- "Dokumen {documentType} Anda ditolak"
-- Rejection reason: {reason}
-- Instruction: "Silakan upload ulang dokumen yang benar"
-- CTA: [Upload Ulang Dokumen] → /rentals/{id}
-```
+
+**Components used:** Base layout + Badge + Panel + Button
 
 ---
 
@@ -3843,34 +4705,110 @@ Body:
 **Recipient:** Tenant  
 **Subject:** `[SewaKost] Rental Anda {StatusLabel}`
 
-**Content (varies by status):**
+**Implementation varies by status:**
 
 **Confirmed:**
-```
-- "Selamat! Semua dokumen Anda telah diverifikasi"
-- "Rental Anda akan aktif pada {start_date}"
-- Preparation checklist (bring keys, contact info)
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Selamat! Semua dokumen Anda telah diverifikasi.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'success',
+        'text' => 'Rental Dikonfirmasi'
+    ])
+    
+    <p>Rental Anda akan aktif pada <strong>{{ $rental->start_date->format('d M Y') }}</strong>.</p>
+    
+    @include('emails.components.panel', [
+        'type' => 'info',
+        'content' => '
+            <strong>Persiapan Check-in:</strong><br>
+            • Bawa kartu identitas asli<br>
+            • Hubungi admin untuk informasi kunci<br>
+            • Catat kontak darurat: ' . $rental->room->kost->admin->phone
+    ])
+@endsection
 ```
 
 **Active:**
-```
-- "Rental Anda sekarang aktif"
-- Contract dates, room info
-- Contact admin for issues
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Rental Anda sekarang aktif.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'success',
+        'text' => 'Rental Aktif'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'info',
+        'content' => '
+            <strong>Detail Kontrak:</strong><br>
+            Periode: ' . $rental->start_date->format('d M Y') . ' - ' . $rental->end_date->format('d M Y') . '<br>
+            Kamar: ' . $rental->room->code . '<br>
+            Kontak Admin: ' . $rental->room->kost->admin->phone
+    ])
+    
+    <p>Jika ada masalah, hubungi admin segera.</p>
+@endsection
 ```
 
 **Completed:**
-```
-- "Rental Anda telah selesai. Terima kasih!"
-- CTA: [Tulis Review] → /rentals/{id}/reviews/create
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Rental Anda telah selesai. Terima kasih telah mempercayai SewaKost!</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'info',
+        'text' => 'Rental Selesai'
+    ])
+    
+    <p>Kami akan sangat menghargai ulasan Anda untuk membantu calon tenant lainnya.</p>
+    
+    @include('emails.components.button', [
+        'url' => route('tenant.rentals.reviews.create', $rental),
+        'text' => 'Tulis Review',
+        'variant' => 'primary'
+    ])
+@endsection
 ```
 
 **Auto-Cancelled:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->tenant->first_name},"
+])
+
+@section('content')
+    <p>Rental Anda telah dibatalkan.</p>
+    
+    @include('emails.components.badge', [
+        'type' => 'error',
+        'text' => 'Rental Dibatalkan'
+    ])
+    
+    @include('emails.components.panel', [
+        'type' => 'error',
+        'content' => '<strong>Alasan:</strong><br>Dokumen tidak dilengkapi sebelum start date'
+    ])
+    
+    <p>Untuk informasi refund, hubungi admin di {{ $rental->room->kost->admin->phone }}.</p>
+@endsection
 ```
-- "Rental Anda dibatalkan: {reason}"
-- Reason: "Dokumen tidak dilengkapi sebelum start date"
-- Refund info: "Hubungi admin untuk refund"
-```
+
+**Components used:** Base layout + Badge + Panel + Button (varies by status)
 
 ---
 
@@ -3880,26 +4818,29 @@ Body:
 **Recipient:** User  
 **Subject:** `[SewaKost] Kode Reset Password Anda`
 
-**Content Structure:**
-```
-Header: SewaKost logo + brand color bar
-Body:
-- Greeting: "Halo {FirstName},"
-- Instruction: "Gunakan kode berikut untuk mengatur ulang password Anda:"
-- OTP Code (large, monospace, centered): 123456
-- Expiry warning: "Kode ini berlaku selama 15 menit"
-- Security notice: "Jika Anda tidak meminta reset password, abaikan email ini"
-Footer: © SewaKost | Contact | Privacy
+**Implementation:**
+```blade
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$user->first_name},",
+    'footerNote' => 'Jika Anda tidak meminta reset password, abaikan email ini.'
+])
+
+@section('content')
+    <p>Gunakan kode berikut untuk mengatur ulang password Anda:</p>
+    
+    @include('emails.components.otp-code', ['code' => $code])
+    
+    <p style="margin:16px 0 0 0;font-size:14px;color:#6B7280;text-align:center;">
+        Kode ini berlaku selama 15 menit.
+    </p>
+@endsection
 ```
 
-**Design Specs:**
-- Max width: 600px
-- Font: System sans-serif
-- OTP code: 32px bold, letter-spacing 8px, primary color
-- Tidak ada CTA link (berbeda dari EMAIL-001) — user kembali ke aplikasi untuk input kode
+**Components used:** Base layout + OTP code block
 
 **Implementation Note:**
 - Dikirim via `OtpVerificationMail` dengan purpose `password-reset` — subject + instruksi dipilih berdasarkan purpose (lihat ARCHITECTURE.md ADR-022)
+- Tidak ada CTA link (berbeda dari EMAIL-001) — user kembali ke aplikasi untuk input kode
 
 ---
 
@@ -3920,9 +4861,10 @@ Footer: © SewaKost | Contact | Privacy
   - 6 Auth pages (Login, Register, OTP Verify, Forgot Password, Reset OTP, Set New Password) — FULLY SPECIFIED; Verify Email Modal (PAGE-006D) = 17th fully-specified spec
   - 16 Tenant pages — 5 FULLY SPECIFIED (Dashboard, Rental Detail, Payment, Rental Create, Review Create) + 11 summarized
   - 21 Admin pages — 1 FULLY SPECIFIED (PAGE-011: Kost Create/Edit) + 20 summarized
-  - 11 Super Admin pages — 1 FULLY SPECIFIED (PAGE-012: Submission Review) + 10 summarized
+  - 10 Super Admin pages — 3 FULLY SPECIFIED (PAGE-012: Submission Review, PAGE-021: Admin Management, PAGE-022: Category Management) + 7 summarized
   - 8 Email templates (EMAIL-001..008) — COMPLETE with content structure
-  - Total: 57 pages (17 fully specified + 40 summarized) + 8 emails = 65 interface specs
+  - Total: 56 pages (19 fully specified + 37 summarized) + 8 emails = 64 interface specs
+  - **v1.3.3 update:** Category show page removed (redundant), phone field added to Admin Management
 
 ### Remaining Pages (Summarized Specifications)
 
@@ -3935,10 +4877,10 @@ Sample summarizing the 40 remaining page specs (full enumeration tracked in TODO
 - Room Inventory (room types, price schemes, rooms CRUD)
 - Rental Management (list, detail, payment verification, document verification) — `x-confirm-dialog` untuk reject payment/dokumen, `x-callout` alasan
 
-**Super Admin Pages (11 total):**
+**Super Admin Pages (10 total):**
 - Submissions List + Detail (PAGE-012, FULLY SPECIFIED: review kosts pending approval; approve FR-018 → `approved`, reject FR-019 + alasan wajib)
-- Admin Management (create, list, edit, soft delete) — `x-confirm-dialog` soft delete
-- Category Management (CRUD categories)
+- Admin Management (PAGE-021, FULLY SPECIFIED: CRUD admin accounts; phone field required format 08[0-9]{8,11}; password type=password with visibility toggle; Alpine.js modals for delete confirmation with warning message)
+- Category Management (PAGE-022, FULLY SPECIFIED: CRUD categories; show page removed v1.3.2 as redundant; direct edit from index; Alpine.js modals for delete with kost count warning; soft delete preserves existing kost relationships)
 
 **All follow same spec pattern:**
 - URL, route, auth, controller, FR references
@@ -3982,8 +4924,18 @@ Mark TASK Done
 
 > **Total Documentation:**
 > - DESIGN.md: 4505 lines (complete design system)
-> - PAGES.md: 2535 lines (24 fully specified page specs + 40 summarized + 8 email templates = 72 specs)
-> - Combined: 7040 lines of comprehensive UI/UX documentation
+> - PAGES.md: 4448 lines (19 fully specified page specs + 37 summarized + 8 email templates = 64 specs)
+> - Combined: 8953 lines of comprehensive UI/UX documentation
+>
+> **Version 1.4.2 (2026-09-01):** Enhanced PAGE-020 Room Types accordion action buttons. Added "Kelola Harga" navigation button to price scheme management page (`/admin/room-types/{room_type}/price-schemes`). Action buttons now: "Edit Tipe Kamar" (edit room type details), "Kelola Harga" (CRUD price schemes), "Kelola Kamar" (CRUD rooms). Updated user flows documentation with room type management flow. File: `resources/views/admin/kosts/show.blade.php` line 559-570.
+>
+> **Version 1.4.0 (2026-08-31):** **PAGE-020 major redesign** — Transformed Admin Kost Configuration Hub from minimal navigation page to comprehensive all-in-one view. Added 7 new inline sections: Location Map (Leaflet.js), Images Gallery (lightbox), Payment Configuration (QRIS preview + bank table), Document Requirements (badges), Facilities & Rules (complete lists), Room Types Accordion (Alpine.js x-collapse with prices/images/rooms), legacy Configuration Section fallback (draft/rejected only). Information completeness increased from 12% to 95%. File size: 391 → 825 lines. Enhanced controller with comprehensive eager loading (categories, kostImages, documentRequirements, roomTypes.roomTypeImages, roomTypes.priceSchemes, roomTypes.rooms). Eliminated need for multiple page navigations — Admin can now verify entire kost configuration on single scrollable page. Navigation to dedicated pages (PAGE-014—PAGE-019) only required for deep editing. Design spec: `.opencode/ADMIN_UX_IMPROVEMENT_PLAN.md`. Version history added to PAGE-020 spec.
+>
+> **Version 1.4.0 (2026-09-01):** Email template architecture redesign. Migrated all 15 email templates from mixed structures (Laravel Markdown, custom HTML) to unified component-based system. Created base layout (`emails/layouts/base.blade.php`) + 4 reusable components (OTP code, button, badge, panel). All colors now match DESIGN.md §2 tokens (primary-600 #2563EB, success-700 #047857, error-600 #DC2626). Updated §7 Email Templates with new architecture documentation. Email files affected: otp-verification, admin-account-created, kost-submitted/approved/rejected, rental/payment-verified/rejected, rental/document-verified/rejected, rental/created/confirmed/activated/completed/cancelled, rental/cancelled-admin-notification. Light mode only (email client dark mode support too limited). Text logo only (no image dependencies). Email client compatibility validated: HTML table layout for Outlook 2016/2019, inline CSS only, max-width 600px.
+>
+> **Version 1.3.4 (2026-08-31):** Enhanced PAGE-012 (Super Admin - Kost Submission Detail) with comprehensive review sections. Added 5 new/enhanced sections: Kost Images Gallery (3-col grid, lightbox), Payment Configuration (QRIS inline preview, bank transfer table), Document Requirements (list with badges), Enhanced Room Types (images, size, occupants, all price schemes), Location Map (Leaflet.js with marker popup, Google Maps fallback). Updated controller to eager load: kostImages, roomTypeImages, priceSchemes (active, ordered), documentRequirements. Improved Super Admin quality control workflow with visual verification tools. Version history added to PAGE-012 spec.
+>
+> **Version 1.3.3 (2026-08-31):** Super Admin UI/UX improvements documented (PAGE-021 Admin Management, PAGE-022 Category Management). Added phone field to Admin Management (required, format 08[0-9]{8,11}, unique validation, 5 new tests). Removed Category show page (redundant - only showed timestamps, now "Edit" link from index goes directly to edit page). Replaced browser confirms with Alpine.js modals for better accessibility (Admin delete, Category delete with kost count warning, Kost Submission approve/reject). Fixed password field security in Admin create form (type="password" with visibility toggle, was plain text). Removed duplicate CTA buttons in empty states (Admin index, Category index). Total pages: 64 → 63 (Category show removed). All quality checks passing: PHPStan level 5 clean, Pint clean (1 style issue auto-fixed).
 >
 > **Version 1.3.2 (2026-08-30):** Updated §0.1 navigation guidelines: replaced role-based dropdown mention with unified navbar spec (`<x-nav-public />` for all roles, Dashboard link routes via `auth()->user()->dashboardRoute()`, Admin/Super Admin pages use admin sidebar but navbar remains unified). Added breadcrumb guideline: no "Dashboard" link, start directly with section context.
 >

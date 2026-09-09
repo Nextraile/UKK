@@ -111,22 +111,6 @@ class CategoryManagementTest extends TestCase
     }
 
     /**
-     * Test SuperAdmin can view category detail.
-     */
-    public function test_superadmin_can_view_category_detail(): void
-    {
-        $superAdmin = User::factory()->superAdmin()->create();
-        $category = Category::factory()->create();
-
-        $response = $this->actingAs($superAdmin)
-            ->get(route('super-admin.categories.show', $category));
-
-        $response->assertOk();
-        $response->assertViewIs('super-admin.categories.show');
-        $response->assertViewHas('category');
-    }
-
-    /**
      * Test SuperAdmin can view edit category form.
      */
     public function test_superadmin_can_view_edit_category_form(): void
@@ -231,11 +215,6 @@ class CategoryManagementTest extends TestCase
             ->post(route('super-admin.categories.store'), [
                 'name' => 'Test Category',
             ]);
-        $response->assertForbidden();
-
-        // Show
-        $response = $this->actingAs($admin)
-            ->get(route('super-admin.categories.show', $category));
         $response->assertForbidden();
 
         // Edit

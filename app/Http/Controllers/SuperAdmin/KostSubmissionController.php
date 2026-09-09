@@ -45,7 +45,16 @@ class KostSubmissionController extends Controller
      */
     public function show(Kost $submission): View
     {
-        $submission->load(['owner', 'categories', 'roomTypes', 'address']);
+        $submission->load([
+            'owner',
+            'categories',
+            'address',
+            'kostImages' => fn ($q) => $q->orderBy('sort_order'),
+            'roomTypes.roomTypeImages',
+            'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true)->orderBy('duration_value'),
+            'documentRequirements',
+            // TODO: Add 'bankAccounts' when BankAccount model is created (COMP-007)
+        ]);
 
         return view('super-admin.kost-submissions.show', [
             'submission' => $submission,

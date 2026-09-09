@@ -69,7 +69,7 @@ class DocumentVerificationTest extends TestCase
         ]);
 
         $document = $rental->rentalDocuments()->first();
-        $this->assertTrue(Storage::disk('public')->exists($document->document_path));
+        $this->assertTrue(Storage::disk('private')->exists($document->document_path));
     }
 
     /**

@@ -1,22 +1,26 @@
-@component('mail::message')
-# Rental Aktif
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->user->first_name},",
+])
 
-Halo {{ $rental->user->name }},
+@section('content')
+    <p style="margin:0 0 8px 0;">
+        Rental Anda untuk <strong>{{ $rental->room->roomType->kost->name }}</strong> telah aktif hari ini!
+    </p>
 
-Rental Anda untuk **{{ $rental->room->roomType->kost->name }}** telah aktif hari ini!
+    @include('emails.components.badge', ['type' => 'success', 'text' => 'Active'])
 
-@component('mail::panel')
-**Kamar:** {{ $rental->room->roomType->name }} - {{ $rental->room->code }}
+    @component('emails.components.panel')
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Kamar:</strong> {{ $rental->room->roomType->name }} - {{ $rental->room->code }}</p>
+        <p style="margin:0;"><strong style="color:#111827;">Periode:</strong> {{ $rental->start_date->format('d M Y') }} - {{ $rental->end_date->format('d M Y') }}</p>
+    @endcomponent
 
-**Periode:** {{ $rental->start_date->format('d M Y') }} - {{ $rental->end_date->format('d M Y') }}
-@endcomponent
+    <p style="margin:16px 0;">
+        Selamat menempati kost. Jika ada pertanyaan, hubungi pemilik kost.
+    </p>
 
-Selamat menempati kost. Jika ada pertanyaan, hubungi pemilik kost.
-
-@component('mail::button', ['url' => route('rentals.show', $rental)])
-Lihat Detail Rental
-@endcomponent
-
-Terima kasih,<br>
-{{ config('app.name') }}
-@endcomponent
+    @include('emails.components.button', [
+        'url' => route('rentals.show', $rental),
+        'text' => 'Lihat Detail Rental',
+        'variant' => 'primary'
+    ])
+@endsection

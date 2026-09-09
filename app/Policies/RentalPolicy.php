@@ -98,6 +98,41 @@ class RentalPolicy
     }
 
     /**
+     * Determine if user can view payment proof.
+     *
+     * Tenant can view own rental payment proof.
+     * Admin can view payment proof if they own the kost.
+     */
+    public function viewPaymentProof(User $user, Rental $rental): bool
+    {
+        // Tenant can view own rental
+        if ($user->id === $rental->user_id) {
+            return true;
+        }
+
+        // Admin can view if they own the kost
+        if ($user->role === 'admin') {
+            $rental->loadMissing('room.roomType.kost');
+
+            return $rental->room->roomType->kost->user_id === $user->id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if user can view rental document.
+     *
+     * Tenant can view own rental documents.
+     * Admin can view documents if they own the kost.
+     */
+    public function viewDocument(User $user, Rental $rental): bool
+    {
+        // Same logic as viewPaymentProof - tenant owns rental OR admin owns kost
+        return $this->viewPaymentProof($user, $rental);
+    }
+
+    /**
      * Determine if admin can verify document for rental.
      *
      * Admin can verify if they own the kost.

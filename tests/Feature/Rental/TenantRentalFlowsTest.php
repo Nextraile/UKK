@@ -59,7 +59,7 @@ class TenantRentalFlowsTest extends TestCase
 
     public function test_tenant_can_upload_payment_proof_successfully(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $file = UploadedFile::fake()->image('payment.jpg', 1024, 768)->size(2048); // 2MB
 
@@ -81,7 +81,7 @@ class TenantRentalFlowsTest extends TestCase
         $this->assertNotNull($this->rental->payment->paid_at);
 
         // Assert file stored
-        Storage::disk('public')->assertExists($this->rental->payment->proof_of_payment_path);
+        Storage::disk('private')->assertExists($this->rental->payment->proof_of_payment_path);
 
         // Assert rental status REMAINS 'pending' (not changed until admin verifies)
         $this->rental->refresh();
@@ -98,7 +98,7 @@ class TenantRentalFlowsTest extends TestCase
 
     public function test_payment_upload_validates_file_size_max_5mb(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $file = UploadedFile::fake()->image('payment.jpg')->size(6144); // 6MB
 
@@ -113,7 +113,7 @@ class TenantRentalFlowsTest extends TestCase
 
     public function test_payment_upload_validates_file_type_jpg_png_pdf_only(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $file = UploadedFile::fake()->create('payment.txt', 100, 'text/plain');
 
@@ -133,7 +133,7 @@ class TenantRentalFlowsTest extends TestCase
             'email_verified_at' => now(),
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('payment.jpg');
 
         $response = $this->actingAs($otherUser)
@@ -149,7 +149,7 @@ class TenantRentalFlowsTest extends TestCase
         // Change rental status to 'paid'
         $this->rental->update(['status' => 'paid']);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('payment.jpg');
 
         $response = $this->actingAs($this->tenant)
@@ -200,7 +200,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('ktp.jpg', 800, 600)->size(1024); // 1MB
 
         $response = $this->actingAs($this->tenant)
@@ -227,7 +227,7 @@ class TenantRentalFlowsTest extends TestCase
         $this->assertNotNull($rentalDoc->uploaded_at);
 
         // Assert file stored
-        Storage::disk('public')->assertExists($rentalDoc->document_path);
+        Storage::disk('private')->assertExists($rentalDoc->document_path);
     }
 
     public function test_document_upload_validates_against_kost_requirements(): void
@@ -235,7 +235,7 @@ class TenantRentalFlowsTest extends TestCase
         // Set rental status to 'paid'
         $this->rental->update(['status' => 'paid']);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('document.jpg');
 
         // Try to upload document type that doesn't exist in kost requirements
@@ -272,7 +272,7 @@ class TenantRentalFlowsTest extends TestCase
             'document_path' => 'rental-documents/old-ktp.jpg',
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('ktp-new.jpg');
 
         $response = $this->actingAs($this->tenant)
@@ -303,7 +303,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->image('ktp.jpg')->size(6144); // 6MB
 
         $response = $this->actingAs($this->tenant)
@@ -329,7 +329,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $file = UploadedFile::fake()->create('document.txt', 100, 'text/plain');
 
         $response = $this->actingAs($this->tenant)
@@ -365,7 +365,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
 
         // Upload first document
         $this->actingAs($this->tenant)
@@ -603,7 +603,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $ktpFile = UploadedFile::fake()->image('ktp.jpg', 800, 600)->size(1024);
         $kkFile = UploadedFile::fake()->image('kk.jpg', 800, 600)->size(1024);
 
@@ -657,7 +657,7 @@ class TenantRentalFlowsTest extends TestCase
             'is_required' => true,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
         $ktpFile = UploadedFile::fake()->image('ktp.jpg');
 
         // Upload only one document (partial upload)
@@ -700,8 +700,8 @@ class TenantRentalFlowsTest extends TestCase
             'verification_status' => 'pending',
         ]);
 
-        Storage::fake('public');
-        Storage::disk('public')->put('rental-documents/ktp.jpg', 'fake content');
+        Storage::fake('private');
+        Storage::disk('private')->put('rental-documents/ktp.jpg', 'fake content');
 
         // Use bulk upload endpoint with delete parameter
         $response = $this->actingAs($this->tenant)
@@ -721,7 +721,7 @@ class TenantRentalFlowsTest extends TestCase
         ]);
 
         // Assert file deleted from storage
-        Storage::disk('public')->assertMissing('rental-documents/ktp.jpg');
+        Storage::disk('private')->assertMissing('rental-documents/ktp.jpg');
     }
 
     public function test_cannot_delete_verified_document(): void
@@ -736,7 +736,7 @@ class TenantRentalFlowsTest extends TestCase
             'document_path' => 'rental-documents/ktp.jpg',
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
 
         // Attempt to delete via bulk upload endpoint
         $response = $this->actingAs($this->tenant)
@@ -772,7 +772,7 @@ class TenantRentalFlowsTest extends TestCase
             'document_path' => 'rental-documents/ktp.jpg',
         ]);
 
-        Storage::fake('public');
+        Storage::fake('private');
 
         // Attempt to delete as different user via bulk upload endpoint
         $response = $this->actingAs($otherTenant)

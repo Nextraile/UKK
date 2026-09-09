@@ -23,7 +23,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class RentalController extends Controller
@@ -241,8 +241,8 @@ class RentalController extends Controller
         $this->authorize('uploadPayment', $rental);
 
         try {
-            // Store file in public disk (accessible via Storage::url())
-            $path = $request->file('payment_proof')->store('payment-proofs', 'public');
+            // Store file in private disk (secure storage, accessed via downloadProof)
+            $path = $request->file('payment_proof')->store('payment-proofs', 'private');
 
             // Update payment record (clear rejection_reason on re-upload)
             $rental->payment->update([
@@ -298,7 +298,7 @@ class RentalController extends Controller
         try {
             // Delete uploaded payment proof file
             if ($rental->payment->proof_of_payment_path) {
-                \Storage::disk('public')->delete($rental->payment->proof_of_payment_path);
+                Storage::disk('private')->delete($rental->payment->proof_of_payment_path);
             }
 
             // Reset payment record
@@ -365,8 +365,8 @@ class RentalController extends Controller
                 ], 422);
             }
 
-            // Store file in public disk
-            $path = $request->file('document')->store('rental-documents', 'public');
+            // Store file in private disk (secure storage)
+            $path = $request->file('document')->store('rental-documents', 'private');
 
             // Create or update rental document
             $rentalDocument = $rental->rentalDocuments()->updateOrCreate(
@@ -466,8 +466,8 @@ class RentalController extends Controller
                         }
 
                         // Delete file from storage
-                        if ($document->document_path && Storage::disk('public')->exists($document->document_path)) {
-                            Storage::disk('public')->delete($document->document_path);
+                        if ($document->document_path && Storage::disk('private')->exists($document->document_path)) {
+                            Storage::disk('private')->delete($document->document_path);
                         }
 
                         // Delete database record
@@ -482,16 +482,16 @@ class RentalController extends Controller
                 if ($request->hasFile('documents.'.$type)) {
                     $file = $request->file('documents.'.$type);
 
-                    // Store file in public disk
-                    $path = $file->store('rental-documents', 'public');
+                    // Store file in private disk (secure storage)
+                    $path = $file->store('rental-documents', 'private');
 
                     // Get existing document if any
                     /** @var RentalDocument|null $existingDoc */
                     $existingDoc = $rental->rentalDocuments()->where('document_type', $type)->first();
 
                     // Delete old file if replacing
-                    if ($existingDoc instanceof RentalDocument && $existingDoc->document_path && Storage::disk('public')->exists($existingDoc->document_path)) {
-                        Storage::disk('public')->delete($existingDoc->document_path);
+                    if ($existingDoc instanceof RentalDocument && $existingDoc->document_path && Storage::disk('private')->exists($existingDoc->document_path)) {
+                        Storage::disk('private')->delete($existingDoc->document_path);
                     }
 
                     // Create or update rental document
@@ -616,16 +616,32 @@ class RentalController extends Controller
      *
      * @throws HttpException 404 if file not found
      */
-    public function downloadDocument(RentalDocument $document): BinaryFileResponse
+    /**
+     * Download/view rental document with authorization.
+     *
+     * Serves rental document file from private storage after verifying
+     * tenant owns the rental OR admin owns the kost.
+     * Returns inline response (not download) so images can be displayed.
+     *
+     * @param  RentalDocument  $document  The document to view/download
+     *
+     * @throws HttpException 404 if document not found
+     */
+    public function downloadDocument(RentalDocument $document): StreamedResponse
     {
-        $this->authorize('view', $document->rental);
+        // Authorize using policy (same pattern as payment proof)
+        $this->authorize('viewDocument', $document->rental);
 
-        $path = storage_path('app/private/'.$document->document_path);
-
-        if (! file_exists($path)) {
-            abort(404, 'Document not found');
+        if (! $document->document_path) {
+            abort(404, 'Document not uploaded yet');
         }
 
-        return response()->download($path);
+        if (! Storage::disk('private')->exists($document->document_path)) {
+            abort(404, 'Document file not found');
+        }
+
+        // Use response() instead of download() to serve inline (displays in browser)
+        // This allows images to be shown in <img> tags, similar to QRIS display
+        return Storage::disk('private')->response($document->document_path);
     }
 }

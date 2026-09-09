@@ -2,6 +2,18 @@
     :title="$kost->name . ' - Admin - SewaKost'"
     variant="admin-sidebar"
     :page-title="$kost->name">
+
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+@endpush
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+@endpush
     
 <div class="max-w-4xl space-y-6">
     <x-page-header 
@@ -158,6 +170,432 @@
                 @endforeach
             </div>
         </div>
+        @endif
+    </div>
+
+    <!-- Location Map -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Lokasi Kost</h3>
+        @if($kost->latitude && $kost->longitude)
+            <div id="map" 
+                 class="h-64 rounded-lg border border-gray-300"
+                 x-data="{
+                     map: null,
+                     initMap() {
+                         this.map = L.map('map').setView([{{ $kost->latitude }}, {{ $kost->longitude }}], 15);
+                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                             attribution: '&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors'
+                         }).addTo(this.map);
+                         L.marker([{{ $kost->latitude }}, {{ $kost->longitude }}])
+                             .addTo(this.map)
+                             .bindPopup('{{ addslashes($kost->name) }}');
+                     }
+                 }"
+                 x-init="initMap()"
+                 x-on:destroy="if (map) { map.remove(); map = null; }">
+            </div>
+        @else
+            <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <p class="text-sm text-gray-500">Koordinat lokasi belum diatur</p>
+                <a href="{{ route('admin.kosts.edit', $kost) }}" class="mt-2 text-sm text-primary-600 hover:text-primary-700">
+                    Atur koordinat
+                </a>
+            </div>
+        @endif
+    </div>
+
+    <!-- Kost Images Gallery -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">
+            Foto Kost ({{ $kost->kostImages->count() }})
+        </h3>
+        @if($kost->kostImages->isNotEmpty())
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4" x-data="{ lightbox: false, currentImage: '' }">
+                @foreach($kost->kostImages as $image)
+                    <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition cursor-pointer"
+                         @click="lightbox = true; currentImage = '/storage/{{ $image->image_path }}'">
+                        <img src="/storage/{{ $image->image_path }}" 
+                             alt="Kost image {{ $loop->iteration }}"
+                             class="w-full h-full object-cover">
+                        @if($image->is_thumbnail)
+                            <span class="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary-600 text-white">
+                                Thumbnail
+                            </span>
+                        @endif
+                    </div>
+                @endforeach
+                
+                <!-- Lightbox Modal -->
+                <div x-show="lightbox" 
+                     x-cloak
+                     @click="lightbox = false"
+                     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4">
+                    <img :src="currentImage" 
+                         class="max-w-full max-h-full rounded-lg"
+                         @click.stop>
+                    <button @click="lightbox = false" 
+                            class="absolute top-4 right-4 text-white hover:text-gray-300"
+                            aria-label="Close">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <a href="{{ route('admin.kosts.images.index', $kost) }}" 
+               class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+                Kelola Foto (Upload, Hapus, Atur Urutan)
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        @else
+            <div class="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-sm text-gray-500 mb-2">Belum ada foto kost</p>
+                <a href="{{ route('admin.kosts.images.index', $kost) }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700">
+                    Upload Foto
+                </a>
+            </div>
+        @endif
+    </div>
+
+    <!-- Payment Configuration -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Konfigurasi Pembayaran</h3>
+        
+        @if($kost->qris_image_path || $kost->bank_name)
+            <div class="space-y-4">
+                <!-- QRIS -->
+                @if($kost->qris_image_path)
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">QRIS</h4>
+                        <img src="/storage/{{ $kost->qris_image_path }}" 
+                             alt="QRIS Code"
+                             class="max-w-xs border-2 border-gray-300 rounded-lg">
+                    </div>
+                @endif
+                
+                <!-- Bank Account -->
+                @if($kost->bank_name)
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Transfer Bank</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Bank</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nomor Rekening</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Pemilik</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white">
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900">{{ $kost->bank_name }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900 font-mono">{{ $kost->account_number }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">{{ $kost->account_holder_name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+                
+                <a href="{{ route('admin.kosts.payment.edit', $kost) }}" 
+                   class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+                    Edit Konfigurasi Pembayaran
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        @else
+            <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <p class="text-sm text-gray-500 mb-2">Belum ada metode pembayaran</p>
+                <a href="{{ route('admin.kosts.payment.edit', $kost) }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700">
+                    Atur Pembayaran
+                </a>
+            </div>
+        @endif
+    </div>
+
+    <!-- Document Requirements -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">
+            Persyaratan Dokumen ({{ $kost->documentRequirements->count() }})
+        </h3>
+        
+        @if($kost->documentRequirements->isNotEmpty())
+            <ul class="space-y-3 mb-4">
+                @foreach($kost->documentRequirements as $docReq)
+                    <li class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                        <div class="flex-shrink-0 mt-0.5">
+                            @if($docReq->is_required)
+                                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                            @else
+                                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            @endif
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-sm font-semibold text-gray-900">
+                                    {{ Str::title(str_replace('_', ' ', $docReq->document_type)) }}
+                                </span>
+                                @if($docReq->is_required)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                        Wajib
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
+                                        Optional
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-sm text-gray-600">{{ $docReq->reason }}</p>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+            <a href="{{ route('admin.kosts.document-requirements.index', $kost) }}" 
+               class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+                Kelola Persyaratan Dokumen
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        @else
+            <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="text-sm text-gray-500 mb-2">Belum ada persyaratan dokumen</p>
+                <a href="{{ route('admin.kosts.document-requirements.index', $kost) }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700">
+                    Tambah Persyaratan
+                </a>
+            </div>
+        @endif
+    </div>
+
+    <!-- Facilities & Rules -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Fasilitas & Peraturan</h3>
+        
+        @if(!empty($kost->facilities) || !empty($kost->rules))
+            <div class="space-y-4">
+                <!-- Facilities -->
+                @if(!empty($kost->facilities))
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Fasilitas</h4>
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            @foreach($kost->facilities as $facility)
+                                <li class="flex items-center text-sm text-gray-700">
+                                    <svg class="h-4 w-4 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $facility }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                
+                <!-- Rules -->
+                @if(!empty($kost->rules))
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2">Peraturan</h4>
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach($kost->rules as $rule)
+                                <li class="text-sm text-gray-700">{{ $rule }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                
+                <a href="{{ route('admin.kosts.edit', $kost) }}" 
+                   class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+                    Edit Fasilitas & Peraturan
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        @else
+            <div class="flex flex-col items-center justify-center py-8 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <p class="text-sm text-gray-500 mb-2">Belum ada fasilitas atau peraturan</p>
+                <a href="{{ route('admin.kosts.edit', $kost) }}" 
+                   class="text-sm text-primary-600 hover:text-primary-700">
+                    Tambah Fasilitas & Peraturan
+                </a>
+            </div>
+        @endif
+    </div>
+
+    <!-- Room Types & Rooms -->
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">
+            Tipe Kamar & Kamar ({{ $kost->roomTypes->count() }} tipe, {{ $kost->rooms_count }} kamar)
+        </h3>
+        
+        @if($kost->roomTypes->isNotEmpty())
+            <div class="space-y-4" x-data="{ openRoomType: null }">
+                @foreach($kost->roomTypes as $roomType)
+                    <div class="border border-gray-200 rounded-lg">
+                        <!-- Accordion Header -->
+                        <button @click="openRoomType = openRoomType === {{ $roomType->id }} ? null : {{ $roomType->id }}"
+                                class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition rounded-lg">
+                            <div class="flex items-center gap-4">
+                                @if($roomType->roomTypeImages->first())
+                                    <img src="/storage/{{ $roomType->roomTypeImages->first()->image_path }}" 
+                                         alt="{{ $roomType->name }}"
+                                         class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+                                @endif
+                                <div class="text-left">
+                                    <h4 class="font-semibold text-gray-900">{{ $roomType->name }}</h4>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        @if($roomType->room_size)
+                                            {{ $roomType->room_size }}m²
+                                        @endif
+                                        @if($roomType->room_size && $roomType->max_occupants)
+                                            •
+                                        @endif
+                                        @if($roomType->max_occupants)
+                                            Max {{ $roomType->max_occupants }} orang
+                                        @endif
+                                        @if(($roomType->room_size || $roomType->max_occupants) && $roomType->rooms->count())
+                                            •
+                                        @endif
+                                        {{ $roomType->rooms->count() }} kamar
+                                    </p>
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-gray-400 transition-transform flex-shrink-0"
+                                 :class="{ 'rotate-180': openRoomType === {{ $roomType->id }} }"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Accordion Content -->
+                        <div x-show="openRoomType === {{ $roomType->id }}" 
+                             x-collapse
+                             class="border-t border-gray-200">
+                            <div class="p-4 space-y-4">
+                                
+                                <!-- Price Schemes -->
+                                @if($roomType->priceSchemes->isNotEmpty())
+                                    <div>
+                                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Skema Harga</h5>
+                                        <div class="space-y-1">
+                                            @foreach($roomType->priceSchemes as $scheme)
+                                                <div class="flex items-baseline gap-2 text-sm">
+                                                    <span class="font-medium text-gray-700">{{ $scheme->name }}:</span>
+                                                    <span class="text-gray-900 font-semibold">
+                                                        Rp {{ number_format($scheme->price, 0, ',', '.') }}
+                                                    </span>
+                                                    @if($scheme->security_deposit)
+                                                        <span class="text-xs text-gray-500">
+                                                            (+ Rp {{ number_format($scheme->security_deposit, 0, ',', '.') }} deposit)
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="text-sm text-gray-500">Belum ada skema harga</p>
+                                @endif
+                                
+                                <!-- Room Type Images -->
+                                @if($roomType->roomTypeImages->count() > 1)
+                                    <div>
+                                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Foto Tipe Kamar ({{ $roomType->roomTypeImages->count() }})</h5>
+                                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                            @foreach($roomType->roomTypeImages as $image)
+                                                <img src="/storage/{{ $image->image_path }}" 
+                                                     alt="Room type image"
+                                                     class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-75 transition">
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                                
+                                <!-- Rooms List -->
+                                @if($roomType->rooms->isNotEmpty())
+                                    <div>
+                                        <h5 class="text-sm font-semibold text-gray-700 mb-2">Daftar Kamar ({{ $roomType->rooms->count() }})</h5>
+                                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                            @foreach($roomType->rooms as $room)
+                                                <div class="p-2 border rounded text-center text-sm font-medium
+                                                    {{ $room->status === 'active' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-500' }}">
+                                                    {{ $room->room_number }}
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="text-sm text-gray-500">Belum ada kamar</p>
+                                @endif
+                                
+                                <!-- Actions -->
+                                <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                                    <a href="{{ route('admin.room-types.edit', [$kost, $roomType]) }}" 
+                                       class="inline-flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                        Edit Tipe Kamar
+                                    </a>
+                                    <a href="{{ route('admin.price-schemes.index', $roomType) }}" 
+                                       class="inline-flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                        Kelola Harga
+                                    </a>
+                                    <a href="{{ route('admin.rooms.index', ['kost' => $kost, 'room_type_id' => $roomType->id]) }}" 
+                                       class="inline-flex items-center px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                                        Kelola Kamar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ route('admin.room-types.create', $kost) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Tambah Tipe Kamar
+                </a>
+            </div>
+        @else
+            <div class="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <p class="text-sm text-gray-500 mb-2">Belum ada tipe kamar</p>
+                <a href="{{ route('admin.room-types.create', $kost) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                    Buat Tipe Kamar Pertama
+                </a>
+            </div>
         @endif
     </div>
 

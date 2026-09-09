@@ -200,7 +200,7 @@ class RentalSeeder extends Seeder
             'qris_image_path' => $kost->qris_image_path ?? 'kost-images/qris-seed-placeholder.jpg',
             'amount' => $rental->grand_total,
             'proof_of_payment_path' => in_array($rentalStatus, ['paid', 'confirmed', 'active', 'completed'])
-                ? 'payment-proofs/seed-payment-proof-'.$rental->id.'.jpg'
+                ? 'payment-proofs/seed-payment-'.$rental->id.'.jpg'
                 : null,
             'status' => $paymentStatus,
             'verified_by' => in_array($rentalStatus, ['confirmed', 'active', 'completed'])

@@ -1,24 +1,27 @@
-@component('mail::message')
-# Rental Dikonfirmasi
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->user->first_name},",
+])
 
-Halo {{ $rental->user->name }},
+@section('content')
+    <p style="margin:0 0 8px 0;">
+        Selamat! Rental Anda untuk <strong>{{ $rental->room->roomType->kost->name }}</strong> telah dikonfirmasi.
+    </p>
 
-Selamat! Rental Anda untuk **{{ $rental->room->roomType->kost->name }}** telah dikonfirmasi.
+    @include('emails.components.badge', ['type' => 'success', 'text' => 'Confirmed'])
 
-@component('mail::panel')
-**Kamar:** {{ $rental->room->roomType->name }} - {{ $rental->room->code }}
+    @component('emails.components.panel')
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Kamar:</strong> {{ $rental->room->roomType->name }} - {{ $rental->room->code }}</p>
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Tanggal Mulai:</strong> {{ $rental->start_date->format('d M Y') }}</p>
+        <p style="margin:0;"><strong style="color:#111827;">Durasi:</strong> {{ $rental->duration_value }} {{ __($rental->duration_unit) }}</p>
+    @endcomponent
 
-**Tanggal Mulai:** {{ $rental->start_date->format('d M Y') }}
+    <p style="margin:16px 0;">
+        Rental akan otomatis aktif pada tanggal mulai. Silakan koordinasi dengan pemilik kost untuk check-in.
+    </p>
 
-**Durasi:** {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
-@endcomponent
-
-Rental akan otomatis aktif pada tanggal mulai. Silakan koordinasi dengan pemilik kost untuk check-in.
-
-@component('mail::button', ['url' => route('rentals.show', $rental)])
-Lihat Detail Rental
-@endcomponent
-
-Terima kasih,<br>
-{{ config('app.name') }}
-@endcomponent
+    @include('emails.components.button', [
+        'url' => route('rentals.show', $rental),
+        'text' => 'Lihat Detail Rental',
+        'variant' => 'primary'
+    ])
+@endsection

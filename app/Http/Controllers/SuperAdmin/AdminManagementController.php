@@ -55,6 +55,7 @@ class AdminManagementController extends Controller
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'] ?? null,
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
             'password' => Hash::make($plainPassword),
             'role' => 'admin',
             'email_verified_at' => null, // Admin must verify via OTP on first login
@@ -91,6 +92,7 @@ class AdminManagementController extends Controller
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'] ?? null,
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
         ]);
 
         return redirect()

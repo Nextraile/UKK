@@ -1,26 +1,35 @@
-@component('mail::message')
-# Rental Dibatalkan
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$rental->user->first_name},",
+])
 
-Halo {{ $rental->user->name }},
+@section('content')
+    <p style="margin:0 0 8px 0;">
+        Rental Anda untuk <strong>{{ $rental->room->roomType->kost->name }}</strong> telah dibatalkan.
+    </p>
 
-Rental Anda untuk **{{ $rental->room->roomType->kost->name }}** telah dibatalkan.
+    @include('emails.components.badge', ['type' => 'error', 'text' => 'Cancelled'])
 
-@component('mail::panel')
-**Alasan Pembatalan:**
+    @component('emails.components.panel')
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-left-color:#DC2626;">
+            <tr>
+                <td>
+                    <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Alasan Pembatalan:</strong></p>
+                    <p style="margin:0 0 8px 0;color:#DC2626;">{{ $rental->cancelled_reason }}</p>
+                    <p style="margin:0;"><strong style="color:#111827;">Dibatalkan pada:</strong> {{ $rental->cancelled_at->format('d M Y H:i') }}</p>
+                </td>
+            </tr>
+        </table>
+    @endcomponent
 
-{{ $rental->cancelled_reason }}
+    @if($rental->payment->status === 'verified')
+    <p style="margin:16px 0;font-size:14px;color:#6B7280;">
+        <strong>Catatan:</strong> Untuk proses refund (jika ada), silakan hubungi pemilik kost langsung.
+    </p>
+    @endif
 
-**Dibatalkan pada:** {{ $rental->cancelled_at->format('d M Y H:i') }}
-@endcomponent
-
-@if($rental->payment->status === 'success')
-**Catatan:** Untuk proses refund (jika ada), silakan hubungi pemilik kost langsung.
-@endif
-
-@component('mail::button', ['url' => route('marketplace.index')])
-Cari Kost Lainnya
-@endcomponent
-
-Terima kasih,<br>
-{{ config('app.name') }}
-@endcomponent
+    @include('emails.components.button', [
+        'url' => route('marketplace.index'),
+        'text' => 'Cari Kost Lainnya',
+        'variant' => 'secondary'
+    ])
+@endsection

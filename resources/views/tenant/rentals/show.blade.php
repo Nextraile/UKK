@@ -392,7 +392,7 @@
                                                 <div class="flex justify-center">
                                                     <img src="{{ image_url($rental->room->roomType->kost->qris_image_path) }}" 
                                                          alt="QRIS Code" 
-                                                         class="w-48 h-48 object-contain border border-gray-300 rounded-lg bg-white">
+                                                         class="w-200 h-180 object-contain border border-gray-300 rounded-lg bg-white">
                                                 </div>
                                             </div>
                                         @endif
@@ -441,7 +441,7 @@
                                                                     <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                                                                 </svg>
                                                                 <p class="text-sm font-medium text-gray-700 mb-2">Dokumen PDF</p>
-                                                                <a href="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                                <a href="{{ route('rentals.payment.proof', $rental) }}" 
                                                                    target="_blank"
                                                                    class="text-sm text-primary-600 hover:text-primary-700 underline">
                                                                     Lihat PDF
@@ -450,10 +450,10 @@
                                                         </div>
                                                     @else
                                                         {{-- Image Preview --}}
-                                                        <a href="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                        <a href="{{ route('rentals.payment.proof', $rental) }}" 
                                                            target="_blank"
                                                            class="block">
-                                                            <img src="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                            <img src="{{ route('rentals.payment.proof', $rental) }}" 
                                                                  alt="Bukti Pembayaran" 
                                                                  class="w-full rounded-lg border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                                         </a>
@@ -539,7 +539,7 @@
                                                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                                                             </svg>
                                                             <p class="text-sm font-medium text-gray-700 mb-2">Dokumen PDF</p>
-                                                            <a href="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                            <a href="{{ route('rentals.payment.proof', $rental) }}" 
                                                                target="_blank"
                                                                class="text-sm text-primary-600 hover:text-primary-700 underline">
                                                                 Lihat PDF
@@ -548,10 +548,10 @@
                                                     </div>
                                                 @else
                                                     {{-- Image Preview --}}
-                                                    <a href="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                    <a href="{{ route('rentals.payment.proof', $rental) }}" 
                                                        target="_blank"
                                                        class="block">
-                                                        <img src="{{ Storage::url($rental->payment->proof_of_payment_path) }}" 
+                                                        <img src="{{ route('rentals.payment.proof', $rental) }}" 
                                                              alt="Bukti Pembayaran" 
                                                              class="w-full rounded-lg border border-gray-300 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                                                     </a>
@@ -579,12 +579,6 @@
                                     x-show="sections.payment.expanded"
                                     x-collapse
                                     class="mt-4 pt-4 border-t border-gray-200">
-                                    @if($rental->payment->proof_path)
-                                        <img 
-                                            src="{{ Storage::url($rental->payment->proof_path) }}" 
-                                            alt="Payment proof"
-                                            class="w-full max-w-sm rounded-lg border border-gray-200 mb-3">
-                                    @endif
                                     @if($rental->payment->notes)
                                         <p class="text-sm text-gray-600">
                                             <span class="font-medium">Catatan:</span> {{ $rental->payment->notes }}
@@ -699,12 +693,6 @@
                                                         </div>
                                                         
                                                         {{-- Status Badge --}}
-                                                        <span x-show="uploadedDocs[req.document_type]?.verified_at" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-100 text-success-800">
-                                                            ✓ Verified
-                                                        </span>
-                                                        <span x-show="uploadedDocs[req.document_type]?.rejection_reason && !filesToDelete.includes(req.document_type)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error-100 text-error-800">
-                                                            ✗ Rejected
-                                                        </span>
                                                         <span x-show="uploadedDocs[req.document_type]?.document_path && !uploadedDocs[req.document_type]?.verified_at && !uploadedDocs[req.document_type]?.rejection_reason && !filesToDelete.includes(req.document_type)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning-100 text-warning-800">
                                                             Uploaded
                                                         </span>
@@ -721,8 +709,8 @@
                                                     {{-- Current Document Preview (if exists and not marked for deletion) --}}
                                                     <div x-show="uploadedDocs[req.document_type]?.document_path && !filesToDelete.includes(req.document_type)" class="mb-3">
                                                         <p class="text-xs text-gray-600 mb-2">Dokumen saat ini:</p>
-                                                        <a :href="'/storage/' + uploadedDocs[req.document_type]?.document_path" target="_blank" class="block">
-                                                            <img :src="'/storage/' + uploadedDocs[req.document_type]?.document_path" 
+                                                        <a :href="'/rentals/documents/' + uploadedDocs[req.document_type]?.id + '/download'" target="_blank" class="block">
+                                                            <img :src="'/rentals/documents/' + uploadedDocs[req.document_type]?.id + '/download'" 
                                                                  :alt="req.document_type"
                                                                  class="w-full h-32 object-cover rounded-lg border border-gray-200 hover:opacity-90 transition-opacity">
                                                         </a>
@@ -818,10 +806,6 @@
                                                     Menyimpan...
                                                 </span>
                                             </button>
-                                            
-                                            <p class="text-xs text-gray-500 text-center">
-                                                Perubahan akan diterapkan setelah menekan tombol "Simpan Perubahan"
-                                            </p>
                                         </form>
                                         
                                         @if($docProgress['uploaded'] === $docProgress['total'] && $docProgress['total'] > 0)
@@ -982,13 +966,10 @@
                                 <p class="text-xs text-gray-600">{{ $rental->room->roomType->kost->owner->email }}</p>
                             </div>
                             
-                            @if($rental->room->roomType->kost->owner->phone)
-                                <a 
-                                    href="tel:{{ $rental->room->roomType->kost->owner->phone }}"
-                                    class="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded">
-                                    {{ $rental->room->roomType->kost->owner->phone }}
-                                </a>
-                            @endif
+                            <a href="mailto:{{ $rental->user->email }}" 
+                               class="mt-3 block w-full text-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+                                Contact Admin
+                            </a>
                         </div>
                     </div>
 

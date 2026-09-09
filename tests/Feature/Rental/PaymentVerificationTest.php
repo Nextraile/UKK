@@ -18,7 +18,7 @@ class PaymentVerificationTest extends TestCase
 
     public function test_tenant_can_upload_proof_of_payment(): void
     {
-        Storage::fake('public');
+        Storage::fake('private');
 
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $rental = Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'pending']);
@@ -37,7 +37,7 @@ class PaymentVerificationTest extends TestCase
 
         $rental->payment->refresh();
         $this->assertNotNull($rental->payment->proof_of_payment_path);
-        $this->assertTrue(Storage::disk('public')->exists($rental->payment->proof_of_payment_path));
+        $this->assertTrue(Storage::disk('private')->exists($rental->payment->proof_of_payment_path));
 
         // Status remains 'pending' until admin verifies payment
         $this->assertEquals('pending', $rental->fresh()->status);

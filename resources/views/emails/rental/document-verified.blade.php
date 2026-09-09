@@ -1,22 +1,23 @@
-@component('mail::message')
-# Dokumen Diverifikasi
+@extends('emails.layouts.base', [
+    'greeting' => "Halo {$document->rental->user->first_name},",
+])
 
-Halo {{ $document->rental->user->name }},
+@section('content')
+    <p style="margin:0 0 8px 0;">
+        Dokumen <strong>{{ $document->document_type }}</strong> untuk rental Anda telah diverifikasi.
+    </p>
 
-Dokumen **{{ $document->document_type }}** untuk rental **{{ $document->rental->room->roomType->kost->name }}** telah diverifikasi.
+    @include('emails.components.badge', ['type' => 'success', 'text' => 'Document Verified'])
 
-@component('mail::panel')
-**Dokumen:** {{ $document->document_type }}
+    @component('emails.components.panel')
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Kost:</strong> {{ $document->rental->room->roomType->kost->name }}</p>
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Dokumen:</strong> {{ $document->document_type }}</p>
+        <p style="margin:0;"><strong style="color:#111827;">Diverifikasi pada:</strong> {{ $document->verified_at->format('d M Y H:i') }}</p>
+    @endcomponent
 
-**Status:** Approved
-
-**Diverifikasi pada:** {{ $document->verified_at->format('d M Y H:i') }}
-@endcomponent
-
-@component('mail::button', ['url' => route('rentals.show', $document->rental)])
-Lihat Status Rental
-@endcomponent
-
-Terima kasih,<br>
-{{ config('app.name') }}
-@endcomponent
+    @include('emails.components.button', [
+        'url' => route('rentals.show', $document->rental),
+        'text' => 'Lihat Status Rental',
+        'variant' => 'primary'
+    ])
+@endsection

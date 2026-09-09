@@ -59,18 +59,6 @@ class CategoryController extends Controller
     }
 
     /**
-     * Display the specified category.
-     */
-    public function show(Category $category): View
-    {
-        $this->authorize('view', $category);
-
-        $category->loadCount('kosts');
-
-        return view('super-admin.categories.show', compact('category'));
-    }
-
-    /**
      * Show the form for editing the specified category.
      */
     public function edit(Category $category): View

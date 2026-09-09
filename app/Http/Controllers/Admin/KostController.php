@@ -79,7 +79,18 @@ class KostController extends Controller
     {
         $this->authorize('view', $kost);
 
-        $kost->load(['owner', 'address', 'categories', 'kostImages', 'documentRequirements']);
+        $kost->load([
+            'owner',
+            'address',
+            'categories',
+            'kostImages' => fn ($q) => $q->orderBy('sort_order'),
+            'documentRequirements',
+            'roomTypes.roomTypeImages',
+            'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true)->orderBy('duration_value'),
+            'roomTypes.rooms',
+        ]);
+
+        $kost->loadCount('rooms');
 
         return view('admin.kosts.show', compact('kost'));
     }

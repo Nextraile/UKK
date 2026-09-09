@@ -67,13 +67,6 @@
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Tenant</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $rental->user->name }}
-                                    <div class="text-xs font-normal text-gray-600 dark:text-gray-400">{{ $rental->user->email }}</div>
-                                </dd>
-                            </div>
-                            <div>
                                 <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Durasi</dt>
                                 <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
                                     {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
@@ -92,16 +85,83 @@
                                 </dd>
                             </div>
                             <div class="col-span-2">
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Pembayaran</dt>
-                                <dd class="mt-1 text-2xl font-bold text-primary-600">
-                                    Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}
-                                </dd>
-                                <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                                    Harga: Rp {{ number_format((float) $rental->room_price, 0, ',', '.') }} x {{ $rental->duration_value }} + 
-                                    Deposit: Rp {{ number_format((float) $rental->security_deposit, 0, ',', '.') }}
+                                {{-- Breakdown Biaya --}}
+                        <div class="mt-6 pt-4 border-t border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-3">Rincian Biaya</h3>
+                            <dl class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-600">Harga Sewa</dt>
+                                    <dd class="font-medium text-gray-900">
+                                        Rp {{ number_format((float) $rental->room_price, 0, ',', '.') }}
+                                    </dd>
                                 </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-600">Durasi</dt>
+                                    <dd class="font-medium text-gray-900">
+                                        × {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-600">Subtotal Sewa</dt>
+                                    <dd class="font-medium text-gray-900">
+                                        Rp {{ number_format((float) $rental->room_price * $rental->duration_value, 0, ',', '.') }}
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-gray-600">Deposit Keamanan</dt>
+                                    <dd class="font-medium text-gray-900">
+                                        Rp {{ number_format((float) $rental->security_deposit, 0, ',', '.') }}
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between pt-2 mt-2 border-t-2 border-gray-300">
+                                    <dt class="text-base font-bold text-gray-900">Total Pembayaran</dt>
+                                    <dd class="text-base font-bold text-primary-600">
+                                        Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
                             </div>
                         </dl>
+                    </x-card>
+
+                    <!-- Status History Timeline -->
+                    <x-card>
+                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Riwayat Status</h3>
+                        <div class="relative">
+                            @foreach($rental->statusHistories->reverse() as $history)
+                                    <div class="flex gap-4">
+                                        <div class="flex flex-col items-center">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full
+                                                @if($loop->first) bg-primary-600 text-white
+                                                @else bg-gray-300 text-gray-600
+                                                @endif">
+                                                @if($loop->first)
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <circle cx="10" cy="10" r="3"/>
+                                                    </svg>
+                                                @endif
+                                            </div>
+                                            @if(!$loop->last)
+                                                <div class="w-0.5 h-full min-h-[2rem] bg-gray-300 mt-1"></div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 pb-4">
+                                            <p class="font-semibold text-gray-900">{{ ucfirst($history->status) }}</p>
+                                            <p class="text-sm text-gray-600">
+                                                {{ $history->created_at->format('d M Y H:i') }}
+                                            </p>
+                                            @if($history->internal_notes)
+                                                <p class="mt-1 text-sm text-gray-500 italic">{{ $history->internal_notes }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                        </div>
                     </x-card>
 
                     <!-- Payment Verification Section -->
@@ -121,11 +181,12 @@
 
                             <!-- Payment Proof Display -->
                             <div class="mb-4">
-                                <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Bukti Pembayaran:</p>
-                                <img src="{{ route('rentals.payment.proof', $rental) }}" 
-                                     alt="Bukti pembayaran" 
-                                     @click="openLightbox('{{ route('rentals.payment.proof', $rental) }}')"
-                                     class="h-auto max-w-md rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity">
+                                <div class="flex justify-center">
+                                    <img src="{{ route('rentals.payment.proof', $rental) }}" 
+                                         alt="Bukti pembayaran" 
+                                         @click="openLightbox('{{ route('rentals.payment.proof', $rental) }}')"
+                                         class="h-auto max-w-md rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity">
+                                </div>
                                 @if($rental->payment->notes)
                                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         <strong>Catatan dari tenant:</strong> {{ $rental->payment->notes }}
@@ -138,7 +199,7 @@
                                  class="mt-4 flex flex-col sm:flex-row gap-3">
                                 <button @click="approvePayment()"
                                         :disabled="payment.verifying"
-                                        class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-success-600 text-white font-semibold rounded-lg hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                        class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                     <span x-show="!payment.verifying">Approve Payment</span>
                                     <span x-show="payment.verifying" class="flex items-center gap-2">
                                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -183,7 +244,7 @@
                             </div>
 
                             <!-- Approved State -->
-                            <div x-show="payment.verified_at"
+                            <div x-show="payment.status === 'approved'"
                                  x-cloak
                                  class="mt-4 p-4 bg-success-50 border border-success-200 rounded-lg">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-100 text-success-800">
@@ -195,7 +256,7 @@
                             </div>
 
                             <!-- Rejected State -->
-                            <div x-show="payment.rejected_at"
+                            <div x-show="payment.status === 'rejected'"
                                  x-cloak
                                  class="mt-4 p-4 bg-error-50 border border-error-200 rounded-lg">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error-100 text-error-800">
@@ -205,7 +266,7 @@
                             </div>
                         </div>
                     @elseif($rental->payment->status === 'success')
-                        <div class="border-2 border-gray-300 bg-gray-50 rounded-lg p-6">
+                        <div class="border-2 bg-white border-gray-300 bg-gray-50 rounded-lg p-6">
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Status Pembayaran</h3>
                             <div class="flex items-start gap-3 rounded-lg bg-success-50 border border-success-200 p-4">
                                 <svg class="h-6 w-6 text-success-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +292,6 @@
                                 <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
                                     Verifikasi Dokumen
                                 </h3>
-                                <span class="text-sm text-gray-600" x-text="verifiedDocCount() + '/' + totalDocCount() + ' verified'"></span>
                                 
                                 <!-- Bulk Actions (Desktop only) -->
                                 <button @click="approveAllDocuments()"
@@ -244,7 +304,7 @@
                             <div x-show="!anyDocumentUploaded()" 
                                  class="mb-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
                                 <p class="text-sm text-gray-600">
-                                    ⏳ Menunggu tenant mengupload dokumen administrasi.
+                                    Menunggu tenant mengupload dokumen administrasi.
                                 </p>
                             </div>
 
@@ -275,7 +335,7 @@
                                 </svg>
                                 <div>
                                     <p class="text-sm font-semibold text-success-700">
-                                        ✓ All Documents Approved
+                                        All Documents Approved
                                     </p>
                                     <p class="text-xs text-gray-600 mt-1">
                                         Semua dokumen telah diverifikasi. Rental sudah dikonfirmasi.
@@ -284,46 +344,6 @@
                             </div>
                         </div>
                     @endif
-
-                    <!-- Status History Timeline -->
-                    <x-card>
-                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Riwayat Status</h3>
-                        <div class="relative">
-                            @foreach($rental->statusHistories->reverse() as $history)
-                                <div class="mb-4 flex">
-                                    <div class="relative flex flex-col items-center">
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-full
-                                            @if($loop->last) bg-primary-600 text-white
-                                            @else bg-gray-300 text-gray-600
-                                            @endif">
-                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        @if(!$loop->first)
-                                            <div class="h-full w-0.5 bg-gray-300"></div>
-                                        @endif
-                                    </div>
-                                    <div class="ml-4 flex-1 pb-4">
-                                        <p class="font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ ucfirst($history->status) }}
-                                        </p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ $history->created_at->format('d M Y H:i') }}
-                                            @if($history->changed_by !== 1)
-                                                oleh {{ $history->user->name }}
-                                            @else
-                                                (sistem)
-                                            @endif
-                                        </p>
-                                        @if($history->internal_notes)
-                                            <p class="mt-1 text-sm italic text-gray-500">{{ $history->internal_notes }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </x-card>
                 </div>
 
                 <!-- Right Column (1/3 width) — Actions Sidebar -->
@@ -345,25 +365,9 @@
                         </x-card>
                     @endif
 
-                    <!-- Tenant Contact Info -->
-                    <x-card>
-                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Kontak Tenant</h3>
-                        <div class="space-y-2 text-sm">
-                            <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $rental->user->name }}</p>
-                            <p class="text-gray-600 dark:text-gray-400">{{ $rental->user->email }}</p>
-                            @if($rental->user->phone)
-                                <p class="text-gray-600 dark:text-gray-400">{{ $rental->user->phone }}</p>
-                            @endif
-                            <a href="mailto:{{ $rental->user->email }}" 
-                               class="mt-3 block w-full text-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
-                                Contact Tenant
-                            </a>
-                        </div>
-                    </x-card>
-
                     <!-- Rental Summary -->
                     <x-card>
-                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Ringkasan</h3>
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">Ringkasan</h3>
                         <dl class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <dt class="text-gray-600 dark:text-gray-400">ID Rental</dt>
@@ -385,6 +389,24 @@
                             @endif
                         </dl>
                     </x-card>
+
+                    <!-- Tenant Contact Info -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-4">Hubungi Tenant</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900">
+                                    {{ $rental->user->first_name }} {{ $rental->user->last_name }}
+                                </p>
+                                <p class="text-xs text-gray-600">{{ $rental->user->email }}</p>
+                            </div>
+                            
+                            <a href="mailto:{{ $rental->user->email }}" 
+                               class="mt-3 block w-full text-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+                                Contact Tenant
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -422,8 +444,9 @@
                 // Payment state
                 payment: {
                     id: {{ $rental->payment->id }},
+                    status: @json($rental->payment->status),
                     verified_at: @json($rental->payment->verified_at),
-                    rejected_at: @json($rental->payment->rejection_reason ? now() : null),
+                    rejected_at: @json($rental->payment->rejection_reason ? $rental->payment->verified_at : null),
                     rejection_reason: @json($rental->payment->rejection_reason),
                     verifying: false
                 },
@@ -440,8 +463,9 @@
                             id: {{ $doc?->id ?? 'null' }},
                             type: @json($req->document_type),
                             uploaded: {{ $doc && $doc->document_path ? 'true' : 'false' }},
+                            verification_status: @json($doc?->verification_status ?? 'pending'),
                             verified_at: @json($doc?->verified_at),
-                            rejected_at: @json($doc && $doc->rejection_reason ? now() : null),
+                            rejected_at: @json($doc && $doc->verification_status === 'rejected' ? $doc->verified_at : null),
                             rejection_reason: @json($doc?->rejection_reason),
                             verifying: false
                         }{{ $loop->last ? '' : ',' }}
@@ -499,6 +523,7 @@
 
                     // Optimistic update
                     this.payment.verifying = true;
+                    this.payment.status = 'approved';
                     this.payment.verified_at = new Date().toISOString();
 
                     try {
@@ -521,6 +546,7 @@
                         }
                     } catch (error) {
                         // Rollback optimistic update
+                        this.payment.status = 'pending';
                         this.payment.verified_at = null;
                         this.showToast('error', error.message || 'Approval failed. Please try again.');
                     } finally {
@@ -535,6 +561,7 @@
                     }
 
                     // Optimistic update
+                    this.payment.status = 'rejected';
                     this.payment.rejected_at = new Date().toISOString();
                     this.payment.rejection_reason = this.paymentRejectionReason;
                     this.rejectingPayment = false;
@@ -562,6 +589,7 @@
                         }
                     } catch (error) {
                         // Rollback
+                        this.payment.status = 'pending';
                         this.payment.rejected_at = null;
                         this.payment.rejection_reason = null;
                         this.showToast('error', error.message || 'Rejection failed. Please try again.');
@@ -570,7 +598,7 @@
 
                 // Document verification helpers
                 verifiedDocCount() {
-                    return this.documents.filter(d => d.verified_at).length;
+                    return this.documents.filter(d => d.verification_status === 'approved').length;
                 },
 
                 totalDocCount() {
@@ -586,7 +614,7 @@
                 },
 
                 hasPendingDocs() {
-                    return this.documents.some(d => d.uploaded && !d.verified_at && !d.rejected_at);
+                    return this.documents.some(d => d.uploaded && d.verification_status === 'pending');
                 },
 
                 // Document verification actions
@@ -595,6 +623,7 @@
                     if (!doc || doc.verifying) return;
 
                     // Optimistic update
+                    doc.verification_status = 'approved';
                     doc.verified_at = new Date().toISOString();
                     doc.verifying = true;
 
@@ -617,6 +646,7 @@
                         }
                     } catch (error) {
                         // Rollback
+                        doc.verification_status = 'pending';
                         doc.verified_at = null;
                         this.showToast('error', error.message || 'Approval failed. Please try again.');
                     } finally {
@@ -640,6 +670,7 @@
                     if (!doc) return;
 
                     // Optimistic update
+                    doc.verification_status = 'rejected';
                     doc.rejected_at = new Date().toISOString();
                     doc.rejection_reason = this.rejectionReason;
                     this.rejectingDoc = null;
@@ -667,6 +698,7 @@
                         }
                     } catch (error) {
                         // Rollback
+                        doc.verification_status = 'pending';
                         doc.rejected_at = null;
                         doc.rejection_reason = null;
                         this.showToast('error', error.message || 'Rejection failed. Please try again.');
@@ -674,7 +706,7 @@
                 },
 
                 async approveAllDocuments() {
-                    const pendingDocs = this.documents.filter(d => d.uploaded && !d.verified_at && !d.rejected_at);
+                    const pendingDocs = this.documents.filter(d => d.uploaded && d.verification_status === 'pending');
                     
                     if (pendingDocs.length === 0) return;
 
@@ -682,6 +714,7 @@
 
                     // Optimistic update
                     pendingDocs.forEach(doc => {
+                        doc.verification_status = 'approved';
                         doc.verified_at = new Date().toISOString();
                     });
 
@@ -705,6 +738,7 @@
                     } catch (error) {
                         // Rollback
                         pendingDocs.forEach(doc => {
+                            doc.verification_status = 'pending';
                             doc.verified_at = null;
                         });
                         this.showToast('error', error.message || 'Bulk approval failed. Try individually.');

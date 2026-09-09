@@ -20,7 +20,7 @@ class DevSampleDocumentSeeder extends Seeder
      *
      * Total: 60 files (~30 seconds download time)
      *
-     * These files are referenced by RentalSeeder for document verification testing.
+     * These files are stored in private disk and referenced by RentalSeeder.
      */
     public function run(): void
     {
@@ -28,8 +28,8 @@ class DevSampleDocumentSeeder extends Seeder
         $this->command->newLine();
 
         // Create directories if they don't exist
-        Storage::disk('public')->makeDirectory('rental-documents');
-        Storage::disk('public')->makeDirectory('payment-proofs');
+        Storage::disk('private')->makeDirectory('rental-documents');
+        Storage::disk('private')->makeDirectory('payment-proofs');
 
         // Download 20 KTP documents (600x400 portrait)
         $this->downloadDocuments('rental-documents', 'seed-ktp', 20, 600, 400);
@@ -42,15 +42,15 @@ class DevSampleDocumentSeeder extends Seeder
 
         $this->command->newLine();
         $this->command->info('✅ Documents downloaded successfully!');
-        $this->command->info('   - 20 KTP documents in storage/app/public/rental-documents/');
-        $this->command->info('   - 20 Selfie documents in storage/app/public/rental-documents/');
-        $this->command->info('   - 20 Payment proofs in storage/app/public/payment-proofs/');
+        $this->command->info('   - 20 KTP documents in storage/app/private/rental-documents/');
+        $this->command->info('   - 20 Selfie documents in storage/app/private/rental-documents/');
+        $this->command->info('   - 20 Payment proofs in storage/app/private/payment-proofs/');
     }
 
     /**
      * Download documents from LoremFlickr.
      *
-     * @param  string  $dir  Directory to store files (relative to public disk)
+     * @param  string  $dir  Directory to store files (relative to private disk)
      * @param  string  $prefix  Filename prefix
      * @param  int  $count  Number of files to download
      * @param  int  $width  Image width
@@ -75,7 +75,7 @@ class DevSampleDocumentSeeder extends Seeder
                 $url = "https://loremflickr.com/{$width}/{$height}/{$tags}?random={$i}";
                 $content = Http::timeout(20)->get($url)->throw()->body();
 
-                Storage::disk('public')->put("{$dir}/{$prefix}-{$i}.jpg", $content);
+                Storage::disk('private')->put("{$dir}/{$prefix}-{$i}.jpg", $content);
             } catch (\Exception $e) {
                 $this->command->warn("\n⚠️  Failed to download {$prefix}-{$i}: {$e->getMessage()}");
                 $this->command->warn('   Skipping and continuing...');

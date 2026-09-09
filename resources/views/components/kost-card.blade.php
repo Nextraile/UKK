@@ -54,18 +54,6 @@
       @endif
       
       <div class="mt-4 flex items-baseline justify-between">
-        <div>
-          @if($kost->min_price)
-            <span class="text-2xl font-bold text-gray-900 dark:text-text-strong-dark">
-              Mulai dari Rp {{ number_format($kost->min_price / 1000, 1, ',', '.') }}jt
-            </span>
-            <span class="text-sm text-gray-500 dark:text-text-muted-dark">/bulan</span>
-          @else
-            <span class="text-lg font-medium text-gray-600 dark:text-text-muted-dark">
-              Hubungi Admin
-            </span>
-          @endif
-        </div>
         @if($kost->average_rating)
           <div class="flex items-center text-sm">
             <svg class="w-5 h-5 text-warning fill-current" viewBox="0 0 20 20" aria-hidden="true">

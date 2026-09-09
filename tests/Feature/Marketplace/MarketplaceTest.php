@@ -7,8 +7,6 @@ namespace Tests\Feature\Marketplace;
 use App\Domain\Kost\Models\Address;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -225,27 +223,6 @@ class MarketplaceTest extends TestCase
     /**
      * @test
      */
-    public function test_it_displays_minimum_price_with_correct_format(): void
-    {
-        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Murah']);
-        $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
-        PriceScheme::factory()->create([
-            'room_type_id' => $roomType->id,
-            'price' => 1200000,
-            'is_active' => true,
-        ]);
-
-        $response = $this->get(route('marketplace.index'));
-
-        $response->assertStatus(200);
-        // Should display formatted price "Mulai dari Rp 1.200,0jt"
-        $response->assertSee('Mulai dari');
-        $response->assertSee('1.200,0jt');
-    }
-
-    /**
-     * @test
-     */
     public function test_it_uses_kost_card_component_not_inline_html(): void
     {
         $kost = Kost::factory()->create(['status' => 'active']);
@@ -317,43 +294,5 @@ class MarketplaceTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Kost No Price');
         // Should not throw error when min_price is null
-    }
-
-    /**
-     * @test
-     */
-    public function test_it_displays_lowest_price_from_multiple_room_types(): void
-    {
-        $kost = Kost::factory()->create(['status' => 'active', 'name' => 'Kost Multi Room']);
-
-        // Room type 1: min 1500000
-        $roomType1 = RoomType::factory()->create(['kost_id' => $kost->id]);
-        PriceScheme::factory()->create([
-            'room_type_id' => $roomType1->id,
-            'price' => 1500000,
-            'is_active' => true,
-        ]);
-
-        // Room type 2: min 900000 (lowest)
-        $roomType2 = RoomType::factory()->create(['kost_id' => $kost->id]);
-        PriceScheme::factory()->create([
-            'room_type_id' => $roomType2->id,
-            'price' => 900000,
-            'is_active' => true,
-        ]);
-
-        // Room type 3: min 2000000
-        $roomType3 = RoomType::factory()->create(['kost_id' => $kost->id]);
-        PriceScheme::factory()->create([
-            'room_type_id' => $roomType3->id,
-            'price' => 2000000,
-            'is_active' => true,
-        ]);
-
-        $response = $this->get(route('marketplace.index'));
-
-        $response->assertStatus(200);
-        // Should display the lowest price (900k = 900,0jt)
-        $response->assertSee('900,0jt');
     }
 }

@@ -177,7 +177,7 @@ class KostSeeder extends Seeder
             'bank_name' => $this->randomBankName(),
             'account_number' => $this->generateAccountNumber(),
             'account_holder_name' => $admin->first_name.' '.$admin->last_name,
-            'qris_image_path' => 'kost-images/qris-seed-placeholder.jpg',
+            'qris_image_path' => 'qris/qris-seed-placeholder.jpg',
             'status' => 'active',
             'submitted_at' => now()->subDays(rand(10, 15)),
             'approved_at' => now()->subDays(rand(5, 10)),

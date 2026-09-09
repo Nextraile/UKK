@@ -8,9 +8,10 @@ use App\Domain\Rental\Models\Rental;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\UploadProofOfPaymentRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PaymentController extends Controller
@@ -56,32 +57,27 @@ class PaymentController extends Controller
     }
 
     /**
-     * Download payment proof with authorization.
+     * Download/view payment proof with authorization.
      *
      * Serves payment proof file from private storage after verifying
-     * tenant owns the rental. Returns 404 if proof not uploaded yet.
+     * tenant owns the rental OR admin owns the kost. Returns 404 if proof not uploaded yet.
+     * Returns inline response (not download) so images can be displayed in browser.
      *
-     * @param  Rental  $rental  The rental to download proof for
+     * @param  Rental  $rental  The rental to view/download proof for
      *
      * @throws HttpException 404 if proof not found
      */
-    public function downloadProof(Rental $rental): BinaryFileResponse
+    public function downloadProof(Rental $rental): StreamedResponse
     {
-        $this->authorize('view', $rental);
+        $this->authorize('viewPaymentProof', $rental);
 
         if (! $rental->payment->proof_of_payment_path) {
             abort(404, 'Payment proof not uploaded yet');
         }
 
-        $path = storage_path('app/private/'.$rental->payment->proof_of_payment_path);
-
-        if (! file_exists($path)) {
-            abort(404, 'Payment proof file not found');
-        }
-
-        return response()->file($path, [
-            'Content-Type' => 'image/jpeg',
-        ]);
+        // Use response() instead of download() to serve inline (displays in browser)
+        // This allows images to be shown in <img> tags, same as document display
+        return Storage::disk('private')->response($rental->payment->proof_of_payment_path);
     }
 
     /**
@@ -94,7 +90,7 @@ class PaymentController extends Controller
      *
      * @throws HttpException 404 if QRIS not found
      */
-    public function downloadQris(Rental $rental): BinaryFileResponse
+    public function downloadQris(Rental $rental): StreamedResponse
     {
         $this->authorize('view', $rental);
 
@@ -102,13 +98,7 @@ class PaymentController extends Controller
             abort(404, 'QRIS not configured for this kost');
         }
 
-        $path = storage_path('app/private/'.$rental->payment->qris_image_path);
-
-        if (! file_exists($path)) {
-            abort(404, 'QRIS image not found');
-        }
-
-        return response()->file($path, [
+        return Storage::disk('private')->response($rental->payment->qris_image_path, null, [
             'Content-Type' => 'image/png',
         ]);
     }

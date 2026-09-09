@@ -1,27 +1,26 @@
-@component('mail::message')
-# Selamat Datang di SewaKost!
+@extends('emails.layouts.base', [
+    'greeting' => "Selamat datang di SewaKost, {$admin->first_name}!",
+    'footerNote' => 'Silakan login dan ubah password Anda segera.'
+])
 
-Halo {{ $admin->first_name }},
+@section('content')
+    <p style="margin:0 0 16px 0;">
+        Akun Admin Anda telah berhasil dibuat oleh Super Administrator. Anda sekarang dapat mengakses dashboard admin SewaKost.
+    </p>
 
-Akun Admin Anda telah berhasil dibuat oleh Super Administrator. Anda sekarang dapat mengakses dashboard admin SewaKost.
+    @component('emails.components.panel')
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Email:</strong> {{ $admin->email }}</p>
+        <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Phone:</strong> {{ $admin->phone }}</p>
+        <p style="margin:0;"><strong style="color:#111827;">Password Sementara:</strong> {{ $password }}</p>
+    @endcomponent
 
-## Informasi Login
+    @include('emails.components.button', [
+        'url' => route('login'),
+        'text' => 'Login Sekarang',
+        'variant' => 'primary'
+    ])
 
-**Email:** {{ $admin->email }}  
-**Password:** {{ $password }}
-
-@component('mail::button', ['url' => route('login')])
-Login Sekarang
-@endcomponent
-
----
-
-**Penting untuk Keamanan Akun Anda:**
-
-Untuk melindungi akun Anda, kami sangat menyarankan untuk **mengganti password ini** setelah login pertama kali melalui menu Profile Anda.
-
-Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi Super Administrator.
-
-Terima kasih,  
-{{ config('app.name') }}
-@endcomponent
+    <p style="margin:16px 0 0 0;font-size:14px;color:#6B7280;">
+        <strong>Penting:</strong> Untuk keamanan akun Anda, harap ubah password ini setelah login pertama kali melalui menu Profile.
+    </p>
+@endsection

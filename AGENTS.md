@@ -1,16 +1,10 @@
 # AGENTS.md
 
-> High-signal operational instructions for agents working in this Laravel 13 monolith.
-> For requirements → `PRD.md` (130 FR). For design → `ARCHITECTURE.md` (9 COMP, 21 ADR). For UI/UX → `DESIGN.md` (38 components) + `PAGES.md` (57 pages). For tasks → `TODO.md` (84 tasks).
-
-| Field | Value |
-|---|---|
-| Versi Dokumen | `1.0.6` |
-| Terakhir Diperbarui | `2026-08-27` |
+> For requirements → `PRD.md`. For design → `ARCHITECTURE.md`. For UI/UX → `DESIGN.md` + `PAGES.md`. For tasks → `TODO.md`.
 
 ## Project Summary
 
-**SewaKost** — Laravel 13 kost marketplace (booking, payment, reviews). Modular monolith, session auth, Blade+Alpine.js, QRIS payment, OTP email verification.
+**SewaKost** — Laravel 13 kost marketplace (booking, payment, reviews). Modular monolith, session auth, Blade+Alpine.js, manual payment verification, OTP email verification.
 
 **Tech:** PHP 8.5, MySQL 8.0, Redis 7, Laravel Breeze (customized), Docker Sail (dev only), PHPUnit, PHPStan, Pint.
 
@@ -54,24 +48,21 @@ wsl ./vendor/bin/sail npm install package-name
 
 - **Structure:** Modular monolith. Domain logic in `app/Domain/<Component>/`, controllers in `app/Http/Controllers/<Role>/`, views in `resources/views/<role>/`.
 - **Auth:** Laravel Breeze (session-based). **Customization required:** OTP email verification (6-digit, 15min expiry) instead of default link-based.
-- **State machines:** Use Action classes for lifecycle transitions (Kost: draft→pending_review→approved→active, Rental: pending→paid→confirmed→active→completed). NO generic `$model->update(['status' => ...])` — see ADR-009.
-- **JSON fields:** Facilities/rules stored as JSON arrays (`['facilities' => 'array']` cast). Document requirements, review images also JSON — see ADR-013, ADR-015.
-- **Room availability:** Calculated real-time from rentals (`max_occupants - used_slots`), not denormalized in `rooms.status` — see ADR-017, ADR-018.
-- **Routes:** Web routes only (`routes/web.php`). NO API routes unless explicitly required with ADR — see ARCHITECTURE.md §6.
-- **Test framework:** PHPUnit (NOT Pest) — see ADR-021.
+- **State machines:** Use Action classes for lifecycle transitions (Kost: draft→pending_review→approved→active, Rental: pending→paid→confirmed→active→completed). NO generic `$model->update(['status' => ...])`.
+- **JSON fields:** Facilities/rules stored as JSON arrays (`['facilities' => 'array']` cast). Document requirements, review images also JSON.
+- **Room availability:** Calculated real-time from rentals (`max_occupants - used_slots`), not denormalized in `rooms.status`.
+- **Routes:** Web routes only (`routes/web.php`). NO API routes unless explicitly required with ADR.
+- **Test framework:** PHPUnit (NOT Pest).
 
 **Key ADRs to check before building:**
 - ADR-010: Transactional rental creation with `SELECT...FOR UPDATE` room locking
 - ADR-013: Facility/Rule as JSON (not normalized tables)
-- ADR-014: QRIS static payment (no Midtrans)
+- ADR-014: Manual/QRIS static payment (no Midtrans/payment gateway)
 - ADR-016: Min start_date = today+4 days (payment + doc verification time)
-- ADR-020: PHP 8.5 (not 8.3)
 
 ## Documentation Sources (Check Before Coding)
 
 **Laravel 13 specific:** Training data may have outdated APIs. ALWAYS check official docs first: https://laravel.com/docs/13.x
-
-Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc links).
 
 **Before implementing any TASK:**
 1. Read `TODO.md` for task acceptance criteria
@@ -81,42 +72,23 @@ Full version table: `ARCHITECTURE.md` §3.1 (15 dependencies with official doc l
 5. Read `PAGES.md` for page-specific layout, data, and user flows (±57 pages & ±8 emails)
 6. Check `ARCHITECTURE.md` §3.1 for library official docs
 
-**If docs don't answer:** Create `Q-xxx` in `PRD.md` §13 — don't guess.
+**If docs don't answer:** ask! don't guess.
 
-### UI/UX Documentation (NEW)
+### UI/UX Documentation
 
 **DESIGN.md** — Design System & Component Library
 - **Design tokens:** Colors, typography, spacing, shadows (Tailwind CSS 4.0 compatible)
-- **±38 components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
+- **Components:** Buttons, forms, cards, modals, navigation, tables, badges, alerts, loading states
 - **Layout patterns:** Public (marketplace), Admin (sidebar), Auth (centered card)
 - **Responsive design:** Mobile-first approach, breakpoints, touch targets
 - **Accessibility:** WCAG 2.1 AA guidelines, keyboard nav, screen reader support
 - **Implementation:** Blade + Alpine.js + Tailwind examples for every component
 
 **PAGES.md** — Page & Interface Specifications
-- **±57 pages:** Public (3), Auth (6), Tenant (16), Admin (21), Super Admin (11)
-- **±8 email templates:** OTP verification, payment/document notifications, rental status changes
+- **Pages:** Public, Auth, Tenant, Admin, Super Admin
+- **Email templates:** OTP verification, payment/document notifications, rental status changes
 - **Each page spec includes:** URL, auth, layout structure, components used, data requirements, validation, user flows, edge cases, accessibility notes
 - **Use this for:** Understanding page-specific requirements when implementing Blade views
-
-**Workflow for UI implementation:**
-```
-TASK-xxx (from TODO.md)
-  ↓
-Read PAGES.md → Find page spec (e.g., PAGE-001: Landing Page)
-  ↓
-Read DESIGN.md → Reference components used (e.g., §3.3 Kost Card)
-  ↓
-Create Blade view in resources/views/ (copy-paste component HTML from DESIGN.md)
-  ↓
-Implement controller logic (data requirements from PAGES.md)
-  ↓
-Test user flows (from PAGES.md spec)
-  ↓
-Run accessibility audit (axe DevTools)
-  ↓
-Mark TASK Done
-```
 
 **UI Design Pipeline (4 Fase) — untuk pekerjaan desain/UI baru (dashboard, landing, komponen):**
 ```
@@ -155,7 +127,7 @@ Gunakan pipeline ini SEBELUM menulis layout baru; untuk polish halaman yang ada,
 
 ## Hard Rules
 
-- **DO NOT** add dependencies without creating ADR in `ARCHITECTURE.md` + adding to §3.1 table.
+- **DO NOT** add dependencies without creating ADR in `ARCHITECTURE.md`.
 - **DO NOT** edit `PRD.md` or `ARCHITECTURE.md` during normal task work — use `WORKFLOW.md` §Change Management.
 - **DO NOT** commit secrets/keys. Use `.env` (already gitignored).
 - **DO NOT** renumber existing IDs (`FR-xxx`, `TASK-xxx`). Mark deprecated instead.
@@ -433,20 +405,6 @@ See `SKILL.md` §1 for full descriptions and trigger keywords. Use `skill-archit
 - **API testing** — Use `bash` with `curl` instead (faster, no browser overhead)
 - **Unit testing** — Use PHPUnit directly via `./vendor/bin/sail artisan test`
 
-### Configuration Options
-Current config in `opencode.json` (server remote di container):
-```json
-{
-  "mcp": {
-    "playwright": {
-      "type": "remote",
-      "url": "http://localhost:8931/mcp",
-      "enabled": true
-    }
-  }
-}
-```
-
 **Container setup** (browser runtime, portrait terpisah dari Sail):
 ```bash
 docker compose -f docker-compose.playwright-mcp.yml up -d --build   # start / rebuild
@@ -478,20 +436,6 @@ docker compose -f docker-compose.playwright-mcp.yml down            # stop
 **Docs:** https://playwright.dev/mcp/introduction
 
 ---
-
-**Project status:** Environment ready. Technical debt cleanup complete (26 issues fixed, v1.0.6). UI/UX documentation complete (DESIGN.md + PAGES.md). Skills operational (19 installed). Codegraph indexed (230 files). 84 tasks in TODO.md (~66 days, 13-14 weeks). COMP-001 (Identity, 13 tasks) Done ✅. COMP-002 (Kost Publication, 10 tasks) Done ✅. COMP-003 (Kost Configuration, 7 tasks) Done ✅. COMP-004 (Booking, 9 tasks) Done ✅. COMP-005 (Rental Management, 11 tasks) Done ✅. COMP-006 (Document Verification, 9 tasks) Done ✅. Ready for COMP-007 (Payment Management).
-
-**Documentation inventory:**
-- PRD.md (792 lines): 130 FR, 29 NFR, 22 US, 4 personas
-- ARCHITECTURE.md (1606 lines): 9 COMP, 21 ADR, data models, routes
-- DESIGN.md (4340 lines): Design system, 38 components, layout patterns, accessibility guidelines
-- PAGES.md (1928 lines): 57 page specs + 8 email templates
-- TODO.md (405 lines): 84 tasks across 9 components
-- WORKFLOW.md (133 lines): 5-phase development process
-- AGENTS.md (this file): Operational instructions
-- MANUAL.md (314 lines): Development methodology
-
-Total: 9,886 lines of documentation
 
 ## graphify
 
