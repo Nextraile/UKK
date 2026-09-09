@@ -6,12 +6,12 @@ namespace Tests\Feature\Rental;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Mail\RentalCreatedMail;
-use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;

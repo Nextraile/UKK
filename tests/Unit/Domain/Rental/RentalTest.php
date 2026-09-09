@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Rental;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Domain\Rental\Models\RentalStatusHistory;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;

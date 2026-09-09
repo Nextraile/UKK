@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Domain\Rental\Policies;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Rental\Models\Rental;

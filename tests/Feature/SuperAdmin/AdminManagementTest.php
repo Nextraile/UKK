@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\SuperAdmin;
 
+use App\Domain\Identity\Mail\AdminAccountCreated;
 use App\Domain\Identity\Models\User;
-use App\Mail\AdminAccountCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;

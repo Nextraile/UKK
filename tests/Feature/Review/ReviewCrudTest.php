@@ -6,9 +6,9 @@ namespace Tests\Feature\Review;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\Room;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Review\Models\Review;
+use App\Domain\RoomInventory\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

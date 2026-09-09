@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\SuperAdmin;
 
+use App\Domain\Identity\Mail\AdminAccountCreated;
 use App\Domain\Identity\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\AdminAccountRequest;
-use App\Mail\AdminAccountCreated;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -1,6 +1,6 @@
 <?php
 
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 use App\Http\Controllers\Admin\DocumentRequirementController;
 use App\Http\Controllers\Admin\DocumentVerificationController;
 use App\Http\Controllers\Admin\KostController;

@@ -10,10 +10,10 @@ use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\KostDocumentRequirement;
 use App\Domain\Kost\Models\KostImage;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Kost\Models\RoomTypeImage;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
+use App\Domain\RoomInventory\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomTypeImage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\RoomType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePriceSchemeRequest;
 use App\Http\Requests\Admin\UpdatePriceSchemeRequest;

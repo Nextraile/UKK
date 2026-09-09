@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Models;
 
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

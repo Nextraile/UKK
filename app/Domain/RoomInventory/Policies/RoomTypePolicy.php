@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Domain\RoomInventory\Policies;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomType;
 
 /**
  * Authorization policy for RoomType resource.

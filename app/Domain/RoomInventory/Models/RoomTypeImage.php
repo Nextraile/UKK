@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kost\Models;
+namespace App\Domain\RoomInventory\Models;
 
 use Database\Factories\RoomTypeImageFactory;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

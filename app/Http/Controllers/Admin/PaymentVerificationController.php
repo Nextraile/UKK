@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Actions\RejectPayment;
 use App\Domain\Rental\Actions\VerifyPayment;
-use App\Domain\Rental\Models\Payment;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RejectPaymentRequest;
 use Illuminate\Http\RedirectResponse;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Domain\RoomInventory\Policies;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Kost\Models\RoomTypeImage;
+use App\Domain\RoomInventory\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomTypeImage;
 
 /**
  * Authorization policy for RoomTypeImage resource.
@@ -33,6 +33,8 @@ class RoomTypeImagePolicy
             return false;
         }
 
+        $roomType->loadMissing('kost');
+
         return $roomType->kost->user_id === $user->id;
     }
 
@@ -51,6 +53,8 @@ class RoomTypeImagePolicy
         if ($user->role !== 'admin') {
             return false;
         }
+
+        $roomTypeImage->roomType->loadMissing('kost');
 
         return $roomTypeImage->roomType->kost->user_id === $user->id;
     }

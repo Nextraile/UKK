@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Rental\Actions;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Exceptions\InvalidRentalDataException;
 use App\Domain\Rental\Exceptions\RoomFullException;
 use App\Domain\Rental\Mail\RentalCreatedMail;
-use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;

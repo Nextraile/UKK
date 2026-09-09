@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

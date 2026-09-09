@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Kost\Models\RoomTypeImage;
+use App\Domain\RoomInventory\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomTypeImage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomTypeRequest;
 use App\Http\Requests\Admin\UpdateRoomTypeRequest;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kost\Models;
+namespace App\Domain\RoomInventory\Models;
 
+use App\Domain\Kost\Models\Kost;
 use Database\Factories\RoomTypeFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;

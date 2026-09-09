@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Domain\Payment\Policies;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 
 /**
  * Authorization policy for Payment model.

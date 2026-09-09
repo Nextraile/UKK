@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Rental\Models;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Review\Models\Review;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
 use Database\Factories\RentalFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

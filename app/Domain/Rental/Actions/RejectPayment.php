@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Rental\Actions;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Rental\Mail\PaymentRejectedMail;
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Mail\PaymentRejectedMail;
+use App\Domain\Payment\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 

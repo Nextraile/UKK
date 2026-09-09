@@ -6,11 +6,11 @@ namespace Database\Seeders;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Domain\Rental\Models\RentalStatusHistory;
+use App\Domain\RoomInventory\Models\Room;
 use Illuminate\Database\Seeder;
 
 class RentalSeeder extends Seeder

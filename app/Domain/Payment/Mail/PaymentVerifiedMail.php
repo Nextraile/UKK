@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Rental\Mail;
+namespace App\Domain\Payment\Mail;
 
 use App\Domain\Rental\Models\Rental;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -40,5 +41,15 @@ class PaymentVerifiedMail extends Mailable
         return new Content(
             markdown: 'emails.rental.payment-verified',
         );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
     }
 }

@@ -6,8 +6,8 @@ namespace Tests\Unit\Policies;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\RoomType;
-use App\Policies\RoomTypePolicy;
+use App\Domain\RoomInventory\Models\RoomType;
+use App\Domain\RoomInventory\Policies\RoomTypePolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

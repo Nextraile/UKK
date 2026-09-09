@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Policies;
+namespace App\Domain\RoomInventory\Policies;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\RoomType;
 
 class PriceSchemePolicy
 {

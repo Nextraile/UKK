@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Rental\Exceptions;
 
-use App\Domain\Kost\Models\Room;
+use App\Domain\RoomInventory\Models\Room;
 use Exception;
 
 class RoomFullException extends Exception

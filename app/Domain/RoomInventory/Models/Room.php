@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kost\Models;
+namespace App\Domain\RoomInventory\Models;
 
+use App\Domain\Kost\Models\Kost;
 use App\Domain\Rental\Models\Rental;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,7 +26,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $internal_notes
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
  * @property-read Kost $kost
  * @property-read RoomType $roomType
  * @property-read int $reserved_count

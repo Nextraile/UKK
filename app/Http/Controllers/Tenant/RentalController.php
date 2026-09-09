@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Identity\Models\User;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Actions\CancelRental;
 use App\Domain\Rental\Actions\CreateRental;
 use App\Domain\Rental\Exceptions\InvalidRentalStatusException;
 use App\Domain\Rental\Exceptions\RoomFullException;
-use App\Domain\Rental\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\CancelRentalRequest;
 use App\Http\Requests\Tenant\CreateRentalRequest;

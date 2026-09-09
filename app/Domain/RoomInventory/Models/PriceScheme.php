@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Kost\Models;
+namespace App\Domain\RoomInventory\Models;
 
 use Database\Factories\PriceSchemeFactory;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
@@ -25,12 +23,11 @@ use Illuminate\Support\Carbon;
  * @property bool $is_active
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property Carbon|null $deleted_at
  * @property-read RoomType $roomType
  */
 class PriceScheme extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Create a new factory instance for the model.

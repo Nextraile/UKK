@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Rental\Models;
+namespace App\Domain\Payment\Models;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Rental\Models\Rental;
 use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

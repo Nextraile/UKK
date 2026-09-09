@@ -6,8 +6,8 @@ namespace Tests\Feature\Admin;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Kost\Models\RoomTypeImage;
+use App\Domain\RoomInventory\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomTypeImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

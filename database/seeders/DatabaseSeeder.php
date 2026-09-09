@@ -7,13 +7,13 @@ namespace Database\Seeders;
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\PriceScheme;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Rental\Models\Payment;
+use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Domain\Review\Models\Review;
+use App\Domain\RoomInventory\Models\PriceScheme;
+use App\Domain\RoomInventory\Models\Room;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 

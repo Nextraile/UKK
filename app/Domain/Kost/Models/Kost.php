@@ -6,6 +6,8 @@ namespace App\Domain\Kost\Models;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Review\Models\Review;
+use App\Domain\RoomInventory\Models\Room;
+use App\Domain\RoomInventory\Models\RoomType;
 use Database\Factories\KostFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

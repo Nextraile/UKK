@@ -6,11 +6,11 @@ namespace Tests\Feature\Rental;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\Room;
-use App\Domain\Kost\Models\RoomType;
-use App\Domain\Rental\Mail\PaymentRejectedMail;
-use App\Domain\Rental\Mail\PaymentVerifiedMail;
+use App\Domain\Payment\Mail\PaymentRejectedMail;
+use App\Domain\Payment\Mail\PaymentVerifiedMail;
 use App\Domain\Rental\Models\Rental;
+use App\Domain\RoomInventory\Models\Room;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;

@@ -8,7 +8,7 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Actions\SubmitKostForReview;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
-use App\Domain\Kost\Models\RoomType;
+use App\Domain\RoomInventory\Models\RoomType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
