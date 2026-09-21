@@ -181,7 +181,7 @@ class ProfileTest extends TestCase
 
         $this->actingAs($user)
             ->post('/profile/avatar', [
-                'avatar' => UploadedFile::fake()->image('avatar.png'),
+                'avatar' => UploadedFile::fake()->image('avatar.png', 200, 200)->size(100),
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('profile.edit'));

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\RoomInventory\Models\RoomType;
 use App\Domain\RoomInventory\Models\RoomTypeImage;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreRoomTypeRequest;
 use App\Http\Requests\Admin\UpdateRoomTypeRequest;
@@ -73,16 +74,14 @@ class RoomTypeController extends Controller
 
             // 2. Handle image uploads if present
             if ($request->hasFile('images')) {
+                $service = app(SecureFileUploadService::class);
                 $files = $request->file('images');
 
                 foreach ($files as $index => $file) {
                     $sequence = $index + 1;
 
-                    // Generate UUID filename for security (prevent enumeration attacks)
-                    $filename = Str::uuid().'.'.$file->guessExtension();
-
-                    // Store in storage/app/public/room-type-images/
-                    $path = $file->storeAs('room-type-images', $filename, 'public');
+                    // Use service for secure storage (already has UUID + validation)
+                    $path = $service->store($file, 'room-type-images', 'public');
 
                     // Create database record
                     RoomTypeImage::create([
@@ -168,15 +167,14 @@ class RoomTypeController extends Controller
                 // Get max sort_order for continuation
                 $maxSortOrder = $roomType->roomTypeImages()->max('sort_order') ?? 0;
 
+                $service = app(SecureFileUploadService::class);
                 $files = $request->file('images');
 
                 foreach ($files as $index => $file) {
                     $sequence = $maxSortOrder + $index + 1;
 
-                    // Generate UUID filename for security (prevent enumeration attacks)
-                    $filename = Str::uuid().'.'.$file->guessExtension();
-
-                    $path = $file->storeAs('room-type-images', $filename, 'public');
+                    // Use service for secure storage (already has UUID + validation)
+                    $path = $service->store($file, 'room-type-images', 'public');
 
                     // If all images were deleted and this is first new upload, set as thumbnail
                     $isThumbnail = ($existingCount === 0 && $index === 0);

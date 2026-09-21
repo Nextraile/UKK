@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Rental\Actions;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Payment\Exceptions\PaymentAlreadyVerifiedException;
 use App\Domain\Payment\Mail\PaymentRejectedMail;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Rental\Models\Rental;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -33,6 +35,16 @@ class RejectPayment
     public function execute(Payment $payment, string $reason, User $admin): void
     {
         DB::transaction(function () use ($payment, $reason, $admin) {
+            // Lock payment row first
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
+
+            // Guard: cannot reject verified payment
+            if ($payment->status === 'success') {
+                throw new PaymentAlreadyVerifiedException(
+                    'Tidak dapat menolak pembayaran yang sudah diverifikasi.'
+                );
+            }
+
             // 1. Update payment rejection reason (clear proof to allow re-upload)
             $payment->update([
                 'rejection_reason' => $reason,
@@ -40,8 +52,9 @@ class RejectPayment
                 'paid_at' => null,
             ]);
 
-            // 2. Keep rental status as 'pending' to allow tenant re-upload
-            $rental = $payment->rental;
+            // 2. Lock rental before accessing
+            /** @var Rental $rental */
+            $rental = $payment->rental()->lockForUpdate()->firstOrFail();
 
             // 3. Append status history (informational, not state transition)
             $rental->statusHistories()->create([

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Rules\SecureFileValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -27,7 +28,7 @@ class UploadDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'document_type' => [
+            'type' => [
                 'required',
                 'string',
                 function ($attribute, $value, $fail) {
@@ -42,7 +43,12 @@ class UploadDocumentRequest extends FormRequest
                     }
                 },
             ],
-            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+            'document' => [
+                'required',
+                'file',
+                'min:1', // Prevent 0-byte files
+                new SecureFileValidation('rental_document'),
+            ],
         ];
     }
 
@@ -54,10 +60,10 @@ class UploadDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.required' => 'File dokumen harus diunggah.',
-            'file.file' => 'File yang diunggah tidak valid.',
-            'file.mimes' => 'File harus berformat JPG, PNG, atau PDF.',
-            'file.max' => 'Ukuran file maksimal 5MB.',
+            'document.required' => 'File dokumen harus diunggah.',
+            'document.file' => 'File yang diunggah tidak valid.',
+            'document.mimes' => 'File harus berformat JPG, PNG, atau PDF.',
+            'document.max' => 'Ukuran file maksimal 5MB.',
         ];
     }
 }

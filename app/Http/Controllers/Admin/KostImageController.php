@@ -6,12 +6,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\KostImage;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreKostImageRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -43,37 +44,25 @@ class KostImageController extends Controller
     /**
      * Store a newly uploaded image for the kost.
      *
-     * @param  Request  $request  The HTTP request with image file
+     * @param  StoreKostImageRequest  $request  The HTTP request with image file
      * @param  Kost  $kost  The kost to add image to
      *
      * @throws ValidationException If validation fails
      */
-    public function store(Request $request, Kost $kost): RedirectResponse
+    public function store(StoreKostImageRequest $request, Kost $kost): RedirectResponse
     {
         $this->authorize('update', $kost);
 
-        $validated = $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'], // 5MB
-        ], [
-            'image.required' => 'Gambar wajib diunggah.',
-            'image.image' => 'File harus berupa gambar.',
-            'image.mimes' => 'Format gambar harus: JPEG, JPG, PNG, atau WebP.',
-            'image.max' => 'Ukuran gambar maksimal 5MB.',
-        ]);
+        $service = app(SecureFileUploadService::class);
 
-        $file = $request->file('image');
-
-        // Generate UUID filename for security (prevent enumeration attacks)
-        $filename = Str::uuid().'.'.$file->guessExtension();
-
-        // Store in storage/app/public/kost-images/
-        $path = $file->storeAs('kost-images', $filename, 'public');
+        // Store image with UUID filename
+        $path = $service->store($request->file('image'), 'kost-images', 'public');
 
         // Get next sort_order
         $sequence = $kost->kostImages()->count() + 1;
 
         // Create database record
-        $image = KostImage::create([
+        KostImage::create([
             'kost_id' => $kost->id,
             'image_path' => $path,
             'is_thumbnail' => false,

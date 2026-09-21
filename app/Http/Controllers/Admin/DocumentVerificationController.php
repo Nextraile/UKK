@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Rental\Actions\VerifyDocument;
+use App\Domain\Rental\Exceptions\DocumentAlreadyVerifiedException;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\VerifyDocumentRequest;
@@ -19,12 +20,19 @@ class DocumentVerificationController extends Controller
      */
     public function approve(VerifyDocumentRequest $request, RentalDocument $document): RedirectResponse
     {
-        $action = new VerifyDocument;
-        $action->execute($document, true);
+        try {
+            $action = new VerifyDocument;
+            $action->execute($document, true);
 
-        return redirect()
-            ->route('admin.rentals.show', $document->rental_id)
-            ->with('success', "Dokumen {$document->document_type} telah disetujui.");
+            return redirect()
+                ->route('admin.rentals.show', $document->rental_id)
+                ->with('success', "Dokumen {$document->document_type} telah disetujui.");
+
+        } catch (DocumentAlreadyVerifiedException $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -34,15 +42,22 @@ class DocumentVerificationController extends Controller
      */
     public function reject(VerifyDocumentRequest $request, RentalDocument $document): RedirectResponse
     {
-        $action = new VerifyDocument;
-        $action->execute(
-            $document,
-            false,
-            $request->input('rejection_reason')
-        );
+        try {
+            $action = new VerifyDocument;
+            $action->execute(
+                $document,
+                false,
+                $request->input('rejection_reason')
+            );
 
-        return redirect()
-            ->route('admin.rentals.show', $document->rental_id)
-            ->with('success', "Dokumen {$document->document_type} telah ditolak. Tenant dapat upload ulang.");
+            return redirect()
+                ->route('admin.rentals.show', $document->rental_id)
+                ->with('success', "Dokumen {$document->document_type} telah ditolak. Tenant dapat upload ulang.");
+
+        } catch (DocumentAlreadyVerifiedException $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
     }
 }

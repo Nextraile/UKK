@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Rental\Models\Rental;
+use App\Domain\Shared\Exceptions\InvalidFileException;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\UploadProofOfPaymentRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -42,14 +44,38 @@ class PaymentController extends Controller
     {
         $this->authorize('uploadPayment', $rental);
 
-        $file = $request->file('proof');
-        $filename = Str::uuid().'.'.$file->guessExtension();
-        $path = $file->storeAs('payment-proofs', $filename, 'private');
+        $service = app(SecureFileUploadService::class);
 
-        $rental->payment->update([
-            'proof_of_payment_path' => $path,
-            'rejection_reason' => null, // Clear rejection reason on re-upload
-        ]);
+        DB::transaction(function () use ($request, $rental, $service) {
+            $payment = $rental->payment;
+
+            // Lock payment row to prevent concurrent uploads
+            $payment = $payment->lockForUpdate()->findOrFail($payment->id);
+
+            // ✅ VULN-108 FIX: Prevent upload during verification
+            if (in_array($payment->status ?? 'pending', ['verified', 'rejected'])) {
+                throw new InvalidFileException(
+                    'Tidak dapat mengunggah bukti pembayaran setelah diverifikasi atau ditolak.'
+                );
+            }
+
+            // Delete old proof if exists
+            if ($payment->proof_of_payment_path && Storage::disk('private')->exists($payment->proof_of_payment_path)) {
+                Storage::disk('private')->delete($payment->proof_of_payment_path);
+            }
+
+            // Store new proof with UUID filename
+            $path = $service->store(
+                $request->file('proof'),
+                'payment-proofs',
+                'private'
+            );
+
+            $payment->update([
+                'proof_of_payment_path' => $path,
+                'rejection_reason' => null, // Clear rejection reason on re-upload
+            ]);
+        });
 
         return redirect()
             ->route('rentals.show', $rental)

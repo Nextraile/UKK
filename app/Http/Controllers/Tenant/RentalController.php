@@ -14,13 +14,17 @@ use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Domain\RoomInventory\Models\PriceScheme;
 use App\Domain\RoomInventory\Models\Room;
+use App\Domain\Shared\Exceptions\InvalidFileException;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\CancelRentalRequest;
 use App\Http\Requests\Tenant\CreateRentalRequest;
+use App\Http\Requests\Tenant\UploadDocumentRequest;
 use App\Http\Requests\Tenant\UploadPaymentRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -241,15 +245,36 @@ class RentalController extends Controller
         $this->authorize('uploadPayment', $rental);
 
         try {
-            // Store file in private disk (secure storage, accessed via downloadProof)
-            $path = $request->file('payment_proof')->store('payment-proofs', 'private');
+            $service = app(SecureFileUploadService::class);
 
-            // Update payment record (clear rejection_reason on re-upload)
-            $rental->payment->update([
-                'proof_of_payment_path' => $path,
-                'paid_at' => now(),
-                'rejection_reason' => null, // Clear rejection reason on re-upload
-            ]);
+            DB::transaction(function () use ($request, $rental, $service) {
+                $payment = $rental->payment;
+
+                // Lock payment row to prevent concurrent uploads
+                $payment = $payment->lockForUpdate()->findOrFail($payment->id);
+
+                // ✅ VULN-108 FIX: Prevent upload during verification
+                if ($payment->verified_at !== null) {
+                    throw new InvalidFileException(
+                        'Tidak dapat mengunggah bukti pembayaran setelah diverifikasi.'
+                    );
+                }
+
+                // Delete old proof if exists
+                if ($payment->proof_of_payment_path && Storage::disk('private')->exists($payment->proof_of_payment_path)) {
+                    Storage::disk('private')->delete($payment->proof_of_payment_path);
+                }
+
+                // Store file in private disk with UUID filename
+                $path = $service->store($request->file('payment_proof'), 'payment-proofs', 'private');
+
+                // Update payment record (clear rejection_reason on re-upload)
+                $payment->update([
+                    'proof_of_payment_path' => $path,
+                    'paid_at' => now(),
+                    'rejection_reason' => null, // Clear rejection reason on re-upload
+                ]);
+            });
 
             // NOTE: Status remains 'pending' until admin verifies payment
             // Status will change to 'paid' only after admin approval via VerifyPayment action
@@ -265,6 +290,11 @@ class RentalController extends Controller
                 'success' => true,
                 'message' => 'Bukti pembayaran berhasil diupload',
             ]);
+        } catch (InvalidFileException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -331,71 +361,81 @@ class RentalController extends Controller
     }
 
     /**
-     * Upload document for rental (AJAX endpoint for Phase 11 per-card upload).
+     * Upload rental document (KTP, KK, etc).
      *
      * FR-086, FR-087: Upload required documents
      * DESIGN.md §3.41: Per-document upload flow
      *
-     * @param  Request  $request  Contains 'document' file and 'type' string
+     * @param  UploadDocumentRequest  $request  Contains 'document' file and 'type' string
      * @param  Rental  $rental  The rental to upload document for
      * @return JsonResponse JSON response with success/error status
      */
-    public function uploadDocument(Request $request, Rental $rental): JsonResponse
+    public function uploadDocument(UploadDocumentRequest $request, Rental $rental): JsonResponse
     {
-        // Authorization check
-        $this->authorize('uploadDocument', $rental);
-
-        // Validate input
-        $validated = $request->validate([
-            'document' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
-            'type' => 'required|string',
-        ]);
+        // Authorization handled in FormRequest
+        $validated = $request->validated();
 
         try {
-            // Verify document type exists in kost requirements
-            $requirement = $rental->room->roomType->kost->documentRequirements()
-                ->where('document_type', $validated['type'])
-                ->first();
+            $service = app(SecureFileUploadService::class);
 
-            if (! $requirement) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Document type not required for this kost',
-                    'errors' => ['type' => ['The selected document type is not required.']],
-                ], 422);
-            }
+            DB::transaction(function () use ($validated, $rental, $service, $request) {
+                // Lock rental row
+                $rental = Rental::lockForUpdate()->findOrFail($rental->id);
 
-            // Store file in private disk (secure storage)
-            $path = $request->file('document')->store('rental-documents', 'private');
+                // ✅ VULN-108 FIX: Only allow upload in valid statuses
+                $allowedStatuses = ['pending', 'paid', 'documents_pending'];
+                if (! in_array($rental->status, $allowedStatuses)) {
+                    throw new InvalidFileException(
+                        'Tidak dapat mengunggah dokumen pada status rental saat ini.'
+                    );
+                }
 
-            // Create or update rental document
-            $rentalDocument = $rental->rentalDocuments()->updateOrCreate(
-                ['document_type' => $validated['type']],
-                [
-                    'document_path' => $path,
-                    'uploaded_at' => now(),
-                    'verification_status' => 'pending',
-                    'verified_at' => null,
-                    'verified_by' => null,
-                    'rejection_reason' => null,
-                ]
-            );
+                // Verify document type exists in kost requirements (already validated in FormRequest)
+                $requirement = $rental->room->roomType->kost->documentRequirements()
+                    ->where('document_type', $validated['type'])
+                    ->first();
 
-            // Calculate document progress
+                if (! $requirement) {
+                    throw new InvalidFileException('Document type not required for this kost');
+                }
+
+                // Store file in private disk with UUID filename
+                $path = $service->store($request->file('document'), 'rental-documents', 'private');
+
+                // Create or update rental document
+                $rental->rentalDocuments()->updateOrCreate(
+                    ['document_type' => $validated['type']],
+                    [
+                        'document_path' => $path,
+                        'uploaded_at' => now(),
+                        'verification_status' => 'pending',
+                        'verified_at' => null,
+                        'verified_by' => null,
+                        'rejection_reason' => null,
+                    ]
+                );
+
+                // Calculate document progress
+                $totalRequired = $rental->room->roomType->kost->documentRequirements()->count();
+                $uploadedCount = $rental->rentalDocuments()->whereNotNull('document_path')->count();
+
+                // Update rental status if all documents uploaded
+                if ($uploadedCount >= $totalRequired && $rental->status === 'paid') {
+                    $rental->update(['status' => 'documents_pending']);
+
+                    // Create status history
+                    $rental->statusHistories()->create([
+                        'status' => 'documents_pending',
+                        'changed_by' => auth()->id(),
+                        'internal_notes' => 'All documents uploaded, pending verification',
+                    ]);
+                }
+            });
+
+            // Re-fetch for fresh counts
+            $rental->refresh();
             $totalRequired = $rental->room->roomType->kost->documentRequirements()->count();
             $uploadedCount = $rental->rentalDocuments()->whereNotNull('document_path')->count();
-
-            // Update rental status if all documents uploaded
-            if ($uploadedCount >= $totalRequired && $rental->status === 'paid') {
-                $rental->update(['status' => 'documents_pending']);
-
-                // Create status history
-                $rental->statusHistories()->create([
-                    'status' => 'documents_pending',
-                    'changed_by' => auth()->id(),
-                    'internal_notes' => 'All documents uploaded, pending verification',
-                ]);
-            }
 
             return response()->json([
                 'success' => true,
@@ -404,6 +444,12 @@ class RentalController extends Controller
                 'total_required' => $totalRequired,
             ]);
 
+        } catch (InvalidFileException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => ['type' => [$e->getMessage()]],
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -447,93 +493,110 @@ class RentalController extends Controller
         $validated = $request->validate($rules);
 
         try {
+            $service = app(SecureFileUploadService::class);
             $uploadedCount = 0;
             $deletedCount = 0;
 
-            // Process deletions first
-            if ($request->has('delete')) {
-                foreach ($request->input('delete', []) as $docType) {
-                    /** @var RentalDocument|null $document */
-                    $document = $rental->rentalDocuments()->where('document_type', $docType)->first();
+            DB::transaction(function () use ($request, $rental, $service, $allTypes, $requiredTypes, &$uploadedCount, &$deletedCount) {
+                // Lock rental row
+                $rental = Rental::lockForUpdate()->findOrFail($rental->id);
 
-                    if ($document instanceof RentalDocument) {
-                        // Prevent deletion if verified
-                        if ($document->verified_at) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => "Dokumen '{$docType}' sudah diverifikasi dan tidak dapat dihapus",
-                            ], 403);
-                        }
-
-                        // Delete file from storage
-                        if ($document->document_path && Storage::disk('private')->exists($document->document_path)) {
-                            Storage::disk('private')->delete($document->document_path);
-                        }
-
-                        // Delete database record
-                        $document->delete();
-                        $deletedCount++;
-                    }
-                }
-            }
-
-            // Process uploads/replacements for all document types (required + optional)
-            foreach ($allTypes as $type) {
-                if ($request->hasFile('documents.'.$type)) {
-                    $file = $request->file('documents.'.$type);
-
-                    // Store file in private disk (secure storage)
-                    $path = $file->store('rental-documents', 'private');
-
-                    // Get existing document if any
-                    /** @var RentalDocument|null $existingDoc */
-                    $existingDoc = $rental->rentalDocuments()->where('document_type', $type)->first();
-
-                    // Delete old file if replacing
-                    if ($existingDoc instanceof RentalDocument && $existingDoc->document_path && Storage::disk('private')->exists($existingDoc->document_path)) {
-                        Storage::disk('private')->delete($existingDoc->document_path);
-                    }
-
-                    // Create or update rental document
-                    $rental->rentalDocuments()->updateOrCreate(
-                        ['document_type' => $type],
-                        [
-                            'document_path' => $path,
-                            'uploaded_at' => now(),
-                            'verification_status' => 'pending',
-                            'verified_at' => null,
-                            'verified_by' => null,
-                            'rejection_reason' => null,
-                        ]
+                // ✅ VULN-108 FIX: Only allow upload in valid statuses
+                $allowedStatuses = ['pending', 'paid', 'documents_pending'];
+                if (! in_array($rental->status, $allowedStatuses)) {
+                    throw new InvalidFileException(
+                        'Tidak dapat mengunggah dokumen pada status rental saat ini.'
                     );
-
-                    $uploadedCount++;
                 }
-            }
 
-            // Check if all required documents are now uploaded
+                // Process deletions first
+                if ($request->has('delete')) {
+                    foreach ($request->input('delete', []) as $docType) {
+                        /** @var RentalDocument|null $document */
+                        $document = $rental->rentalDocuments()->where('document_type', $docType)->first();
+
+                        if ($document instanceof RentalDocument) {
+                            // Prevent deletion if verified
+                            if ($document->verified_at) {
+                                throw new InvalidFileException(
+                                    "Dokumen '{$docType}' sudah diverifikasi dan tidak dapat dihapus"
+                                );
+                            }
+
+                            // Delete file from storage
+                            if ($document->document_path && Storage::disk('private')->exists($document->document_path)) {
+                                Storage::disk('private')->delete($document->document_path);
+                            }
+
+                            // Delete database record
+                            $document->delete();
+                            $deletedCount++;
+                        }
+                    }
+                }
+
+                // Process uploads/replacements for all document types (required + optional)
+                foreach ($allTypes as $type) {
+                    if ($request->hasFile('documents.'.$type)) {
+                        $file = $request->file('documents.'.$type);
+
+                        // Store file in private disk with UUID filename
+                        $path = $service->store($file, 'rental-documents', 'private');
+
+                        // Get existing document if any
+                        /** @var RentalDocument|null $existingDoc */
+                        $existingDoc = $rental->rentalDocuments()->where('document_type', $type)->first();
+
+                        // Delete old file if replacing
+                        if ($existingDoc instanceof RentalDocument && $existingDoc->document_path && Storage::disk('private')->exists($existingDoc->document_path)) {
+                            Storage::disk('private')->delete($existingDoc->document_path);
+                        }
+
+                        // Create or update rental document
+                        $rental->rentalDocuments()->updateOrCreate(
+                            ['document_type' => $type],
+                            [
+                                'document_path' => $path,
+                                'uploaded_at' => now(),
+                                'verification_status' => 'pending',
+                                'verified_at' => null,
+                                'verified_by' => null,
+                                'rejection_reason' => null,
+                            ]
+                        );
+
+                        $uploadedCount++;
+                    }
+                }
+
+                // Check if all required documents are now uploaded
+                $currentDocCount = $rental->rentalDocuments()->whereIn('document_type', $requiredTypes)->count();
+
+                // Update rental status based on document state
+                if ($currentDocCount === count($requiredTypes) && $rental->status === 'paid') {
+                    // All documents uploaded
+                    $rental->update(['status' => 'documents_pending']);
+
+                    $rental->statusHistories()->create([
+                        'status' => 'documents_pending',
+                        'changed_by' => auth()->id(),
+                        'internal_notes' => "All {$currentDocCount} documents uploaded, pending verification",
+                    ]);
+                } elseif ($currentDocCount < count($requiredTypes) && $rental->status === 'documents_pending') {
+                    // Some documents deleted, revert to paid
+                    $rental->update(['status' => 'paid']);
+
+                    $rental->statusHistories()->create([
+                        'status' => 'paid',
+                        'changed_by' => auth()->id(),
+                        'internal_notes' => "Document(s) deleted, reverted from documents_pending. Now {$currentDocCount}/".count($requiredTypes).' documents',
+                    ]);
+                }
+            });
+
+            // Re-fetch for fresh counts
+            $rental->refresh();
             $currentDocCount = $rental->rentalDocuments()->whereIn('document_type', $requiredTypes)->count();
-
-            // Update rental status based on document state
-            if ($currentDocCount === count($requiredTypes) && $rental->status === 'paid') {
-                // All documents uploaded
-                $rental->update(['status' => 'documents_pending']);
-
-                $rental->statusHistories()->create([
-                    'status' => 'documents_pending',
-                    'changed_by' => auth()->id(),
-                    'internal_notes' => "All {$currentDocCount} documents uploaded, pending verification",
-                ]);
-            } elseif ($currentDocCount < count($requiredTypes) && $rental->status === 'documents_pending') {
-                // Some documents deleted, revert to paid
-                $rental->update(['status' => 'paid']);
-
-                $rental->statusHistories()->create([
-                    'status' => 'paid',
-                    'changed_by' => auth()->id(),
-                    'internal_notes' => "Document(s) deleted, reverted from documents_pending. Now {$currentDocCount}/".count($requiredTypes).' documents',
-                ]);
-            }
 
             $message = [];
             if ($uploadedCount > 0) {
@@ -551,6 +614,11 @@ class RentalController extends Controller
                 'total_required' => count($requiredTypes),
                 'current_uploaded' => $currentDocCount,
             ]);
+        } catch (InvalidFileException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

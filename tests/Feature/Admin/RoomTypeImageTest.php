@@ -92,7 +92,7 @@ class RoomTypeImageTest extends TestCase
         // Upload 10 new images (max per request and max total)
         $images = [];
         for ($i = 0; $i < 10; $i++) {
-            $images[] = UploadedFile::fake()->image("new{$i}.jpg");
+            $images[] = UploadedFile::fake()->image("new{$i}.jpg", 800, 600)->size(500);
         }
 
         $response = $this->actingAs($admin)
@@ -128,7 +128,7 @@ class RoomTypeImageTest extends TestCase
         $admin = User::factory()->admin()->create();
         $kost = Kost::factory()->create(['user_id' => $admin->id]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $this->actingAs($admin)
             ->post(route('admin.room-types.store', $kost), [
@@ -149,7 +149,7 @@ class RoomTypeImageTest extends TestCase
         $admin = User::factory()->admin()->create();
         $kost = Kost::factory()->create(['user_id' => $admin->id]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $this->actingAs($admin)
             ->post(route('admin.room-types.store', $kost), [
@@ -196,8 +196,8 @@ class RoomTypeImageTest extends TestCase
                 'max_occupants' => 1,
                 'security_deposit' => 500000,
                 'images' => [
-                    UploadedFile::fake()->image('first.jpg'),
-                    UploadedFile::fake()->image('second.jpg'),
+                    UploadedFile::fake()->image('first.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('second.jpg', 800, 600)->size(500),
                 ],
             ]);
 
@@ -221,9 +221,9 @@ class RoomTypeImageTest extends TestCase
                 'max_occupants' => 1,
                 'security_deposit' => 500000,
                 'images' => [
-                    UploadedFile::fake()->image('img1.jpg'),
-                    UploadedFile::fake()->image('img2.jpg'),
-                    UploadedFile::fake()->image('img3.jpg'),
+                    UploadedFile::fake()->image('img1.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('img2.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('img3.jpg', 800, 600)->size(500),
                 ],
             ]);
 

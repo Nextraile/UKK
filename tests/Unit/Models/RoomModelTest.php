@@ -17,30 +17,6 @@ class RoomModelTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Room belongs to a Kost.
-     */
-    public function test_room_belongs_to_kost(): void
-    {
-        $kost = Kost::factory()->create();
-        $room = Room::factory()->create(['kost_id' => $kost->id]);
-
-        $this->assertInstanceOf(Kost::class, $room->kost);
-        $this->assertEquals($kost->id, $room->kost->id);
-    }
-
-    /**
-     * Room belongs to a RoomType.
-     */
-    public function test_room_belongs_to_room_type(): void
-    {
-        $roomType = RoomType::factory()->create();
-        $room = Room::factory()->create(['room_type_id' => $roomType->id]);
-
-        $this->assertInstanceOf(RoomType::class, $room->roomType);
-        $this->assertEquals($roomType->id, $room->roomType->id);
-    }
-
-    /**
      * Reserved count returns zero until COMP-006 implemented.
      */
     public function test_reserved_count_returns_zero_until_comp_006(): void

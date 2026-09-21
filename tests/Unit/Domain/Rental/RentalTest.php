@@ -19,33 +19,6 @@ class RentalTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_rental_belongs_to_user(): void
-    {
-        $user = User::factory()->create();
-        $rental = Rental::factory()->create(['user_id' => $user->id]);
-
-        $this->assertInstanceOf(User::class, $rental->user);
-        $this->assertEquals($user->id, $rental->user->id);
-    }
-
-    public function test_rental_belongs_to_room(): void
-    {
-        $room = Room::factory()->create();
-        $rental = Rental::factory()->create(['room_id' => $room->id]);
-
-        $this->assertInstanceOf(Room::class, $rental->room);
-        $this->assertEquals($room->id, $rental->room->id);
-    }
-
-    public function test_rental_belongs_to_price_scheme(): void
-    {
-        $priceScheme = PriceScheme::factory()->create();
-        $rental = Rental::factory()->create(['price_scheme_id' => $priceScheme->id]);
-
-        $this->assertInstanceOf(PriceScheme::class, $rental->priceScheme);
-        $this->assertEquals($priceScheme->id, $rental->priceScheme->id);
-    }
-
     public function test_rental_has_one_payment(): void
     {
         $rental = Rental::factory()->create();

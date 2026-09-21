@@ -11,14 +11,15 @@ use App\Domain\Kost\Exceptions\InvalidKostSubmissionException;
 use App\Domain\Kost\Exceptions\InvalidKostTransitionException;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreKostRequest;
 use App\Http\Requests\Admin\UpdateKostRequest;
+use App\Http\Requests\Admin\UpdatePaymentConfigRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -329,36 +330,37 @@ class KostController extends Controller
     /**
      * Update payment information (QRIS image and bank account).
      *
-     * Handles QRIS image upload with auto-generated filename pattern:
-     * qris-kost-{id}-{Ymd-His}.{ext}
+     * Handles QRIS image upload with UUID filename.
      * Storage: storage/app/public/qris/
      * Bank info displayed to tenants during payment.
      */
-    public function updatePayment(Request $request, Kost $kost): RedirectResponse
+    public function updatePayment(UpdatePaymentConfigRequest $request, Kost $kost): RedirectResponse
     {
         $this->authorize('update', $kost);
 
-        $validated = $request->validate([
-            'qris_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'bank_name' => ['required_with:account_number', 'string', 'max:100'],
-            'account_number' => ['nullable', 'string', 'max:50'],
-            'account_holder_name' => ['required_with:account_number', 'string', 'max:150'],
-        ]);
+        $service = app(SecureFileUploadService::class);
+        $validated = $request->validated();
 
-        // Upload QRIS image
-        if ($request->hasFile('qris_image')) {
-            // Delete old QRIS image if exists
-            if ($kost->qris_image_path) {
-                Storage::disk('public')->delete($kost->qris_image_path);
+        DB::transaction(function () use ($request, $kost, $validated, $service) {
+            // Lock kost row
+            $kost = Kost::lockForUpdate()->findOrFail($kost->id);
+
+            if ($request->hasFile('qris_image')) {
+                // Delete old QRIS if exists
+                if ($kost->qris_image_path && Storage::disk('public')->exists($kost->qris_image_path)) {
+                    Storage::disk('public')->delete($kost->qris_image_path);
+                }
+
+                // Store new QRIS with UUID filename
+                $validated['qris_image_path'] = $service->store(
+                    $request->file('qris_image'),
+                    'qris',
+                    'public'
+                );
             }
 
-            $filename = Str::uuid().'.'.$request->file('qris_image')->guessExtension();
-
-            $path = $request->file('qris_image')->storeAs('qris', $filename, 'public');
-            $validated['qris_image_path'] = $path;
-        }
-
-        $kost->update($validated);
+            $kost->update($validated);
+        });
 
         return redirect()
             ->back()

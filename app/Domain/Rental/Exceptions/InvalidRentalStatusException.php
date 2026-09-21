@@ -18,4 +18,9 @@ class InvalidRentalStatusException extends Exception
     {
         return new self("Dokumen hanya dapat diverifikasi untuk rental dengan status documents_pending atau confirmed. Status saat ini: {$rental->status}");
     }
+
+    public static function cannotActivate(Rental $rental, string $reason): self
+    {
+        return new self("Cannot activate rental #{$rental->id}: {$reason}");
+    }
 }

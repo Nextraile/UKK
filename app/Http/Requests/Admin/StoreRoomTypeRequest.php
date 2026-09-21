@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\SecureFileValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -45,7 +46,11 @@ class StoreRoomTypeRequest extends FormRequest
             'facilities' => ['nullable', 'array'],
             'facilities.*' => ['string', 'max:255'],
             'images' => ['nullable', 'array', 'max:10'],
-            'images.*' => ['image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'images.*' => [
+                'file',
+                'min:1', // Prevent 0-byte files
+                new SecureFileValidation('room_type_image'),
+            ],
             'rules' => ['nullable', 'array'],
             'rules.*' => ['string', 'max:255'],
         ];

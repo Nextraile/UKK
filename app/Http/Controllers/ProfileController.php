@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Services\OtpService;
+use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Requests\AvatarUploadRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -76,22 +78,24 @@ class ProfileController extends Controller
      */
     public function updateAvatar(AvatarUploadRequest $request): RedirectResponse
     {
-        $user = $request->user();
+        $service = app(SecureFileUploadService::class);
 
-        // Delete old avatar if exists
-        if ($user->avatar_path) {
-            Storage::disk('public')->delete($user->avatar_path);
-        }
+        DB::transaction(function () use ($request, $service) {
+            $user = $request->user();
 
-        // Store new avatar with UUID filename (security: prevent enumeration attacks)
-        $file = $request->file('avatar');
-        $extension = $file->guessExtension();
-        $filename = Str::uuid().'.'.$extension;
+            // Lock user row to prevent concurrent updates
+            $user = User::lockForUpdate()->findOrFail($user->id);
 
-        $path = $file->storeAs('avatars', $filename, 'public');
+            // Delete old avatar if exists
+            if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
 
-        $user->avatar_path = $path;
-        $user->save();
+            // Store new avatar with UUID filename
+            $path = $service->store($request->file('avatar'), 'avatars', 'public');
+
+            $user->update(['avatar_path' => $path]);
+        });
 
         return Redirect::route('profile.edit')
             ->with('status', 'Avatar berhasil diperbarui.');

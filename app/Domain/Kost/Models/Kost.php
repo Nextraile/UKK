@@ -46,6 +46,7 @@ use Illuminate\Support\Str;
  * @property int|null $approved_by Super Admin user ID
  * @property Carbon|null $rejected_at
  * @property string|null $rejected_reason
+ * @property int|null $rejected_by Super Admin user ID who rejected
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Carbon|null $deleted_at
@@ -85,6 +86,7 @@ class Kost extends Model
         'approved_by',
         'rejected_at',
         'rejected_reason',
+        'rejected_by',
         // 'status' - EXCLUDED: Only Action classes can modify status
     ];
 

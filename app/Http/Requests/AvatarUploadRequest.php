@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Rules\SecureFileValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -20,7 +21,12 @@ class AvatarUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'avatar' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            'avatar' => [
+                'required',
+                'file',
+                'min:1', // Prevent 0-byte files
+                new SecureFileValidation('avatar'),
+            ],
         ];
     }
 

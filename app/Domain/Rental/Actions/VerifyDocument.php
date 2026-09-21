@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Rental\Actions;
 
+use App\Domain\Rental\Exceptions\DocumentAlreadyVerifiedException;
 use App\Domain\Rental\Mail\DocumentRejectedMail;
 use App\Domain\Rental\Mail\DocumentVerifiedMail;
 use App\Domain\Rental\Mail\RentalConfirmedMail;
@@ -36,6 +37,16 @@ class VerifyDocument
         ?string $rejectionReason = null
     ): RentalDocument {
         return DB::transaction(function () use ($document, $approved, $rejectionReason) {
+            // Lock document row first
+            $document = RentalDocument::lockForUpdate()->findOrFail($document->id);
+
+            // Guard: prevent double verification
+            if ($document->verification_status === 'approved') {
+                throw new DocumentAlreadyVerifiedException(
+                    'Dokumen sudah diverifikasi sebelumnya.'
+                );
+            }
+
             // Update document verification status
             $document->update([
                 'verification_status' => $approved ? 'approved' : 'rejected',
@@ -75,8 +86,8 @@ class VerifyDocument
      */
     private function checkAndConfirmRental($rental): void
     {
-        // Refresh rental to get latest status from DB
-        $rental->refresh();
+        // Lock rental row to prevent concurrent auto-confirm
+        $rental = Rental::lockForUpdate()->findOrFail($rental->id);
 
         // Only proceed if rental is in documents_pending status
         if ($rental->status !== 'documents_pending') {
@@ -94,8 +105,7 @@ class VerifyDocument
             return;
         }
 
-        // Query fresh from database to get latest verification statuses within transaction
-        // Use DB query builder to ensure we're reading committed data within the transaction
+        // Query fresh from database within transaction lock
         $approvedDocTypes = DB::table('rental_documents')
             ->where('rental_id', $rental->id)
             ->where('verification_status', 'approved')

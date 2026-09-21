@@ -230,25 +230,6 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseCount('rentals', 2);
     }
 
-    public function test_concurrent_bookings_prevented_by_pessimistic_locking(): void
-    {
-        $this->markTestSkipped('Concurrency test requires parallel execution - run manually with Apache Bench');
-
-        // This test documents expected behavior for manual testing:
-        // 1. Run: ab -n 100 -c 10 -p rental.json -T application/json http://localhost/rentals
-        // 2. Expected: Only 2 rentals created (max_occupants = 2)
-        // 3. Expected: 98 requests return RoomFullException
-
-        // For automated testing, we can verify pessimistic lock is used
-        $this->assertTrue(
-            str_contains(
-                file_get_contents(app_path('Domain/Rental/Actions/CreateRental.php')),
-                'lockForUpdate()'
-            ),
-            'CreateRental Action must use lockForUpdate() for pessimistic locking'
-        );
-    }
-
     public function test_duration_is_correctly_calculated_for_different_units(): void
     {
         // Test month duration

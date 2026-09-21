@@ -94,7 +94,8 @@ class KostImageTest extends TestCase
         $admin = User::factory()->admin()->create();
         $kost = Kost::factory()->draft()->create(['user_id' => $admin->id]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        // Create image with proper dimensions and size for kost_image validation (min 300x200, min 1KB)
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $this->actingAs($admin)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
@@ -116,9 +117,9 @@ class KostImageTest extends TestCase
         $admin = User::factory()->admin()->create();
         $kost = Kost::factory()->draft()->create(['user_id' => $admin->id]);
 
-        // Upload 3 images
+        // Upload 3 images with proper dimensions and size
         for ($i = 1; $i <= 3; $i++) {
-            $file = UploadedFile::fake()->image("test-{$i}.jpg");
+            $file = UploadedFile::fake()->image("test-{$i}.jpg", 800, 600)->size(500);
             $this->actingAs($admin)
                 ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
         }
@@ -142,14 +143,18 @@ class KostImageTest extends TestCase
         $kost = Kost::factory()->draft()->create(['user_id' => $admin->id]);
 
         // Upload actual file through controller to ensure proper storage
-        $file = UploadedFile::fake()->image('test.jpg');
+        // Must meet validation: min 1KB, 800x600px
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
         $this->actingAs($admin)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
 
         $image = KostImage::where('kost_id', $kost->id)->first();
 
         $response = $this->actingAs($admin)
-            ->delete(route('admin.kosts.images.destroy', [$kost, $image]));
+            ->delete(route('admin.kosts.images.destroy', [
+                'kost' => $kost,
+                'image' => $image,
+            ]));
 
         $response->assertRedirect();
         $response->assertSessionHas('success', 'Gambar berhasil dihapus.');
@@ -277,7 +282,7 @@ class KostImageTest extends TestCase
         $admin2 = User::factory()->admin()->create();
         $kost = Kost::factory()->draft()->create(['user_id' => $admin2->id]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $response = $this->actingAs($admin1)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
@@ -296,7 +301,10 @@ class KostImageTest extends TestCase
         $image = KostImage::factory()->create(['kost_id' => $kost->id]);
 
         $response = $this->actingAs($admin1)
-            ->delete(route('admin.kosts.images.destroy', [$kost, $image]));
+            ->delete(route('admin.kosts.images.destroy', [
+                'kost' => $kost,
+                'image' => $image,
+            ]));
 
         $response->assertForbidden();
     }
@@ -314,7 +322,7 @@ class KostImageTest extends TestCase
             'status' => 'pending_review',
         ]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
@@ -335,7 +343,7 @@ class KostImageTest extends TestCase
             'status' => 'active',
         ]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
@@ -356,7 +364,7 @@ class KostImageTest extends TestCase
             'status' => 'rejected',
         ]);
 
-        $file = UploadedFile::fake()->image('test.jpg');
+        $file = UploadedFile::fake()->image('test.jpg', 800, 600)->size(500);
 
         $response = $this->actingAs($admin)
             ->post(route('admin.kosts.images.store', $kost), ['image' => $file]);
@@ -399,7 +407,10 @@ class KostImageTest extends TestCase
 
         // File doesn't exist, but deletion should succeed
         $response = $this->actingAs($admin)
-            ->delete(route('admin.kosts.images.destroy', [$kost, $image]));
+            ->delete(route('admin.kosts.images.destroy', [
+                'kost' => $kost,
+                'image' => $image,
+            ]));
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
@@ -437,7 +448,10 @@ class KostImageTest extends TestCase
         $image = KostImage::factory()->create(['kost_id' => $kost2->id]);
 
         $response = $this->actingAs($admin)
-            ->delete(route('admin.kosts.images.destroy', [$kost1, $image]));
+            ->delete(route('admin.kosts.images.destroy', [
+                'kost' => $kost1,
+                'image' => $image,
+            ]));
 
         $response->assertNotFound();
     }

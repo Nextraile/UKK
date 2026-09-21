@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
+use App\Rules\SecureFileValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -34,7 +35,12 @@ class UploadPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB = 5120KB
+            'payment_proof' => [
+                'required',
+                'file',
+                'min:1', // Prevent 0-byte files
+                new SecureFileValidation('payment_proof'),
+            ],
         ];
     }
 

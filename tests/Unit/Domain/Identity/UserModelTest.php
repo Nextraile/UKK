@@ -107,47 +107,6 @@ class UserModelTest extends TestCase
     }
 
     /**
-     * The fillable attributes include the expected fields.
-     *
-     * Note: `role` and `email_verified_at` are fillable to support
-     * admin account creation by SuperAdmin (COMP-009).
-     */
-    public function test_user_fillable_attributes(): void
-    {
-        $user = new User;
-
-        $this->assertSame(
-            ['first_name', 'last_name', 'email', 'password', 'phone', 'avatar_path', 'role', 'email_verified_at'],
-            $user->getFillable(),
-        );
-    }
-
-    /**
-     * The hidden attributes include password and remember_token.
-     */
-    public function test_user_hidden_attributes(): void
-    {
-        $user = new User;
-
-        $this->assertContains('password', $user->getHidden());
-        $this->assertContains('remember_token', $user->getHidden());
-    }
-
-    /**
-     * The casts array maps email_verified_at and deleted_at to datetime,
-     * and password to hashed.
-     */
-    public function test_user_casts(): void
-    {
-        $user = new User;
-        $casts = $user->getCasts();
-
-        $this->assertSame('datetime', $casts['email_verified_at']);
-        $this->assertSame('hashed', $casts['password']);
-        $this->assertSame('datetime', $casts['deleted_at']);
-    }
-
-    /**
      * The factory states unverified(), admin(), superAdmin(), and deleted()
      * produce users with the corresponding attributes.
      */

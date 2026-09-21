@@ -231,8 +231,8 @@ class RoomTypeCrudTest extends TestCase
                 'max_occupants' => 2,
                 'security_deposit' => 1000000,
                 'images' => [
-                    UploadedFile::fake()->image('room1.jpg'),
-                    UploadedFile::fake()->image('room2.jpg'),
+                    UploadedFile::fake()->image('room1.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('room2.jpg', 800, 600)->size(500),
                 ],
             ]);
 
@@ -278,7 +278,7 @@ class RoomTypeCrudTest extends TestCase
         // Try upload 11 images
         $images = [];
         for ($i = 0; $i < 11; $i++) {
-            $images[] = UploadedFile::fake()->image("room{$i}.jpg");
+            $images[] = UploadedFile::fake()->image("room{$i}.jpg", 800, 600)->size(500);
         }
 
         $response = $this->actingAs($admin)
@@ -315,7 +315,7 @@ class RoomTypeCrudTest extends TestCase
                 'max_occupants' => $roomType->max_occupants,
                 'security_deposit' => $roomType->security_deposit,
                 'images' => [
-                    UploadedFile::fake()->image('new.jpg'),
+                    UploadedFile::fake()->image('new.jpg', 800, 600)->size(500),
                 ],
             ]);
 
@@ -336,7 +336,7 @@ class RoomTypeCrudTest extends TestCase
         // Upload 10 images in one request (max allowed per request)
         $images = [];
         for ($i = 0; $i < 10; $i++) {
-            $images[] = UploadedFile::fake()->image("new{$i}.jpg");
+            $images[] = UploadedFile::fake()->image("new{$i}.jpg", 800, 600)->size(500);
         }
 
         $response = $this->actingAs($admin)
@@ -372,7 +372,7 @@ class RoomTypeCrudTest extends TestCase
                 'max_occupants' => $roomType->max_occupants,
                 'security_deposit' => $roomType->security_deposit,
                 'images' => [
-                    UploadedFile::fake()->image('new.jpg'),
+                    UploadedFile::fake()->image('new.jpg', 800, 600)->size(500),
                 ],
             ]);
 
@@ -402,9 +402,9 @@ class RoomTypeCrudTest extends TestCase
                 'max_occupants' => $roomType->max_occupants,
                 'security_deposit' => $roomType->security_deposit,
                 'images' => [
-                    UploadedFile::fake()->image('new1.jpg'),
-                    UploadedFile::fake()->image('new2.jpg'),
-                    UploadedFile::fake()->image('new3.jpg'),
+                    UploadedFile::fake()->image('new1.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('new2.jpg', 800, 600)->size(500),
+                    UploadedFile::fake()->image('new3.jpg', 800, 600)->size(500),
                 ],
             ]);
 

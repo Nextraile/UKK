@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Payment\Exceptions\PaymentAlreadyVerifiedException;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Actions\RejectPayment;
 use App\Domain\Rental\Actions\VerifyPayment;
@@ -26,11 +27,18 @@ class PaymentVerificationController extends Controller
         /** @var User $admin */
         $admin = auth()->user();
 
-        app(VerifyPayment::class)->execute($payment, $admin);
+        try {
+            app(VerifyPayment::class)->execute($payment, $admin);
 
-        return redirect()
-            ->route('admin.rentals.show', $payment->rental)
-            ->with('success', 'Pembayaran berhasil diverifikasi.');
+            return redirect()
+                ->route('admin.rentals.show', $payment->rental)
+                ->with('success', 'Pembayaran berhasil diverifikasi.');
+
+        } catch (PaymentAlreadyVerifiedException $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -45,10 +53,17 @@ class PaymentVerificationController extends Controller
         /** @var User $admin */
         $admin = auth()->user();
 
-        app(RejectPayment::class)->execute($payment, $request->validated('rejection_reason'), $admin);
+        try {
+            app(RejectPayment::class)->execute($payment, $request->validated('rejection_reason'), $admin);
 
-        return redirect()
-            ->route('admin.rentals.show', $payment->rental)
-            ->with('success', 'Pembayaran ditolak. Tenant akan diberitahu untuk upload ulang.');
+            return redirect()
+                ->route('admin.rentals.show', $payment->rental)
+                ->with('success', 'Pembayaran ditolak. Tenant akan diberitahu untuk upload ulang.');
+
+        } catch (PaymentAlreadyVerifiedException $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage());
+        }
     }
 }

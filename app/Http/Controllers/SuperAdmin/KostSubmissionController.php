@@ -67,7 +67,7 @@ class KostSubmissionController extends Controller
     public function approve(Kost $submission, ApproveKost $action): RedirectResponse
     {
         try {
-            $action->execute($submission);
+            $action->execute($submission, auth()->user());
 
             return redirect()
                 ->route('super-admin.kost-submissions.index')
@@ -87,7 +87,7 @@ class KostSubmissionController extends Controller
         ]);
 
         try {
-            $action->execute($submission, $validated['rejection_reason']);
+            $action->execute($submission, auth()->user(), $validated['rejection_reason']);
 
             return redirect()
                 ->route('super-admin.kost-submissions.index')

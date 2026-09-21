@@ -41,7 +41,7 @@ class KostPaymentTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $kost = Kost::factory()->create(['user_id' => $admin->id]);
 
-        $file = UploadedFile::fake()->image('qris.jpg');
+        $file = UploadedFile::fake()->image('qris.jpg', 300, 300)->size(500);
 
         $response = $this->actingAs($admin)->patch(
             route('admin.kosts.payment.update', $kost),
@@ -74,7 +74,7 @@ class KostPaymentTest extends TestCase
         $kost = Kost::factory()->create(['user_id' => $admin->id]);
 
         // Upload first QRIS
-        $oldFile = UploadedFile::fake()->image('qris-old.jpg');
+        $oldFile = UploadedFile::fake()->image('qris-old.jpg', 300, 300)->size(500);
         $this->actingAs($admin)->patch(
             route('admin.kosts.payment.update', $kost),
             ['qris_image' => $oldFile]
@@ -85,7 +85,7 @@ class KostPaymentTest extends TestCase
         Storage::disk('public')->assertExists($oldPath);
 
         // Upload new QRIS
-        $newFile = UploadedFile::fake()->image('qris-new.png');
+        $newFile = UploadedFile::fake()->image('qris-new.png', 300, 300)->size(500);
         $this->actingAs($admin)->patch(
             route('admin.kosts.payment.update', $kost),
             ['qris_image' => $newFile]
