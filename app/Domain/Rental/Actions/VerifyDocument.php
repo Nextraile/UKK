@@ -38,17 +38,17 @@ class VerifyDocument
     ): RentalDocument {
         return DB::transaction(function () use ($document, $approved, $rejectionReason) {
             // Lock document row first
-            $document = RentalDocument::lockForUpdate()->findOrFail($document->id);
+            $lockedDocument = RentalDocument::lockForUpdate()->findOrFail($document->id);
 
             // Guard: prevent double verification
-            if ($document->verification_status === 'approved') {
+            if ($lockedDocument->verification_status === 'approved') {
                 throw new DocumentAlreadyVerifiedException(
                     'Dokumen sudah diverifikasi sebelumnya.'
                 );
             }
 
             // Update document verification status
-            $document->update([
+            $lockedDocument->update([
                 'verification_status' => $approved ? 'approved' : 'rejected',
                 'rejection_reason' => $rejectionReason,
                 'verified_at' => now(),
@@ -57,7 +57,7 @@ class VerifyDocument
 
             // Reload rental with all required relationships
             /** @var Rental $rental */
-            $rental = $document->rental()->with([
+            $rental = $lockedDocument->rental()->with([
                 'room.roomType.kost.documentRequirements',
                 'rentalDocuments',
             ])->first();
@@ -65,37 +65,35 @@ class VerifyDocument
             if ($approved) {
                 // Send approval email
                 Mail::to($rental->user->email)
-                    ->queue(new DocumentVerifiedMail($document));
+                    ->queue(new DocumentVerifiedMail($lockedDocument));
 
                 // Check if ALL required documents are approved
                 $this->checkAndConfirmRental($rental);
             } else {
                 // Send rejection email
                 Mail::to($rental->user->email)
-                    ->queue(new DocumentRejectedMail($document));
+                    ->queue(new DocumentRejectedMail($lockedDocument));
             }
 
-            return $document;
+            return $lockedDocument;
         });
     }
 
     /**
      * Check if all required documents approved and auto-confirm rental.
-     *
-     * @param  Rental  $rental
      */
-    private function checkAndConfirmRental($rental): void
+    private function checkAndConfirmRental(Rental $rental): void
     {
         // Lock rental row to prevent concurrent auto-confirm
-        $rental = Rental::lockForUpdate()->findOrFail($rental->id);
+        $lockedRental = Rental::lockForUpdate()->findOrFail($rental->id);
 
         // Only proceed if rental is in documents_pending status
-        if ($rental->status !== 'documents_pending') {
+        if ($lockedRental->status !== 'documents_pending') {
             return;
         }
 
         // Get required document types from kost configuration
-        $requiredDocTypes = $rental->room->roomType->kost->documentRequirements
+        $requiredDocTypes = $lockedRental->room->roomType->kost->documentRequirements
             ->where('is_required', true)
             ->pluck('document_type')
             ->toArray();
@@ -107,24 +105,24 @@ class VerifyDocument
 
         // Query fresh from database within transaction lock
         $approvedDocTypes = DB::table('rental_documents')
-            ->where('rental_id', $rental->id)
+            ->where('rental_id', $lockedRental->id)
             ->where('verification_status', 'approved')
             ->pluck('document_type')
             ->toArray();
 
-        $allApproved = empty(array_diff($requiredDocTypes, $approvedDocTypes));
+        // Fix: Use unique check to prevent duplicate document types from passing validation
+        $uniqueApproved = array_unique($approvedDocTypes);
+        $allApproved = count(array_intersect($requiredDocTypes, $uniqueApproved)) === count($requiredDocTypes);
 
         if ($allApproved) {
-            $this->confirmRental($rental);
+            $this->confirmRental($lockedRental);
         }
     }
 
     /**
      * Confirm rental and send confirmation email.
-     *
-     * @param  Rental  $rental
      */
-    private function confirmRental($rental): void
+    private function confirmRental(Rental $rental): void
     {
         $rental->update([
             'status' => 'confirmed',
