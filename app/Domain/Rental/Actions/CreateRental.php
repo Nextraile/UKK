@@ -97,7 +97,7 @@ class CreateRental
                 'qris_image_path' => $room->roomType->kost->qris_image_path,
                 'amount' => $grandTotal,
                 'status' => 'pending',
-                'expired_at' => now()->addHours(48), // FR-121: 48 hour deadline
+                'expired_at' => now()->addHours(config('rental.payment.expiry_hours')),
             ]);
 
             // 9. Append initial status history

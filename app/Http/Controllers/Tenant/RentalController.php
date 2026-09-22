@@ -153,7 +153,7 @@ class RentalController extends Controller
 
         // Calculate progress for progress tracker
         $currentStep = $rental->getCurrentStep();
-        $totalSteps = 4;
+        $totalSteps = config('rental.document_upload.total_steps');
 
         // Document upload progress
         $requiredDocs = $rental->room->roomType->kost->documentRequirements;
