@@ -58,9 +58,15 @@ class VerifyPayment
             /** @var Rental $rental */
             $rental = $payment->rental()->lockForUpdate()->firstOrFail();
 
-            // Only update if still in pending status
-            if ($rental->status === 'pending') {
-                $rental->update(['status' => 'paid']);
+            // Valid state transitions for payment verification
+            $validTransitions = [
+                'pending' => 'paid',
+                'rejected' => 'paid', // Allow re-verification after rejection
+            ];
+
+            // Only update if rental is in a valid state for transition
+            if (array_key_exists($rental->status, $validTransitions)) {
+                $rental->update(['status' => $validTransitions[$rental->status]]);
 
                 // 3. Append status history
                 $rental->statusHistories()->create([
