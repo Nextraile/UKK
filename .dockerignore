@@ -1,0 +1,68 @@
+# Git files
+.git/
+.github/
+.gitlab-ci.yml
+.gitattributes
+.gitignore
+
+# Environment & secrets
+.env*
+!.env.example
+
+# Dependencies (will be installed in container)
+node_modules/
+vendor/
+
+# Storage directories (generated at runtime)
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+storage/logs/*
+!storage/.gitkeep
+!storage/*/\.gitkeep
+
+# Testing
+tests/
+.phpunit*
+phpunit.xml.backup
+coverage/
+coverage.txt
+
+# Code quality tools
+.php-cs-fixer*
+.phpstan*
+phpstan.neon
+
+# Documentation
+*.md
+!README.md
+*.txt
+
+# Build artifacts
+composer.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Docker files
+docker/
+docker-compose*.yml
+compose.yaml
+Dockerfile*
+
+# IDE & Editor
+.opencode/
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Misc
+.editorconfig
+.npmrc
+FRONTEND-AUDIT-REPORT.md
+FRONTEND-AUDIT-SUMMARY.md
