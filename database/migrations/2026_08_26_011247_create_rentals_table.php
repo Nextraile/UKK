@@ -48,6 +48,7 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('status');
             $table->index(['start_date', 'end_date'], 'idx_dates');
+            $table->index(['room_id', 'status', 'start_date', 'end_date'], 'idx_room_availability');
         });
     }
 

@@ -29,6 +29,7 @@ return new class extends Migration
             // Indexes
             $table->index('city');
             $table->index('district');
+            $table->index(['city', 'district'], 'idx_location_search');
         });
     }
 
