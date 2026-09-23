@@ -57,7 +57,7 @@ class RentalPolicy
      * Determine if user can upload payment proof for rental.
      *
      * Only rental owner (tenant) can upload payment proof.
-     * Only allowed in pending status.
+     * Only allowed in payment_pending status.
      */
     public function uploadPayment(User $user, Rental $rental): bool
     {
@@ -66,8 +66,8 @@ class RentalPolicy
             return false;
         }
 
-        // Only allow upload if rental pending
-        return $rental->status === 'pending';
+        // Only allow upload if rental payment_pending
+        return $rental->status === 'payment_pending';
     }
 
     /**
@@ -166,7 +166,7 @@ class RentalPolicy
         }
 
         // Can only cancel in specific statuses
-        $cancellableStatuses = ['pending', 'paid', 'documents_pending', 'confirmed'];
+        $cancellableStatuses = ['payment_pending', 'paid', 'documents_pending', 'confirmed'];
 
         return in_array($rental->status, $cancellableStatuses);
     }

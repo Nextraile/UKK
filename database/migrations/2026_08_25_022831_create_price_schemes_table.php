@@ -21,6 +21,9 @@ return new class extends Migration
             $table->enum('duration_unit', ['day', 'week', 'month']);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            // Indexes
+            $table->index(['room_type_id', 'is_active', 'price'], 'idx_price_filter');
             $table->softDeletes();
 
             // Index for active price scheme queries

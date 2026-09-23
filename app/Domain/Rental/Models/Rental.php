@@ -9,7 +9,9 @@ use App\Domain\Payment\Models\Payment;
 use App\Domain\Review\Models\Review;
 use App\Domain\RoomInventory\Models\PriceScheme;
 use App\Domain\RoomInventory\Models\Room;
+use Carbon\Carbon;
 use Database\Factories\RentalFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -141,7 +143,7 @@ class Rental extends Model
     public function getCurrentStep(): int
     {
         return match ($this->status) {
-            'pending' => 1,
+            'payment_pending' => 1,
             'paid', 'documents_pending' => 2,
             'confirmed', 'active' => 3,
             'completed' => 4,
@@ -157,7 +159,7 @@ class Rental extends Model
     public function getPaymentSectionState(): string
     {
         // Active only if status is pending AND no payment proof uploaded yet
-        if ($this->status === 'pending' && ! $this->payment->proof_of_payment_path) {
+        if ($this->status === 'payment_pending' && ! $this->payment->proof_of_payment_path) {
             return 'active';
         }
 
@@ -173,7 +175,7 @@ class Rental extends Model
     public function getDocumentsSectionState(): string
     {
         // Locked until payment is VERIFIED by admin
-        if ($this->status === 'pending' || ($this->status === 'paid' && ! $this->payment->verified_at)) {
+        if ($this->status === 'payment_pending' || ($this->status === 'paid' && ! $this->payment->verified_at)) {
             return 'locked';
         }
 
@@ -199,8 +201,36 @@ class Rental extends Model
         }
 
         // Can only cancel in specific statuses
-        $cancellableStatuses = ['pending', 'paid', 'documents_pending', 'confirmed'];
+        $cancellableStatuses = ['payment_pending', 'paid', 'documents_pending', 'confirmed'];
 
         return in_array($this->status, $cancellableStatuses);
+    }
+
+    /**
+     * Scope: Find rentals that overlap with given date range.
+     *
+     * Overlap logic: Two date ranges overlap if:
+     * (start1 < end2) AND (end1 > start2)
+     *
+     * Example:
+     * - Rental A: Oct 1-15
+     * - Check period: Oct 10-20
+     * - Overlaps: true (Oct 10-15 overlap)
+     *
+     * - Rental B: Oct 1-15
+     * - Check period: Oct 16-31
+     * - Overlaps: false (no overlap)
+     *
+     * @param  Builder  $query
+     * @param  Carbon|\Illuminate\Support\Carbon  $startDate  Start of the period to check
+     * @param  Carbon|\Illuminate\Support\Carbon  $endDate  End of the period to check
+     * @return Builder
+     */
+    public function scopeWhereDateRangeOverlaps($query, $startDate, $endDate)
+    {
+        return $query->where(function ($q) use ($startDate, $endDate) {
+            $q->where('start_date', '<', $endDate)
+                ->where('end_date', '>', $startDate);
+        });
     }
 }

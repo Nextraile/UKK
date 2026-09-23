@@ -163,7 +163,7 @@ class RentalTest extends TestCase
 
     public function test_status_field_stored_as_string(): void
     {
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
 
         $this->assertIsString($rental->status);
         $this->assertEquals('pending', $rental->status);

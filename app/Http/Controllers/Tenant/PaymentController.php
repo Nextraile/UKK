@@ -26,7 +26,7 @@ class PaymentController extends Controller
     public function show(Rental $rental): View
     {
         $this->authorize('view', $rental);
-        abort_if($rental->status !== 'pending', 403, 'Payment hanya untuk rental dengan status pending');
+        abort_if($rental->status !== 'payment_pending', 403, 'Payment hanya untuk rental dengan status payment_pending');
 
         // Eager load kost for bank info display (FR-069)
         $rental->load('room.roomType.kost', 'payment');

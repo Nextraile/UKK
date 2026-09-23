@@ -78,12 +78,12 @@
             <!-- Filters/Tabs (Alpine.js) - Phase 1A, 1E, 2A, 2B -->
             <div class="mb-6" x-data="{
                 filter: 'all',
-                // Phase 1A: Fixed filter logic - pending tab excludes confirmed, added cancelled case
+                // Phase 1A: Fixed filter logic - payment_pending tab excludes confirmed, added cancelled case
                 shouldShowRental(status) {
                     if (this.filter === 'all') return true;
                     if (this.filter === status) return true;
-                    if (this.filter === 'pending') {
-                        return ['pending', 'paid'].includes(status); // Fixed: exclude confirmed
+                    if (this.filter === 'payment_pending') {
+                        return ['payment_pending', 'paid'].includes(status); // Fixed: exclude confirmed
                     }
                     if (this.filter === 'cancelled') {
                         return status === 'cancelled';
@@ -94,12 +94,12 @@
                 rentals: {{ Js::from($rentals->map(fn($r) => ['status' => $r->status])->toArray()) }},
                 get allCount() { return this.rentals.length },
                 get activeCount() { return this.rentals.filter(r => r.status === 'active').length },
-                get pendingCount() { return this.rentals.filter(r => ['pending','paid'].includes(r.status)).length },
+                get pendingCount() { return this.rentals.filter(r => ['payment_pending','paid'].includes(r.status)).length },
                 get completedCount() { return this.rentals.filter(r => r.status === 'completed').length },
                 get cancelledCount() { return this.rentals.filter(r => r.status === 'cancelled').length },
                 // Phase 1E: Keyboard navigation for tabs
                 focusedTab: 0,
-                tabs: ['all', 'active', 'pending', 'completed', 'cancelled'],
+                tabs: ['all', 'active', 'payment_pending', 'completed', 'cancelled'],
                 handleArrowKey(direction) {
                     if (direction === 'right') {
                         this.focusedTab = (this.focusedTab + 1) % this.tabs.length;
@@ -118,7 +118,7 @@
                         class="block w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-10 text-base focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                         <option value="all">Semua Rental (<span x-text="allCount"></span>)</option>
                         <option value="active">Aktif (<span x-text="activeCount"></span>)</option>
-                        <option value="pending">Perlu Tindakan (<span x-text="pendingCount"></span>)</option>
+                        <option value="payment_pending">Perlu Tindakan (<span x-text="pendingCount"></span>)</option>
                         <option value="completed">Selesai (<span x-text="completedCount"></span>)</option>
                         <option value="cancelled">Dibatalkan (<span x-text="cancelledCount"></span>)</option>
                     </select>
@@ -160,12 +160,12 @@
                         <!-- Pending Tab -->
                         <button 
                             role="tab"
-                            :aria-selected="filter === 'pending'"
-                            :tabindex="filter === 'pending' ? 0 : -1"
-                            @click="filter = 'pending'; focusedTab = 2" 
+                            :aria-selected="filter === 'payment_pending'"
+                            :tabindex="filter === 'payment_pending' ? 0 : -1"
+                            @click="filter = 'payment_pending'; focusedTab = 2" 
                             @keydown.arrow-right.prevent="handleArrowKey('right')"
                             @keydown.arrow-left.prevent="handleArrowKey('left')"
-                            :class="filter === 'pending' ? 'border-primary-600 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'"
+                            :class="filter === 'payment_pending' ? 'border-primary-600 text-primary-600 dark:text-primary-400' : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'"
                             class="border-b-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap focus:outline-none focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
                             Perlu Tindakan
                             <span x-text="'(' + pendingCount + ')'" class="ml-1.5 text-xs text-gray-500 dark:text-gray-400"></span>
@@ -245,7 +245,7 @@
                                     </div>
                                     
                                     {{-- Phase 2C: Payment Deadline Indicator --}}
-                                    @if(in_array($rental->status, ['pending', 'paid']))
+                                    @if(in_array($rental->status, ['payment_pending', 'paid']))
                                         @php
                                             $hoursUntilExpiry = now()->diffInHours($rental->payment->expired_at, false);
                                             $isExpired = $hoursUntilExpiry < 0;

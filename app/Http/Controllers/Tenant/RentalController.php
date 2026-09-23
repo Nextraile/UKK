@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Kost\Models\Kost;
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Actions\CancelRental;
 use App\Domain\Rental\Actions\CreateRental;
@@ -12,7 +13,6 @@ use App\Domain\Rental\Exceptions\InvalidRentalStatusException;
 use App\Domain\Rental\Exceptions\RoomFullException;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
-use App\Domain\RoomInventory\Models\PriceScheme;
 use App\Domain\RoomInventory\Models\Room;
 use App\Domain\Shared\Exceptions\InvalidFileException;
 use App\Domain\Shared\Services\SecureFileUploadService;
@@ -21,6 +21,7 @@ use App\Http\Requests\Tenant\CancelRentalRequest;
 use App\Http\Requests\Tenant\CreateRentalRequest;
 use App\Http\Requests\Tenant\UploadDocumentRequest;
 use App\Http\Requests\Tenant\UploadPaymentRequest;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,9 +57,9 @@ class RentalController extends Controller
         // Calculate stats from collection (no separate queries)
         $stats = [
             'active' => $rentals->where('status', 'active')->count(),
-            // Pending actions: only pending (awaiting payment) and paid (awaiting doc upload)
+            // Pending actions: only payment_pending (awaiting payment) and paid (awaiting doc upload)
             // Confirmed status excluded because admin verifies documents (no tenant action needed)
-            'pending_actions' => $rentals->whereIn('status', ['pending', 'paid'])->count(),
+            'pending_actions' => $rentals->whereIn('status', ['payment_pending', 'paid'])->count(),
             'completed' => $rentals->where('status', 'completed')->count(),
             'cancelled' => $rentals->where('status', 'cancelled')->count(),
         ];
@@ -71,34 +72,106 @@ class RentalController extends Controller
      *
      * FR-063: Display available rooms & price schemes
      *
-     * Query params: kost_id (optional), room_type_id (optional)
+     * Query params: kost_id (required)
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        $kostId = request('kost_id');
-        $roomTypeId = request('room_type_id');
+        // Validate kost_id
+        $request->validate([
+            'kost_id' => 'required|exists:kosts,id',
+        ]);
 
-        // Load available rooms with relationships
-        $rooms = Room::with(['roomType.kost', 'roomType.priceSchemes'])
-            ->where('status', 'available')
-            ->when($kostId, fn ($q) => $q->where('kost_id', $kostId))
-            ->when($roomTypeId, fn ($q) => $q->where('room_type_id', $roomTypeId))
-            ->get();
+        $kost = Kost::with([
+            'address',
+            'roomTypes.rooms',
+            'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true),
+        ])->findOrFail($request->kost_id);
 
-        // Build room_id => price_schemes mapping for Alpine.js filtering
-        $roomSchemes = $rooms->mapWithKeys(function (Room $room) {
-            return [$room->id => $room->roomType->priceSchemes->map(function ($scheme) use ($room) {
-                /** @var PriceScheme $scheme */
-                return [
-                    'id' => $scheme->id,
-                    'name' => "{$scheme->duration_value} ".__($scheme->duration_unit).' - Rp '.number_format((float) $scheme->price, 0, ',', '.'),
-                    'price' => (float) $scheme->price,
-                    'deposit' => (float) $room->roomType->security_deposit,
+        // Calculate availability for ALL rooms with ALL price schemes
+        $availabilityMatrix = $this->buildAvailabilityMatrix($kost->roomTypes);
+
+        return view('tenant.rentals.create', compact('kost', 'availabilityMatrix'));
+    }
+
+    /**
+     * Build availability matrix for all room + price scheme combinations.
+     *
+     * Structure:
+     * [
+     *   room_id => [
+     *     'room_code' => string,
+     *     'max_occupants' => int,
+     *     'schemes' => [
+     *       price_scheme_id => [
+     *         'duration_unit' => string,
+     *         'price' => float,
+     *         'free_slots' => int,
+     *         'estimated_start' => Y-m-d,
+     *         'estimated_end' => Y-m-d,
+     *         'available' => bool,
+     *       ]
+     *     ]
+     *   ]
+     * ]
+     */
+    private function buildAvailabilityMatrix($roomTypes): array
+    {
+        $matrix = [];
+        $today = now();
+        $minStartDate = $today->copy()->addDays(4); // ADR-016: Min 4 days advance
+
+        foreach ($roomTypes as $roomType) {
+            foreach ($roomType->rooms as $room) {
+                if ($room->status !== 'available') {
+                    continue; // Skip unavailable rooms
+                }
+
+                $matrix[$room->id] = [
+                    'room_code' => $room->code,
+                    'max_occupants' => $roomType->max_occupants,
+                    'schemes' => [],
                 ];
-            })];
-        });
 
-        return view('tenant.rentals.create', compact('rooms', 'roomSchemes'));
+                foreach ($roomType->priceSchemes as $priceScheme) {
+                    // Calculate estimated period for this price scheme
+                    $startDate = $minStartDate->copy();
+                    $endDate = $this->calculateEndDate(
+                        $startDate,
+                        1, // 1 unit of duration (for estimation)
+                        $priceScheme->duration_unit
+                    );
+
+                    // Check REAL availability for this specific period
+                    $freeSlots = $room->getFreeSlotsForPeriod($startDate, $endDate);
+
+                    $matrix[$room->id]['schemes'][$priceScheme->id] = [
+                        'duration_unit' => $priceScheme->duration_unit,
+                        'price' => (float) $priceScheme->price,
+                        'deposit' => (float) $roomType->security_deposit,
+                        'free_slots' => $freeSlots,
+                        'estimated_start' => $startDate->format('Y-m-d'),
+                        'estimated_end' => $endDate->format('Y-m-d'),
+                        'available' => $freeSlots > 0,
+                    ];
+                }
+            }
+        }
+
+        return $matrix;
+    }
+
+    /**
+     * Calculate end date based on duration and unit.
+     * (Same logic as CreateRental::calculateEndDate)
+     */
+    private function calculateEndDate(Carbon $startDate, int $durationValue, string $durationUnit): Carbon
+    {
+        return match ($durationUnit) {
+            'day' => $startDate->copy()->addDays($durationValue),
+            'week' => $startDate->copy()->addWeeks($durationValue),
+            'month' => $startDate->copy()->addMonths($durationValue),
+            default => $startDate->copy(),
+        };
     }
 
     /**
@@ -153,7 +226,7 @@ class RentalController extends Controller
 
         // Calculate progress for progress tracker
         $currentStep = $rental->getCurrentStep();
-        $totalSteps = 4;
+        $totalSteps = config('rental.document_upload.total_steps');
 
         // Document upload progress
         $requiredDocs = $rental->room->roomType->kost->documentRequirements;
@@ -174,30 +247,30 @@ class RentalController extends Controller
         $steps = [
             [
                 'label' => 'Payment',
-                'status' => $rental->status === 'pending' ? 'active' : 'completed',
+                'status' => $rental->status === 'payment_pending' ? 'active' : 'completed',
                 'timestamp' => $rental->payment->verified_at?->format('M d, H:i'),
             ],
             [
                 'label' => 'Upload Documents',
                 'status' => match ($rental->status) {
-                    'pending' => 'locked',
+                    'payment_pending' => 'locked',
                     'paid', 'documents_pending' => 'active',
                     default => 'completed',
                 },
                 'progress' => in_array($rental->status, ['paid', 'documents_pending'])
                     ? "{$docProgress['verified']}/{$docProgress['total']} verified"
                     : null,
-                'message' => $rental->status === 'pending' ? 'Upload payment proof first' : null,
+                'message' => $rental->status === 'payment_pending' ? 'Upload payment proof first' : null,
             ],
             [
                 'label' => 'Verification',
                 'status' => match ($rental->status) {
-                    'pending', 'paid', 'documents_pending' => 'locked',
+                    'payment_pending', 'paid', 'documents_pending' => 'locked',
                     'confirmed', 'active', 'completed' => 'completed',
                     default => 'locked',
                 },
                 'timestamp' => $rental->confirmed_at?->format('M d, H:i'),
-                'message' => in_array($rental->status, ['pending', 'paid', 'documents_pending'])
+                'message' => in_array($rental->status, ['payment_pending', 'paid', 'documents_pending'])
                     ? 'Available after documents verified'
                     : null,
             ],
@@ -276,12 +349,12 @@ class RentalController extends Controller
                 ]);
             });
 
-            // NOTE: Status remains 'pending' until admin verifies payment
+            // NOTE: Status remains 'payment_pending' until admin verifies payment
             // Status will change to 'paid' only after admin approval via VerifyPayment action
 
             // Create status history entry (system-generated note)
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => auth()->id(),
                 'internal_notes' => 'Payment proof uploaded by tenant, awaiting admin verification',
             ]);
@@ -338,12 +411,12 @@ class RentalController extends Controller
                 'rejection_reason' => null,
             ]);
 
-            // Reset rental status back to 'pending'
-            $rental->update(['status' => 'pending']);
+            // Reset rental status back to 'payment_pending'
+            $rental->update(['status' => 'payment_pending']);
 
             // Create status history entry
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => auth()->id(),
                 'internal_notes' => 'Payment upload cancelled by tenant for re-upload',
             ]);

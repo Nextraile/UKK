@@ -64,7 +64,7 @@ class RentalSeeder extends Seeder
         // Status distribution configuration
         $statusConfig = [
             // 2 Pending rentals (payment not uploaded yet)
-            ['status' => 'pending', 'count' => 2],
+            ['status' => 'payment_pending', 'count' => 2],
 
             // 3 Paid rentals (payment uploaded, awaiting verification)
             ['status' => 'paid', 'count' => 3],
@@ -134,7 +134,7 @@ class RentalSeeder extends Seeder
 
         // Calculate dates based on status (ADR-016: min start_date = today+4 days)
         $startDate = match ($status) {
-            'pending', 'paid', 'confirmed' => now()->addDays(4),
+            'payment_pending', 'paid', 'confirmed' => now()->addDays(4),
             'active' => now()->subDays(rand(10, 80)),
             'completed' => now()->subDays(rand(100, 150)),
             'cancelled' => now()->addDays(4),
@@ -186,7 +186,7 @@ class RentalSeeder extends Seeder
     {
         // Payment status mapping (only 3 valid values: pending, success, failed)
         $paymentStatus = match ($rentalStatus) {
-            'pending' => 'pending',
+            'payment_pending' => 'pending',
             'paid', 'confirmed', 'active', 'completed' => 'success',
             'cancelled' => 'failed',
         };
@@ -224,10 +224,10 @@ class RentalSeeder extends Seeder
         // Get system user for automated status changes
         $systemUser = User::find(1); // System user from SystemUserSeeder
 
-        // All rentals start as pending
+        // All rentals start as payment_pending
         RentalStatusHistory::create([
             'rental_id' => $rental->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'changed_by' => $rental->user_id, // Tenant created the rental
             'internal_notes' => 'Rental dibuat oleh tenant',
             'created_at' => $rental->created_at,

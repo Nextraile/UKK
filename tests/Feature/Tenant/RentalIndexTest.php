@@ -48,7 +48,7 @@ class RentalIndexTest extends TestCase
     public function test_stats_pending_actions_excludes_confirmed_status(): void
     {
         // Create rentals with different statuses
-        Rental::factory()->for($this->tenant, 'user')->pending()->count(2)->create();
+        Rental::factory()->for($this->tenant, 'user')->paymentPending()->count(2)->create();
         Rental::factory()->for($this->tenant, 'user')->paid()->create();
         Rental::factory()->for($this->tenant, 'user')->confirmed()->create(); // Should be excluded
         Rental::factory()->for($this->tenant, 'user')->active()->create();
@@ -104,7 +104,7 @@ class RentalIndexTest extends TestCase
         // Create rentals with all possible statuses (reuse room/scheme)
         Rental::factory()->for($this->tenant, 'user')->active()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
         Rental::factory()->for($this->tenant, 'user')->active()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
-        Rental::factory()->for($this->tenant, 'user')->pending()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
+        Rental::factory()->for($this->tenant, 'user')->paymentPending()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
         Rental::factory()->for($this->tenant, 'user')->paid()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
         Rental::factory()->for($this->tenant, 'user')->paid()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]);
         Rental::factory()->for($this->tenant, 'user')->confirmed()->create(['room_id' => $room->id, 'price_scheme_id' => $priceScheme->id]); // Not in pending_actions
@@ -307,7 +307,7 @@ class RentalIndexTest extends TestCase
     {
         $rental = Rental::factory()
             ->for($this->tenant, 'user')
-            ->pending()
+            ->paymentPending()
             ->create();
 
         // Set payment expiry to 36 hours from now (normal deadline, not near)
@@ -330,7 +330,7 @@ class RentalIndexTest extends TestCase
     {
         $rental = Rental::factory()
             ->for($this->tenant, 'user')
-            ->pending()
+            ->paymentPending()
             ->create();
 
         // Set payment expiry to 12 hours from now (near deadline)
@@ -354,7 +354,7 @@ class RentalIndexTest extends TestCase
     {
         $rental = Rental::factory()
             ->for($this->tenant, 'user')
-            ->pending()
+            ->paymentPending()
             ->create();
 
         // Set payment expiry to past
@@ -403,7 +403,7 @@ class RentalIndexTest extends TestCase
 
         $newRental = Rental::factory()
             ->for($this->tenant, 'user')
-            ->pending()
+            ->paymentPending()
             ->create(['created_at' => now()->subDays(1)]);
 
         $newestRental = Rental::factory()

@@ -31,8 +31,8 @@ return new class extends Migration
             $table->dateTime('end_date');
 
             // Status & cancellation (consolidated from multiple migrations)
-            $table->enum('status', ['pending', 'paid', 'rejected', 'documents_pending', 'confirmed', 'active', 'completed', 'cancelled'])
-                ->default('pending');
+            $table->enum('status', ['payment_pending', 'paid', 'rejected', 'documents_pending', 'confirmed', 'active', 'completed', 'cancelled'])
+                ->default('payment_pending');
             $table->text('cancelled_reason')->nullable();
             $table->timestamp('cancelled_at')->nullable();
 
@@ -48,6 +48,7 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('status');
             $table->index(['start_date', 'end_date'], 'idx_dates');
+            $table->index(['room_id', 'status', 'start_date', 'end_date'], 'idx_room_availability');
         });
     }
 

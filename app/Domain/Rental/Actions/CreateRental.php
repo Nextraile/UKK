@@ -57,26 +57,29 @@ class CreateRental
                 );
             }
 
-            // 4. Check room capacity INSIDE lock (ADR-018)
-            // used_slots accessor queries rentals with status pending/paid/confirmed/active
-            if ($room->free_slots <= 0) {
-                throw RoomFullException::noCapacity($room);
-            }
-
-            // 5. Calculate dates
+            // 4. Calculate rental period
+            /** @var \Illuminate\Support\Carbon $startDate */
             $startDate = Carbon::parse($data['start_date']);
+            /** @var \Illuminate\Support\Carbon $endDate */
             $endDate = $this->calculateEndDate(
                 $startDate,
                 $data['duration'],
                 $priceScheme->duration_unit
             );
 
+            // 5. Check room capacity FOR THIS SPECIFIC PERIOD (ADR-018 + date overlap)
+            $freeSlots = $room->getFreeSlotsForPeriod($startDate, $endDate);
+
+            if ($freeSlots <= 0) {
+                throw RoomFullException::noCapacityForPeriod($room, $startDate, $endDate);
+            }
+
             // 6. Calculate grand total
             $roomPrice = $priceScheme->price;
             $securityDeposit = $room->roomType->security_deposit;
             $grandTotal = ($roomPrice * $data['duration']) + $securityDeposit;
 
-            // 7. Create rental (status: pending, snapshot data)
+            // 7. Create rental (status: payment_pending, snapshot data)
             $rental = Rental::create([
                 'room_id' => $room->id,
                 'user_id' => $data['user_id'],
@@ -88,7 +91,7 @@ class CreateRental
                 'room_price' => $roomPrice,
                 'security_deposit' => $securityDeposit,
                 'grand_total' => $grandTotal,
-                'status' => 'pending',
+                'status' => 'payment_pending',
             ]);
 
             // 8. Create payment record (1:1 with rental)
@@ -97,12 +100,12 @@ class CreateRental
                 'qris_image_path' => $room->roomType->kost->qris_image_path,
                 'amount' => $grandTotal,
                 'status' => 'pending',
-                'expired_at' => now()->addHours(48), // FR-121: 48 hour deadline
+                'expired_at' => now()->addHours(config('rental.payment.expiry_hours')),
             ]);
 
             // 9. Append initial status history
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => $data['user_id'],
                 'internal_notes' => 'Rental created by tenant',
             ]);

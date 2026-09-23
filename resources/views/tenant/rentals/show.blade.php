@@ -368,7 +368,7 @@
                             </div>
 
                             {{-- ACTIVE State: Pending Payment --}}
-                            @if($rental->status === 'pending')
+                            @if($rental->status === 'payment_pending')
                                 @if($rental->payment->expired_at->isFuture())
                                     <div class="mb-4 rounded-lg bg-warning-50 border border-warning-200 p-4">
                                         <p class="text-sm font-semibold text-warning-800">

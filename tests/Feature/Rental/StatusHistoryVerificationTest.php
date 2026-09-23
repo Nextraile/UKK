@@ -128,7 +128,7 @@ class StatusHistoryVerificationTest extends TestCase
 
         $this->assertDatabaseHas('rental_status_histories', [
             'rental_id' => $rental->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'changed_by' => $this->tenant->id,
         ]);
 
@@ -325,7 +325,7 @@ class StatusHistoryVerificationTest extends TestCase
             'room_price' => 1000000,
             'security_deposit' => 500000,
             'grand_total' => 1500000,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => now()->addDays(5),
             'end_date' => now()->addDays(35),
         ]);
@@ -340,13 +340,13 @@ class StatusHistoryVerificationTest extends TestCase
             'rental_id' => $rental->id,
             'qris_image_path' => 'qris/test.png',
             'amount' => 1500000,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'expired_at' => now()->subHours(2), // Payment expired 2 hours ago
         ]);
 
         // Create initial status history manually
         $rental->statusHistories()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'changed_by' => $this->tenant->id,
             'internal_notes' => 'Rental created by tenant',
         ]);

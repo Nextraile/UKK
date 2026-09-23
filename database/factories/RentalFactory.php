@@ -78,7 +78,7 @@ class RentalFactory extends Factory
             'grand_total' => $grandTotal,
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ];
     }
 
@@ -91,7 +91,7 @@ class RentalFactory extends Factory
             // Create initial status history (use tenant as changed_by)
             RentalStatusHistory::create([
                 'rental_id' => $rental->id,
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => $rental->user_id,
                 'internal_notes' => 'Initial rental creation',
             ]);
@@ -107,12 +107,12 @@ class RentalFactory extends Factory
     }
 
     /**
-     * Indicate that the rental is pending (default state).
+     * Indicate that the rental is payment_pending (default state).
      */
-    public function pending(): static
+    public function paymentPending(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
     }
 

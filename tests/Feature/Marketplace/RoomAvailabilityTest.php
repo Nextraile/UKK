@@ -201,7 +201,7 @@ class RoomAvailabilityTest extends TestCase
 
         Rental::factory()->create([
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         $roomType->load('rooms.rentals');

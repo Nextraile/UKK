@@ -129,7 +129,18 @@ class Kost extends Model
 
         static::creating(function (Kost $kost) {
             if (empty($kost->slug)) {
-                $kost->slug = Str::slug($kost->name);
+                // Generate unique slug with collision handling
+                $baseSlug = Str::slug($kost->name);
+                $slug = $baseSlug;
+                $counter = 1;
+
+                // Keep incrementing until we find a unique slug
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug.'-'.$counter;
+                    $counter++;
+                }
+
+                $kost->slug = $slug;
             }
         });
     }
