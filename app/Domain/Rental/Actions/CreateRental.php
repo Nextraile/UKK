@@ -57,19 +57,22 @@ class CreateRental
                 );
             }
 
-            // 4. Check room capacity INSIDE lock (ADR-018)
-            // used_slots accessor queries rentals with status pending/paid/confirmed/active
-            if ($room->free_slots <= 0) {
-                throw RoomFullException::noCapacity($room);
-            }
-
-            // 5. Calculate dates
+            // 4. Calculate rental period
+            /** @var \Illuminate\Support\Carbon $startDate */
             $startDate = Carbon::parse($data['start_date']);
+            /** @var \Illuminate\Support\Carbon $endDate */
             $endDate = $this->calculateEndDate(
                 $startDate,
                 $data['duration'],
                 $priceScheme->duration_unit
             );
+
+            // 5. Check room capacity FOR THIS SPECIFIC PERIOD (ADR-018 + date overlap)
+            $freeSlots = $room->getFreeSlotsForPeriod($startDate, $endDate);
+
+            if ($freeSlots <= 0) {
+                throw RoomFullException::noCapacityForPeriod($room, $startDate, $endDate);
+            }
 
             // 6. Calculate grand total
             $roomPrice = $priceScheme->price;

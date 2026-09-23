@@ -104,14 +104,14 @@ class Room extends Model
     }
 
     /**
-     * Get count of reserved rentals (pending, paid, confirmed with future start dates).
+     * Get count of reserved rentals (pending, paid, documents_pending, confirmed with future start dates).
      *
-     * ADR-018: Reserved = rentals with status pending/paid/confirmed
+     * ADR-018: Reserved = rentals with status pending/paid/documents_pending/confirmed
      */
     public function getReservedCountAttribute(): int
     {
         return $this->rentals()
-            ->whereIn('status', ['pending', 'paid', 'confirmed'])
+            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed'])
             ->where('start_date', '>', now())
             ->count();
     }
@@ -133,11 +133,14 @@ class Room extends Model
      *
      * Used for availability check in CreateRental Action.
      * ADR-018: 1 rental = 1 person
+     *
+     * Note: This counts ALL rentals regardless of date ranges.
+     * For date-specific availability, use getUsedSlotsForPeriod().
      */
     public function getUsedSlotsAttribute(): int
     {
         return $this->rentals()
-            ->whereIn('status', ['pending', 'paid', 'confirmed', 'active'])
+            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed', 'active'])
             ->count();
     }
 
@@ -165,5 +168,48 @@ class Room extends Model
         }
 
         return $this->free_slots > 0 ? 'available' : 'full';
+    }
+
+    /**
+     * Get used slots for a specific date period.
+     *
+     * Counts only rentals that overlap with the requested period.
+     * Uses date range overlap logic from Rental::scopeWhereDateRangeOverlaps.
+     *
+     * @param  Carbon|Carbon  $startDate  Start of requested period
+     * @param  Carbon|Carbon  $endDate  End of requested period
+     * @return int Number of slots occupied during this period
+     */
+    public function getUsedSlotsForPeriod($startDate, $endDate): int
+    {
+        return $this->rentals()
+            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed', 'active'])
+            ->whereDateRangeOverlaps($startDate, $endDate)
+            ->count();
+    }
+
+    /**
+     * Get free slots for a specific date period.
+     *
+     * @param  Carbon|Carbon  $startDate
+     * @param  Carbon|Carbon  $endDate
+     * @return int Number of available slots during this period
+     */
+    public function getFreeSlotsForPeriod($startDate, $endDate): int
+    {
+        return max(0, $this->roomType->max_occupants - $this->getUsedSlotsForPeriod($startDate, $endDate));
+    }
+
+    /**
+     * Check if room is available for booking during a specific period.
+     *
+     * @param  Carbon|Carbon  $startDate
+     * @param  Carbon|Carbon  $endDate
+     * @return bool True if room can accept new booking for this period
+     */
+    public function isAvailableForPeriod($startDate, $endDate): bool
+    {
+        return $this->status === 'available'
+            && $this->getFreeSlotsForPeriod($startDate, $endDate) > 0;
     }
 }

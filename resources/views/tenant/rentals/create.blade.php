@@ -11,7 +11,7 @@
                     ['label' => 'Buat Booking'],
                 ]"
             />
-            @if($rooms->isEmpty())
+            @if(empty($availabilityMatrix))
                 <!-- Empty State: No Available Rooms -->
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                     <div class="p-12 text-center text-gray-900 dark:text-gray-100">
@@ -39,8 +39,10 @@
                                   duration: 1,
                                   deposit: 0,
                                   selectedRoomId: @js(old('room_id')),
+                                  selectedSchemeId: @js(old('price_scheme_id')),
                                   availableSchemes: [],
-                                  roomSchemes: @js($roomSchemes),
+                                  availabilityData: @js($availabilityMatrix),
+                                  currentAvailability: null,
                                   get total() {
                                       return (this.price * this.duration) + this.deposit;
                                   },
@@ -49,12 +51,58 @@
                                           this.availableSchemes = [];
                                           this.price = 0;
                                           this.deposit = 0;
+                                          this.currentAvailability = null;
                                           return;
                                       }
-                                      this.availableSchemes = this.roomSchemes[this.selectedRoomId] || [];
+                                      const roomData = this.availabilityData[this.selectedRoomId];
+                                      if (!roomData) return;
+                                      
+                                      // Convert schemes object to array for template iteration
+                                      this.availableSchemes = Object.entries(roomData.schemes).map(([id, scheme]) => ({
+                                          id: parseInt(id),
+                                          name: this.getDurationLabel(scheme.duration_unit),
+                                          price: scheme.price,
+                                          deposit: scheme.deposit,
+                                          duration_unit: scheme.duration_unit,
+                                          free_slots: scheme.free_slots,
+                                          estimated_start: scheme.estimated_start,
+                                          estimated_end: scheme.estimated_end,
+                                          available: scheme.available
+                                      }));
+                                  },
+                                  updateAvailability() {
+                                      if (!this.selectedRoomId || !this.selectedSchemeId) return;
+                                      
+                                      const roomData = this.availabilityData[this.selectedRoomId];
+                                      const scheme = roomData?.schemes[this.selectedSchemeId];
+                                      
+                                      if (scheme) {
+                                          this.currentAvailability = {
+                                              free_slots: scheme.free_slots,
+                                              estimated_start: scheme.estimated_start,
+                                              estimated_end: scheme.estimated_end,
+                                              available: scheme.available
+                                          };
+                                      }
+                                  },
+                                  getDurationLabel(unit) {
+                                      const labels = {
+                                          'day': 'Harian',
+                                          'week': 'Mingguan', 
+                                          'month': 'Bulanan'
+                                      };
+                                      return labels[unit] || unit;
+                                  },
+                                  formatDate(dateStr) {
+                                      if (!dateStr) return '';
+                                      return new Date(dateStr).toLocaleDateString('id-ID', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric'
+                                      });
                                   }
                               }"
-                              x-init="filterSchemes()">
+                              x-init="filterSchemes(); updateAvailability()"
                             @csrf
 
                             <!-- Room Selection -->
@@ -62,12 +110,12 @@
                                 <x-input-label for="room_id" value="Pilih Kamar" />
                                 <select id="room_id" name="room_id" required
                                         x-model.number="selectedRoomId"
-                                        @change="filterSchemes(); price=0; deposit=0"
+                                        @change="filterSchemes(); price=0; deposit=0; selectedSchemeId=null; updateAvailability()"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
                                     <option value="">-- Pilih Kamar --</option>
-                                    @foreach($rooms as $room)
-                                        <option value="{{ $room->id }}">
-                                            {{ $room->roomType->name }} - {{ $room->code }} ({{ $room->free_slots }} slot tersedia)
+                                    @foreach($availabilityMatrix as $roomId => $roomData)
+                                        <option value="{{ $roomId }}">
+                                            {{ $roomData['room_code'] }} ({{ array_sum(array_column($roomData['schemes'], 'free_slots')) > 0 ? 'Tersedia' : 'Penuh' }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -78,7 +126,8 @@
                             <div class="mb-6">
                                 <x-input-label for="price_scheme_id" value="Paket Harga" />
                                 <select id="price_scheme_id" name="price_scheme_id" required
-                                        x-on:change="price = parseFloat($event.target.selectedOptions[0].dataset.price || 0); deposit = parseFloat($event.target.selectedOptions[0].dataset.deposit || 0)"
+                                        x-model.number="selectedSchemeId"
+                                        x-on:change="price = parseFloat($event.target.selectedOptions[0].dataset.price || 0); deposit = parseFloat($event.target.selectedOptions[0].dataset.deposit || 0); updateAvailability()"
                                         :disabled="!selectedRoomId || availableSchemes.length === 0"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Paket --</option>
@@ -86,8 +135,8 @@
                                         <option :value="scheme.id" 
                                                 :data-price="scheme.price"
                                                 :data-deposit="scheme.deposit"
-                                                :selected="scheme.id === @json(old('price_scheme_id'))"
-                                                x-text="scheme.name"></option>
+                                                :selected="scheme.id == selectedSchemeId"
+                                                x-text="scheme.name + ' - Rp ' + scheme.price.toLocaleString('id-ID')"></option>
                                     </template>
                                 </select>
                                 <x-input-error :messages="$errors->get('price_scheme_id')" class="mt-2" />

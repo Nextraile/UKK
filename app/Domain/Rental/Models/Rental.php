@@ -9,7 +9,9 @@ use App\Domain\Payment\Models\Payment;
 use App\Domain\Review\Models\Review;
 use App\Domain\RoomInventory\Models\PriceScheme;
 use App\Domain\RoomInventory\Models\Room;
+use Carbon\Carbon;
 use Database\Factories\RentalFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -202,5 +204,33 @@ class Rental extends Model
         $cancellableStatuses = ['pending', 'paid', 'documents_pending', 'confirmed'];
 
         return in_array($this->status, $cancellableStatuses);
+    }
+
+    /**
+     * Scope: Find rentals that overlap with given date range.
+     *
+     * Overlap logic: Two date ranges overlap if:
+     * (start1 < end2) AND (end1 > start2)
+     *
+     * Example:
+     * - Rental A: Oct 1-15
+     * - Check period: Oct 10-20
+     * - Overlaps: true (Oct 10-15 overlap)
+     *
+     * - Rental B: Oct 1-15
+     * - Check period: Oct 16-31
+     * - Overlaps: false (no overlap)
+     *
+     * @param  Builder  $query
+     * @param  Carbon|\Illuminate\Support\Carbon  $startDate  Start of the period to check
+     * @param  Carbon|\Illuminate\Support\Carbon  $endDate  End of the period to check
+     * @return Builder
+     */
+    public function scopeWhereDateRangeOverlaps($query, $startDate, $endDate)
+    {
+        return $query->where(function ($q) use ($startDate, $endDate) {
+            $q->where('start_date', '<', $endDate)
+                ->where('end_date', '>', $startDate);
+        });
     }
 }

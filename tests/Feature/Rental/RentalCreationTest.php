@@ -258,4 +258,97 @@ class RentalCreationTest extends TestCase
             $rental->end_date->format('Y-m-d')
         );
     }
+
+    public function test_cannot_book_room_when_period_overlaps_existing_booking(): void
+    {
+        // Create a single-occupant room for this test
+        $singleRoom = Room::factory()->create([
+            'kost_id' => $this->room->kost_id,
+            'room_type_id' => $this->room->room_type_id,
+            'status' => 'available',
+            'code' => 'B01',
+        ]);
+
+        // Update room type to max_occupants = 1 for this specific test
+        $singleRoom->roomType->update(['max_occupants' => 1]);
+
+        // Create existing rental with valid dates (starting in 5 days)
+        $existingStart = now()->addDays(5);
+        $existingEnd = $existingStart->copy()->addMonth();
+
+        Rental::create([
+            'room_id' => $singleRoom->id,
+            'user_id' => User::factory()->create(['role' => 'user'])->id,
+            'price_scheme_id' => $this->priceScheme->id,
+            'duration_value' => 1,
+            'duration_unit' => 'month',
+            'room_price' => 1500000,
+            'security_deposit' => 500000,
+            'grand_total' => 2000000,
+            'start_date' => $existingStart,
+            'end_date' => $existingEnd,
+            'status' => 'active',
+        ]);
+
+        // Try to book: overlapping period (starting 10 days from now, overlaps with existing)
+        $response = $this->actingAs($this->tenant)
+            ->post(route('rentals.store'), [
+                'room_id' => $singleRoom->id,
+                'price_scheme_id' => $this->priceScheme->id,
+                'start_date' => now()->addDays(10)->format('Y-m-d'),
+                'duration' => 1,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('room_id');
+        $this->assertStringContainsString('penuh untuk periode', session('errors')->first('room_id'));
+
+        // Only the existing rental, new one not created
+        $this->assertDatabaseCount('rentals', 1);
+    }
+
+    public function test_can_book_room_for_non_overlapping_period(): void
+    {
+        // Create existing rental (starting in 5 days)
+        $existingStart = now()->addDays(5);
+        $existingEnd = $existingStart->copy()->addDays(15); // 15 day rental
+
+        Rental::create([
+            'room_id' => $this->room->id,
+            'user_id' => User::factory()->create(['role' => 'user'])->id,
+            'price_scheme_id' => $this->priceScheme->id,
+            'duration_value' => 1,
+            'duration_unit' => 'month',
+            'room_price' => 1500000,
+            'security_deposit' => 500000,
+            'grand_total' => 2000000,
+            'start_date' => $existingStart,
+            'end_date' => $existingEnd,
+            'status' => 'active',
+        ]);
+
+        Mail::fake();
+
+        // Book: starting after existing rental ends (22 days from now, no overlap)
+        $newStart = now()->addDays(22);
+
+        $response = $this->actingAs($this->tenant)
+            ->post(route('rentals.store'), [
+                'room_id' => $this->room->id,
+                'price_scheme_id' => $this->priceScheme->id,
+                'start_date' => $newStart->format('Y-m-d'),
+                'duration' => 1,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Both rentals should exist
+        $this->assertDatabaseCount('rentals', 2);
+        $this->assertDatabaseHas('rentals', [
+            'room_id' => $this->room->id,
+            'user_id' => $this->tenant->id,
+            'status' => 'pending',
+        ]);
+    }
 }
