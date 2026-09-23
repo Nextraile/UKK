@@ -34,7 +34,7 @@ class CancelOverdueRentals extends Command
      */
     public function handle(): int
     {
-        $this->info('Checking for overdue pending rentals...');
+        $this->info('Checking for overdue payment_pending rentals...');
 
         // FR-076: Check payment.expired_at (48h deadline)
         $overduePayments = Payment::where('status', 'pending')
@@ -43,7 +43,7 @@ class CancelOverdueRentals extends Command
             ->get();
 
         if ($overduePayments->isEmpty()) {
-            $this->info('No overdue pending rentals found.');
+            $this->info('No overdue payment_pending rentals found.');
 
             return self::SUCCESS;
         }

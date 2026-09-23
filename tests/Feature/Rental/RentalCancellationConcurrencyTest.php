@@ -106,7 +106,7 @@ class RentalCancellationConcurrencyTest extends TestCase
     public function test_tenant_cancelling_while_admin_verifying_payment(): void
     {
         // Arrange: Create rental with pending payment
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
         $payment = $rental->payment;
 
         $admin = User::factory()->admin()->create();

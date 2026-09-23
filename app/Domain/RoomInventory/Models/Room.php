@@ -104,14 +104,14 @@ class Room extends Model
     }
 
     /**
-     * Get count of reserved rentals (pending, paid, documents_pending, confirmed with future start dates).
+     * Get count of reserved rentals (payment_pending, paid, documents_pending, confirmed with future start dates).
      *
-     * ADR-018: Reserved = rentals with status pending/paid/documents_pending/confirmed
+     * ADR-018: Reserved = rentals with status payment_pending/paid/documents_pending/confirmed
      */
     public function getReservedCountAttribute(): int
     {
         return $this->rentals()
-            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed'])
+            ->whereIn('status', ['payment_pending', 'paid', 'documents_pending', 'confirmed'])
             ->where('start_date', '>', now())
             ->count();
     }
@@ -140,7 +140,7 @@ class Room extends Model
     public function getUsedSlotsAttribute(): int
     {
         return $this->rentals()
-            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed', 'active'])
+            ->whereIn('status', ['payment_pending', 'paid', 'documents_pending', 'confirmed', 'active'])
             ->count();
     }
 
@@ -183,7 +183,7 @@ class Room extends Model
     public function getUsedSlotsForPeriod($startDate, $endDate): int
     {
         return $this->rentals()
-            ->whereIn('status', ['pending', 'paid', 'documents_pending', 'confirmed', 'active'])
+            ->whereIn('status', ['payment_pending', 'paid', 'documents_pending', 'confirmed', 'active'])
             ->whereDateRangeOverlaps($startDate, $endDate)
             ->count();
     }

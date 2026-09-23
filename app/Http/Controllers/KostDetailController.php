@@ -33,7 +33,7 @@ class KostDetailController extends Controller
             'documentRequirements',
             'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true),
             'roomTypes.roomTypeImages',
-            'roomTypes.rooms.rentals' => fn ($q) => $q->whereIn('status', ['pending', 'paid', 'confirmed', 'active']),
+            'roomTypes.rooms.rentals' => fn ($q) => $q->whereIn('status', ['payment_pending', 'paid', 'confirmed', 'active']),
         ]);
 
         // Get reviews with pagination (COMP-008)

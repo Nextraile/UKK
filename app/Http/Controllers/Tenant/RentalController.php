@@ -57,9 +57,9 @@ class RentalController extends Controller
         // Calculate stats from collection (no separate queries)
         $stats = [
             'active' => $rentals->where('status', 'active')->count(),
-            // Pending actions: only pending (awaiting payment) and paid (awaiting doc upload)
+            // Pending actions: only payment_pending (awaiting payment) and paid (awaiting doc upload)
             // Confirmed status excluded because admin verifies documents (no tenant action needed)
-            'pending_actions' => $rentals->whereIn('status', ['pending', 'paid'])->count(),
+            'pending_actions' => $rentals->whereIn('status', ['payment_pending', 'paid'])->count(),
             'completed' => $rentals->where('status', 'completed')->count(),
             'cancelled' => $rentals->where('status', 'cancelled')->count(),
         ];
@@ -247,30 +247,30 @@ class RentalController extends Controller
         $steps = [
             [
                 'label' => 'Payment',
-                'status' => $rental->status === 'pending' ? 'active' : 'completed',
+                'status' => $rental->status === 'payment_pending' ? 'active' : 'completed',
                 'timestamp' => $rental->payment->verified_at?->format('M d, H:i'),
             ],
             [
                 'label' => 'Upload Documents',
                 'status' => match ($rental->status) {
-                    'pending' => 'locked',
+                    'payment_pending' => 'locked',
                     'paid', 'documents_pending' => 'active',
                     default => 'completed',
                 },
                 'progress' => in_array($rental->status, ['paid', 'documents_pending'])
                     ? "{$docProgress['verified']}/{$docProgress['total']} verified"
                     : null,
-                'message' => $rental->status === 'pending' ? 'Upload payment proof first' : null,
+                'message' => $rental->status === 'payment_pending' ? 'Upload payment proof first' : null,
             ],
             [
                 'label' => 'Verification',
                 'status' => match ($rental->status) {
-                    'pending', 'paid', 'documents_pending' => 'locked',
+                    'payment_pending', 'paid', 'documents_pending' => 'locked',
                     'confirmed', 'active', 'completed' => 'completed',
                     default => 'locked',
                 },
                 'timestamp' => $rental->confirmed_at?->format('M d, H:i'),
-                'message' => in_array($rental->status, ['pending', 'paid', 'documents_pending'])
+                'message' => in_array($rental->status, ['payment_pending', 'paid', 'documents_pending'])
                     ? 'Available after documents verified'
                     : null,
             ],
@@ -349,12 +349,12 @@ class RentalController extends Controller
                 ]);
             });
 
-            // NOTE: Status remains 'pending' until admin verifies payment
+            // NOTE: Status remains 'payment_pending' until admin verifies payment
             // Status will change to 'paid' only after admin approval via VerifyPayment action
 
             // Create status history entry (system-generated note)
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => auth()->id(),
                 'internal_notes' => 'Payment proof uploaded by tenant, awaiting admin verification',
             ]);
@@ -411,12 +411,12 @@ class RentalController extends Controller
                 'rejection_reason' => null,
             ]);
 
-            // Reset rental status back to 'pending'
-            $rental->update(['status' => 'pending']);
+            // Reset rental status back to 'payment_pending'
+            $rental->update(['status' => 'payment_pending']);
 
             // Create status history entry
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => auth()->id(),
                 'internal_notes' => 'Payment upload cancelled by tenant for re-upload',
             ]);

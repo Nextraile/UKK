@@ -21,7 +21,7 @@ class SecurityTest extends TestCase
         $tenant1 = User::factory()->create(['role' => 'user']);
         $tenant2 = User::factory()->create(['role' => 'user']);
 
-        $rental = Rental::factory()->pending()->create(['user_id' => $tenant1->id]);
+        $rental = Rental::factory()->paymentPending()->create(['user_id' => $tenant1->id]);
 
         $response = $this->actingAs($tenant2)->get("/tenant/rentals/{$rental->id}");
 

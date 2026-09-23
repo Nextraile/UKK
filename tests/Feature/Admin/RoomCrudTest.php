@@ -209,7 +209,7 @@ class RoomCrudTest extends TestCase
         $room = Room::factory()->create(['kost_id' => $kost->id, 'room_type_id' => $roomType->id]);
 
         // Create rentals in different states
-        Rental::factory()->pending()->create(['room_id' => $room->id]); // reserved
+        Rental::factory()->paymentPending()->create(['room_id' => $room->id]); // reserved
         Rental::factory()->active()->create(['room_id' => $room->id]); // occupied
 
         $room->refresh();

@@ -50,7 +50,7 @@ class RoomModelTest extends TestCase
         $room = Room::factory()->create(['kost_id' => $kost->id, 'room_type_id' => $roomType->id]);
 
         // Create rentals in different states (pending, paid, confirmed = reserved; active = occupied)
-        Rental::factory()->pending()->create(['room_id' => $room->id]);
+        Rental::factory()->paymentPending()->create(['room_id' => $room->id]);
         Rental::factory()->paid()->create(['room_id' => $room->id]);
         Rental::factory()->confirmed()->create(['room_id' => $room->id]);
         Rental::factory()->active()->create(['room_id' => $room->id]);

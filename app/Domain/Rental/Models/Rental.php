@@ -143,7 +143,7 @@ class Rental extends Model
     public function getCurrentStep(): int
     {
         return match ($this->status) {
-            'pending' => 1,
+            'payment_pending' => 1,
             'paid', 'documents_pending' => 2,
             'confirmed', 'active' => 3,
             'completed' => 4,
@@ -159,7 +159,7 @@ class Rental extends Model
     public function getPaymentSectionState(): string
     {
         // Active only if status is pending AND no payment proof uploaded yet
-        if ($this->status === 'pending' && ! $this->payment->proof_of_payment_path) {
+        if ($this->status === 'payment_pending' && ! $this->payment->proof_of_payment_path) {
             return 'active';
         }
 
@@ -175,7 +175,7 @@ class Rental extends Model
     public function getDocumentsSectionState(): string
     {
         // Locked until payment is VERIFIED by admin
-        if ($this->status === 'pending' || ($this->status === 'paid' && ! $this->payment->verified_at)) {
+        if ($this->status === 'payment_pending' || ($this->status === 'paid' && ! $this->payment->verified_at)) {
             return 'locked';
         }
 
@@ -201,7 +201,7 @@ class Rental extends Model
         }
 
         // Can only cancel in specific statuses
-        $cancellableStatuses = ['pending', 'paid', 'documents_pending', 'confirmed'];
+        $cancellableStatuses = ['payment_pending', 'paid', 'documents_pending', 'confirmed'];
 
         return in_array($this->status, $cancellableStatuses);
     }

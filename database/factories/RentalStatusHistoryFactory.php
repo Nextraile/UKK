@@ -25,7 +25,7 @@ class RentalStatusHistoryFactory extends Factory
     {
         return [
             'rental_id' => Rental::factory(),
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'changed_by' => User::factory(),
             'internal_notes' => $this->faker->sentence(),
             'created_at' => now(),
@@ -33,12 +33,12 @@ class RentalStatusHistoryFactory extends Factory
     }
 
     /**
-     * Status: pending
+     * Status: payment_pending
      */
-    public function pending(): static
+    public function paymentPending(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'internal_notes' => 'Rental created by tenant',
         ]);
     }

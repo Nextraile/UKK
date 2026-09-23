@@ -39,7 +39,7 @@ class PaymentVerificationConcurrencyTest extends TestCase
     public function test_concurrent_payment_approval_only_first_succeeds(): void
     {
         // Arrange: Create a rental (which creates a payment via factory)
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
 
         // Get the payment created by the rental factory
         $payment = $rental->payment ?? Payment::where('rental_id', $rental->id)->first();
@@ -103,7 +103,7 @@ class PaymentVerificationConcurrencyTest extends TestCase
     public function test_admin_approving_while_tenant_reuploads_proof(): void
     {
         // Arrange: Create rental (which creates a payment via factory)
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
 
         // Get the payment created by the rental factory
         $payment = $rental->payment ?? Payment::where('rental_id', $rental->id)->first();
@@ -164,7 +164,7 @@ class PaymentVerificationConcurrencyTest extends TestCase
     public function test_payment_approval_and_rejection_same_time_only_one_succeeds(): void
     {
         // Arrange
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
         // Get the payment created by the rental factory
         $payment = $rental->payment ?? Payment::where('rental_id', $rental->id)->first();
         // Ensure payment is in pending state
@@ -215,7 +215,7 @@ class PaymentVerificationConcurrencyTest extends TestCase
     public function test_double_payment_verification_second_attempt_fails_gracefully(): void
     {
         // Arrange: Create rental (which creates a payment via factory)
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
 
         // Get the payment created by the rental factory
         $payment = $rental->payment ?? Payment::where('rental_id', $rental->id)->first();
@@ -264,7 +264,7 @@ class PaymentVerificationConcurrencyTest extends TestCase
     public function test_payment_verification_while_rental_cancelling(): void
     {
         // Arrange
-        $rental = Rental::factory()->create(['status' => 'pending']);
+        $rental = Rental::factory()->create(['status' => 'payment_pending']);
         // Get the payment created by the rental factory
         $payment = $rental->payment ?? Payment::where('rental_id', $rental->id)->first();
         // Ensure payment is in pending state

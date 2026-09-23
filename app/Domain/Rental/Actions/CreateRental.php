@@ -79,7 +79,7 @@ class CreateRental
             $securityDeposit = $room->roomType->security_deposit;
             $grandTotal = ($roomPrice * $data['duration']) + $securityDeposit;
 
-            // 7. Create rental (status: pending, snapshot data)
+            // 7. Create rental (status: payment_pending, snapshot data)
             $rental = Rental::create([
                 'room_id' => $room->id,
                 'user_id' => $data['user_id'],
@@ -91,7 +91,7 @@ class CreateRental
                 'room_price' => $roomPrice,
                 'security_deposit' => $securityDeposit,
                 'grand_total' => $grandTotal,
-                'status' => 'pending',
+                'status' => 'payment_pending',
             ]);
 
             // 8. Create payment record (1:1 with rental)
@@ -105,7 +105,7 @@ class CreateRental
 
             // 9. Append initial status history
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => $data['user_id'],
                 'internal_notes' => 'Rental created by tenant',
             ]);

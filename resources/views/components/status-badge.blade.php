@@ -14,10 +14,10 @@
 // Status mappings per entity type
 $statusMappings = [
     'rental' => [
-        'pending' => ['label' => 'Menunggu Pembayaran', 'color' => 'warning'],
-        'pending_payment' => ['label' => 'Menunggu Pembayaran', 'color' => 'warning'],
+        'payment_pending' => ['label' => 'Menunggu Pembayaran', 'color' => 'warning'],
         'paid' => ['label' => 'Sudah Bayar', 'color' => 'info'],
         'confirmed' => ['label' => 'Dikonfirmasi', 'color' => 'success'],
+        'documents_pending' => ['label' => 'Menunggu Dokumen', 'color' => 'warning'],
         'active' => ['label' => 'Aktif', 'color' => 'success'],
         'completed' => ['label' => 'Selesai', 'color' => 'gray'],
         'cancelled' => ['label' => 'Dibatalkan', 'color' => 'error'],

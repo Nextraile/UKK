@@ -87,7 +87,7 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseHas('rentals', [
             'room_id' => $this->room->id,
             'user_id' => $this->tenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'duration_value' => 3,
             'duration_unit' => 'month',
             'room_price' => 1500000,
@@ -101,7 +101,7 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseHas('payments', [
             'rental_id' => $rental->id,
             'amount' => 5000000,
-            'status' => 'pending',
+            'status' => 'pending', // Payment status, NOT rental status
         ]);
 
         $payment = Payment::first();
@@ -114,7 +114,7 @@ class RentalCreationTest extends TestCase
         // Assert status history created
         $this->assertDatabaseHas('rental_status_histories', [
             'rental_id' => $rental->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'changed_by' => $this->tenant->id,
         ]);
 
@@ -348,7 +348,7 @@ class RentalCreationTest extends TestCase
         $this->assertDatabaseHas('rentals', [
             'room_id' => $this->room->id,
             'user_id' => $this->tenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
     }
 }

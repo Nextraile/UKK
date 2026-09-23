@@ -165,7 +165,7 @@
                     </x-card>
 
                     <!-- Payment Verification Section -->
-                    @if($rental->status === 'pending' && $rental->payment->proof_of_payment_path)
+                    @if($rental->status === 'payment_pending' && $rental->payment->proof_of_payment_path)
                         <div class="border-2 rounded-lg p-6 transition-all"
                              :class="payment.verified_at || payment.rejected_at ? 'border-gray-300 bg-gray-50' : 'border-primary-500 bg-white'">
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -614,7 +614,7 @@
                 },
 
                 hasPendingDocs() {
-                    return this.documents.some(d => d.uploaded && d.verification_status === 'pending');
+                    return this.documents.some(d => d.uploaded && d.verification_status === 'payment_pending');
                 },
 
                 // Document verification actions
@@ -706,7 +706,7 @@
                 },
 
                 async approveAllDocuments() {
-                    const pendingDocs = this.documents.filter(d => d.uploaded && d.verification_status === 'pending');
+                    const pendingDocs = this.documents.filter(d => d.uploaded && d.verification_status === 'payment_pending');
                     
                     if (pendingDocs.length === 0) return;
 

@@ -24,7 +24,7 @@ class AdminSidebarComposer
         // For Admin: Count rentals pending document verification
         if (auth()->user()->isAdmin()) {
             $data['pendingVerifications'] = Rental::whereHas('documents', function ($query) {
-                $query->where('status', 'pending');
+                $query->where('status', 'payment_pending');
             })
                 ->where('user_id', auth()->id())
                 ->count();
