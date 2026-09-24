@@ -100,8 +100,8 @@ class RentalViewTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Riwayat Status');
-        // Should have at least the initial 'payment_pending' status from factory (displays as "Menunggu Pembayaran")
-        $response->assertSee('Menunggu Pembayaran');
+        // Should have at least the initial 'payment_pending' status from factory (displays as "Waiting for Payment or Payment Verification")
+        $response->assertSee('Waiting for Payment or Payment Verification');
     }
 
     public function test_admin_cannot_access_tenant_rental_routes(): void
