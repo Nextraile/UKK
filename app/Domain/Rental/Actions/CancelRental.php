@@ -42,7 +42,7 @@ class CancelRental
         // Status validation
         $cancellableStatuses = ['payment_pending', 'paid', 'documents_pending', 'confirmed'];
         if (! in_array($rental->status, $cancellableStatuses)) {
-            throw new \Exception(
+            throw new InvalidRentalStatusException(
                 "Rental tidak dapat dibatalkan. Status saat ini: {$rental->status}. Hanya rental dengan status payment_pending, paid, documents_pending, atau confirmed yang dapat dibatalkan."
             );
         }

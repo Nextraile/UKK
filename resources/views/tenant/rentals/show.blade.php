@@ -332,7 +332,19 @@
                                             @endif
                                         </div>
                                         <div class="flex-1 pb-4">
-                                            <p class="font-semibold text-gray-900">{{ ucfirst(str_replace('_', ' ', $history->status)) }}</p>
+                                            @php
+                                                $statusLabels = [
+                                                    'payment_pending' => 'Waiting for Payment or Payment Verification',
+                                                    'paid' => 'Payment Verified',
+                                                    'confirmed' => 'Confirmed',
+                                                    'documents_pending' => 'Waiting for Document Upload or Documents Verification',
+                                                    'active' => 'Rental Active',
+                                                    'completed' => 'Rental Completed',
+                                                    'cancelled' => 'Rental Cancelled',
+                                                ];
+                                                $displayStatus = $statusLabels[$history->status] ?? ucfirst(str_replace('_', ' ', $history->status));
+                                            @endphp
+                                            <p class="font-semibold text-gray-900">{{ $displayStatus }}</p>
                                             <p class="text-sm text-gray-600">
                                                 {{ $history->created_at->format('d M Y H:i') }}
                                             </p>
@@ -488,7 +500,7 @@
                                         @endif
                                         
                                         {{-- Button: Upload atau Batalkan --}}
-                                        @if($rental->payment->proof_of_payment_path && !$rental->payment->verified_at)
+                                        @can('cancelPaymentUpload', $rental)
                                             {{-- Tombol Batalkan Upload --}}
                                             <button 
                                                 @click="cancelPaymentUpload()"
@@ -496,7 +508,7 @@
                                                 class="w-full lg:w-auto px-6 py-3 text-sm font-semibold text-error-600 bg-white border-2 border-error-600 rounded-lg hover:bg-error-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-error-500 transition-colors">
                                                 Batalkan Upload & Upload Ulang
                                             </button>
-                                        @else
+                                        @elsecan('uploadPayment', $rental)
                                             {{-- Tombol Upload Bukti Pembayaran --}}
                                             <x-touch-button 
                                                 variant="primary" 
@@ -506,7 +518,7 @@
                                                 @click.prevent="openPaymentModal()">
                                                 Upload Bukti Pembayaran
                                             </x-touch-button>
-                                        @endif
+                                        @endcan
                                     </div>
                                 @else
                                     <div class="rounded-lg bg-error-50 border border-error-200 p-4">

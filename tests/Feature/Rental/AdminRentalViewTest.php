@@ -136,7 +136,7 @@ class AdminRentalViewTest extends TestCase
         $rentalWithProof = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room1->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         $proof = UploadedFile::fake()->image('proof.jpg');
@@ -148,7 +148,7 @@ class AdminRentalViewTest extends TestCase
         $rentalWithoutProof = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room2->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Act: Admin views rental list with filter

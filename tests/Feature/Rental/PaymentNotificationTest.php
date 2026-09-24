@@ -36,12 +36,12 @@ class PaymentNotificationTest extends TestCase
         $kost = Kost::factory()->create(['user_id' => $admin->id, 'status' => 'active']);
         $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
         $room = Room::factory()->create(['room_type_id' => $roomType->id]);
+
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
-
         // Upload payment proof
         $rental->payment->update([
             'proof_of_payment_path' => UploadedFile::fake()->image('proof.jpg')->store('payment-proofs', 'private'),
@@ -71,15 +71,16 @@ class PaymentNotificationTest extends TestCase
         Mail::fake();
         Storage::fake('private');
 
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin', 'email_verified_at' => now()]);
         $tenant = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
         $kost = Kost::factory()->create(['user_id' => $admin->id, 'status' => 'active']);
         $roomType = RoomType::factory()->create(['kost_id' => $kost->id]);
         $room = Room::factory()->create(['room_type_id' => $roomType->id]);
+
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Upload payment proof

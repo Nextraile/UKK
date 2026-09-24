@@ -133,7 +133,7 @@ class StatusHistoryVerificationTest extends TestCase
         ]);
 
         $history = $rental->statusHistories()->first();
-        $this->assertEquals('pending', $history->status);
+        $this->assertEquals('payment_pending', $history->status);
         $this->assertEquals($this->tenant->id, $history->changed_by);
         $this->assertStringContainsString('Rental created by tenant', $history->internal_notes);
         $this->assertNotNull($history->created_at);
@@ -187,13 +187,13 @@ class StatusHistoryVerificationTest extends TestCase
             ->first();
 
         $this->assertNotNull($rejectionHistory);
-        $this->assertEquals('pending', $rejectionHistory->status);
+        $this->assertEquals('payment_pending', $rejectionHistory->status);
         $this->assertNotNull($rejectionHistory->changed_by);
         $this->assertStringContainsString('Payment rejected by admin', $rejectionHistory->internal_notes);
         $this->assertStringContainsString('Bukti pembayaran tidak jelas', $rejectionHistory->internal_notes);
 
-        // Rental status remains pending to allow re-upload
-        $this->assertEquals('pending', $rental->status);
+        // Rental status remains payment_pending to allow re-upload
+        $this->assertEquals('payment_pending', $rental->status);
     }
 
     /**
@@ -340,7 +340,7 @@ class StatusHistoryVerificationTest extends TestCase
             'rental_id' => $rental->id,
             'qris_image_path' => 'qris/test.png',
             'amount' => 1500000,
-            'status' => 'payment_pending',
+            'status' => 'pending',
             'expired_at' => now()->subHours(2), // Payment expired 2 hours ago
         ]);
 
@@ -352,7 +352,7 @@ class StatusHistoryVerificationTest extends TestCase
         ]);
 
         // Verify rental is overdue (payment expired)
-        $this->assertEquals('pending', $rental->status);
+        $this->assertEquals('payment_pending', $rental->status);
         $this->assertTrue($rental->payment->expired_at->lessThan(now()));
 
         // Run command
@@ -471,7 +471,7 @@ class StatusHistoryVerificationTest extends TestCase
     {
         $rental = $this->createPendingRental();
 
-        $pendingHistory = $rental->statusHistories()->where('status', 'pending')->first();
+        $pendingHistory = $rental->statusHistories()->where('status', 'payment_pending')->first();
         $this->assertNotNull($pendingHistory->created_at);
 
         // Use deterministic time control instead of sleep
@@ -540,7 +540,7 @@ class StatusHistoryVerificationTest extends TestCase
         // Verify full trail
         $statuses = $rental->statusHistories()->orderBy('created_at')->pluck('status')->toArray();
         $this->assertEquals([
-            'pending',
+            'payment_pending',
             'paid',
             'documents_pending',
             'confirmed',
@@ -560,7 +560,7 @@ class StatusHistoryVerificationTest extends TestCase
         $rental1->refresh();
 
         $statuses1 = $rental1->statusHistories()->orderBy('created_at')->pluck('status')->toArray();
-        $this->assertEquals(['pending', 'cancelled'], $statuses1);
+        $this->assertEquals(['payment_pending', 'cancelled'], $statuses1);
 
         // Scenario 2: Cancel from paid
         $rental2 = $this->createPaidRental();
@@ -568,7 +568,7 @@ class StatusHistoryVerificationTest extends TestCase
         $rental2->refresh();
 
         $statuses2 = $rental2->statusHistories()->orderBy('created_at')->pluck('status')->toArray();
-        $this->assertEquals(['pending', 'paid', 'cancelled'], $statuses2);
+        $this->assertEquals(['payment_pending', 'paid', 'cancelled'], $statuses2);
 
         // Scenario 3: Cancel from documents_pending
         $rental3 = $this->createDocumentsPendingRental();
@@ -576,7 +576,7 @@ class StatusHistoryVerificationTest extends TestCase
         $rental3->refresh();
 
         $statuses3 = $rental3->statusHistories()->orderBy('created_at')->pluck('status')->toArray();
-        $this->assertEquals(['pending', 'paid', 'documents_pending', 'cancelled'], $statuses3);
+        $this->assertEquals(['payment_pending', 'paid', 'documents_pending', 'cancelled'], $statuses3);
     }
 
     /**

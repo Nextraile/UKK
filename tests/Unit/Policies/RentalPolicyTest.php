@@ -168,7 +168,7 @@ class RentalPolicyTest extends TestCase
         $tenant = User::factory()->create(['role' => 'user']);
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         $this->assertFalse($this->policy->uploadDocument($tenant, $rental));
@@ -253,7 +253,7 @@ class RentalPolicyTest extends TestCase
         $tenant = User::factory()->create(['role' => 'user']);
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => now()->addDays(10),
         ]);
 
@@ -350,7 +350,7 @@ class RentalPolicyTest extends TestCase
         $otherTenant = User::factory()->create(['role' => 'user']);
         $rental = Rental::factory()->create([
             'user_id' => $otherTenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => now()->addDays(10),
         ]);
 
@@ -361,7 +361,7 @@ class RentalPolicyTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $rental = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => now()->addDays(10),
         ]);
 

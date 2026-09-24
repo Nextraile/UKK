@@ -60,7 +60,7 @@ class VerifyPayment
 
             // Valid state transitions for payment verification
             $validTransitions = [
-                'pending' => 'paid',
+                'payment_pending' => 'paid',
                 'rejected' => 'paid', // Allow re-verification after rejection
             ];
 

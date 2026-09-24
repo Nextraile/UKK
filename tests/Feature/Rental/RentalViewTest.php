@@ -19,7 +19,7 @@ class RentalViewTest extends TestCase
 
         // Create rentals for this tenant
         $rental1 = Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'active']);
-        $rental2 = Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'pending']);
+        $rental2 = Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'payment_pending']);
 
         // Create rental for another tenant (should not appear)
         $otherRental = Rental::factory()->create(['status' => 'active']);
@@ -77,7 +77,7 @@ class RentalViewTest extends TestCase
         // Create rentals with different statuses
         Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'active']);
         Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'active']);
-        Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'pending']);
+        Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'payment_pending']);
         Rental::factory()->create(['user_id' => $tenant->id, 'status' => 'completed']);
 
         $response = $this->actingAs($tenant)->get(route('rentals.index'));
@@ -100,8 +100,8 @@ class RentalViewTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Riwayat Status');
-        // Should have at least the initial 'pending' status from factory (capitalized in view)
-        $response->assertSee('Pending');
+        // Should have at least the initial 'payment_pending' status from factory (displays as "Menunggu Pembayaran")
+        $response->assertSee('Menunggu Pembayaran');
     }
 
     public function test_admin_cannot_access_tenant_rental_routes(): void

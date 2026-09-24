@@ -43,9 +43,9 @@ class RentalLifecycleJobsTest extends TestCase
     {
         Mail::fake();
 
-        // Setup: Create rental in pending status with expired payment
+        // Setup: Create rental in payment_pending status with expired payment
         $rental = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(8),
         ]);
 
@@ -86,7 +86,7 @@ class RentalLifecycleJobsTest extends TestCase
     {
         // Setup: Create rental with payment not yet expired (expires in 1 day)
         $rental = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(6),
         ]);
 
@@ -99,8 +99,8 @@ class RentalLifecycleJobsTest extends TestCase
         // Act: Run command
         Artisan::call('rentals:cancel-overdue');
 
-        // Assert: Rental still pending
-        $this->assertEquals('pending', $rental->fresh()->status);
+        // Assert: Rental still payment_pending
+        $this->assertEquals('payment_pending', $rental->fresh()->status);
         $this->assertNull($rental->fresh()->cancelled_at);
     }
 
@@ -134,7 +134,8 @@ class RentalLifecycleJobsTest extends TestCase
         $tenant = User::factory()->create(['role' => 'user']);
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
+            'created_at' => now()->subDays(8),
         ]);
 
         // Set payment expired 1 hour ago (48 hours from rental creation passed)
@@ -371,9 +372,9 @@ class RentalLifecycleJobsTest extends TestCase
      */
     public function test_cancel_processes_multiple_rentals_in_batch(): void
     {
-        // Setup: Create 5 overdue pending rentals with expired payments
+        // Setup: Create 5 overdue payment_pending rentals with expired payments
         $rentals = Rental::factory()->count(5)->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(10),
         ]);
 
@@ -399,14 +400,14 @@ class RentalLifecycleJobsTest extends TestCase
      */
     public function test_handles_partial_failures_gracefully(): void
     {
-        // Setup: Create 2 overdue pending rentals
+        // Setup: Create 2 overdue payment_pending rentals
         $rental1 = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(10),
         ]);
 
         $rental2 = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(10),
         ]);
 
@@ -422,9 +423,9 @@ class RentalLifecycleJobsTest extends TestCase
      */
     public function test_cancel_command_is_idempotent(): void
     {
-        // Setup: Create overdue pending rental with expired payment
+        // Setup: Create overdue payment_pending rental with expired payment
         $rental = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'created_at' => now()->subDays(10),
         ]);
 

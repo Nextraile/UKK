@@ -58,7 +58,7 @@ class RejectPayment
 
             // 3. Append status history (informational, not state transition)
             $rental->statusHistories()->create([
-                'status' => 'pending',
+                'status' => 'payment_pending',
                 'changed_by' => $admin->id,
                 'internal_notes' => "Payment rejected by admin. Reason: {$reason}",
             ]);

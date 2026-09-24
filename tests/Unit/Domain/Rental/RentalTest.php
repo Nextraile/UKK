@@ -166,7 +166,7 @@ class RentalTest extends TestCase
         $rental = Rental::factory()->create(['status' => 'payment_pending']);
 
         $this->assertIsString($rental->status);
-        $this->assertEquals('pending', $rental->status);
+        $this->assertEquals('payment_pending', $rental->status);
     }
 
     public function test_fillable_attributes_can_be_mass_assigned(): void
@@ -182,7 +182,7 @@ class RentalTest extends TestCase
             'grand_total' => 2000000,
             'start_date' => now()->addDays(5),
             'end_date' => now()->addMonths(3)->addDays(5),
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ];
 
         $rental = Rental::create($data);
@@ -198,7 +198,7 @@ class RentalTest extends TestCase
     public function test_cancelled_reason_can_be_null(): void
     {
         $rental = Rental::factory()->create([
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'cancelled_reason' => null,
         ]);
 

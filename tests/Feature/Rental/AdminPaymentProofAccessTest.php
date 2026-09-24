@@ -32,7 +32,7 @@ class AdminPaymentProofAccessTest extends TestCase
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Create fake payment proof file
@@ -73,7 +73,7 @@ class AdminPaymentProofAccessTest extends TestCase
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room1->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Create fake payment proof file
@@ -105,7 +105,7 @@ class AdminPaymentProofAccessTest extends TestCase
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Create fake payment proof file
@@ -139,7 +139,7 @@ class AdminPaymentProofAccessTest extends TestCase
         $rental = Rental::factory()->create([
             'user_id' => $tenant->id,
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
         ]);
 
         // Create fake payment proof file

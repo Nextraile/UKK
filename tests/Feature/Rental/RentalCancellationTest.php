@@ -66,7 +66,7 @@ class RentalCancellationTest extends TestCase
     }
 
     /**
-     * Test tenant can cancel rental in pending status.
+     * Test tenant can cancel rental in payment_pending status.
      */
     public function test_tenant_can_cancel_pending_rental(): void
     {
@@ -75,7 +75,7 @@ class RentalCancellationTest extends TestCase
         $rental = Rental::factory()->create([
             'user_id' => $this->tenant->id,
             'room_id' => $this->room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => now()->addDays(10),
             'end_date' => now()->addMonths(1)->addDays(10),
         ]);

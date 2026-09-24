@@ -170,4 +170,29 @@ class RentalPolicy
 
         return in_array($rental->status, $cancellableStatuses);
     }
+
+    /**
+     * Determine if user can cancel payment upload for rental.
+     *
+     * Only rental owner can cancel payment upload.
+     * Only allowed when status is 'payment_pending' and payment not yet verified.
+     */
+    public function cancelPaymentUpload(User $user, Rental $rental): bool
+    {
+        // Only rental owner can cancel
+        if ($rental->user_id !== $user->id) {
+            return false;
+        }
+
+        // Only allow cancellation in payment_pending status
+        if ($rental->status !== 'payment_pending') {
+            return false;
+        }
+
+        // Payment must exist and have proof but not be verified
+        $payment = $rental->payment;
+
+        return $payment->proof_of_payment_path !== null
+            && $payment->verified_at === null;
+    }
 }

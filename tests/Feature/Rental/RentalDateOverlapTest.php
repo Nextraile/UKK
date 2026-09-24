@@ -169,7 +169,7 @@ class RentalDateOverlapTest extends TestCase
         // Create rentals with different active statuses
         Rental::factory()->create([
             'room_id' => $room->id,
-            'status' => 'pending',
+            'status' => 'payment_pending',
             'start_date' => '2026-10-01',
             'end_date' => '2026-10-31',
         ]);

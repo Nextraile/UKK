@@ -388,10 +388,10 @@ class RentalController extends Controller
     public function cancelPaymentUpload(Rental $rental): JsonResponse
     {
         // Authorization check: tenant must own this rental
-        $this->authorize('update', $rental);
+        $this->authorize('cancelPaymentUpload', $rental);
 
-        // Business rule: Can only cancel if status is 'paid' and not yet verified
-        if ($rental->status !== 'paid' || $rental->payment->verified_at) {
+        // Business rule: Can only cancel if status is 'payment_pending' and payment not yet verified
+        if ($rental->status !== 'payment_pending' || $rental->payment->verified_at) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak dapat membatalkan upload. Pembayaran sudah diverifikasi atau status rental tidak sesuai.',
@@ -418,7 +418,7 @@ class RentalController extends Controller
             $rental->statusHistories()->create([
                 'status' => 'payment_pending',
                 'changed_by' => auth()->id(),
-                'internal_notes' => 'Payment upload cancelled by tenant for re-upload',
+                'internal_notes' => 'Payment upload cancelled by tenant',
             ]);
 
             return response()->json([
