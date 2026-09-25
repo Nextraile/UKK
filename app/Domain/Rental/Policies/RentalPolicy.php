@@ -74,7 +74,7 @@ class RentalPolicy
      * Determine if user can upload document for rental.
      *
      * Only rental owner (tenant) can upload documents.
-     * Only allowed in paid or documents_pending status.
+     * Only allowed in paid or documents_pending status AND payment must be verified.
      */
     public function uploadDocument(User $user, Rental $rental): bool
     {
@@ -84,7 +84,12 @@ class RentalPolicy
         }
 
         // Only allow upload in paid or documents_pending status
-        return in_array($rental->status, ['paid', 'documents_pending']);
+        if (! in_array($rental->status, ['paid', 'documents_pending'])) {
+            return false;
+        }
+
+        // Payment must be verified by admin before documents can be uploaded
+        return $rental->payment->verified_at !== null;
     }
 
     /**

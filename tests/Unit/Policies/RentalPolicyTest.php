@@ -149,6 +149,10 @@ class RentalPolicyTest extends TestCase
             'status' => 'paid',
         ]);
 
+        // Payment must be verified before documents can be uploaded
+        $rental->payment->update(['verified_at' => now()]);
+        $rental->refresh();
+
         $this->assertTrue($this->policy->uploadDocument($tenant, $rental));
     }
 
@@ -159,6 +163,10 @@ class RentalPolicyTest extends TestCase
             'user_id' => $tenant->id,
             'status' => 'documents_pending',
         ]);
+
+        // Payment must be verified before documents can be uploaded
+        $rental->payment->update(['verified_at' => now()]);
+        $rental->refresh();
 
         $this->assertTrue($this->policy->uploadDocument($tenant, $rental));
     }

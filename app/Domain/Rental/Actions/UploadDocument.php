@@ -40,6 +40,13 @@ class UploadDocument
             throw InvalidRentalStatusException::cannotUploadDocument($rental);
         }
 
+        // Guard: Payment must be verified before documents can be uploaded
+        if (! $rental->payment->verified_at) {
+            throw new InvalidRentalStatusException(
+                'Dokumen hanya dapat diunggah setelah pembayaran diverifikasi oleh admin.'
+            );
+        }
+
         // Guard: Validate document_type exists in kost requirements
         $requiredDocs = $rental->room->roomType->kost->documentRequirements()
             ->where('is_required', true)

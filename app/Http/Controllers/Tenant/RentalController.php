@@ -574,11 +574,18 @@ class RentalController extends Controller
                 // Lock rental row
                 $rental = Rental::lockForUpdate()->findOrFail($rental->id);
 
-                // ✅ VULN-108 FIX: Only allow upload in valid statuses
-                $allowedStatuses = ['pending', 'paid', 'documents_pending'];
+                // ✅ VULN-108 FIX: Only allow upload in valid statuses after payment verification
+                $allowedStatuses = ['paid', 'documents_pending'];
                 if (! in_array($rental->status, $allowedStatuses)) {
                     throw new InvalidFileException(
                         'Tidak dapat mengunggah dokumen pada status rental saat ini.'
+                    );
+                }
+
+                // Payment must be verified before documents can be uploaded
+                if (! $rental->payment->verified_at) {
+                    throw new InvalidFileException(
+                        'Dokumen hanya dapat diunggah setelah pembayaran diverifikasi oleh admin.'
                     );
                 }
 
@@ -589,10 +596,10 @@ class RentalController extends Controller
                         $document = $rental->rentalDocuments()->where('document_type', $docType)->first();
 
                         if ($document instanceof RentalDocument) {
-                            // Prevent deletion if verified
-                            if ($document->verified_at) {
+                            // Prevent deletion ONLY if APPROVED (rejected docs can be deleted/replaced)
+                            if ($document->verification_status === 'approved') {
                                 throw new InvalidFileException(
-                                    "Dokumen '{$docType}' sudah diverifikasi dan tidak dapat dihapus"
+                                    "Dokumen '{$docType}' sudah disetujui dan tidak dapat dihapus"
                                 );
                             }
 
@@ -619,6 +626,14 @@ class RentalController extends Controller
                         // Get existing document if any
                         /** @var RentalDocument|null $existingDoc */
                         $existingDoc = $rental->rentalDocuments()->where('document_type', $type)->first();
+
+                        // Prevent replacement if document is APPROVED
+                        if ($existingDoc && $existingDoc->verification_status === 'approved') {
+                            // Skip this file, don't replace approved documents
+                            Storage::disk('private')->delete($path); // Clean up uploaded file
+
+                            continue;
+                        }
 
                         // Delete old file if replacing
                         if ($existingDoc instanceof RentalDocument && $existingDoc->document_path && Storage::disk('private')->exists($existingDoc->document_path)) {

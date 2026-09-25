@@ -614,7 +614,7 @@
                 },
 
                 hasPendingDocs() {
-                    return this.documents.some(d => d.uploaded && d.verification_status === 'payment_pending');
+                    return this.documents.some(d => d.uploaded && d.verification_status === 'pending');
                 },
 
                 // Document verification actions
@@ -706,7 +706,7 @@
                 },
 
                 async approveAllDocuments() {
-                    const pendingDocs = this.documents.filter(d => d.uploaded && d.verification_status === 'payment_pending');
+                    const pendingDocs = this.documents.filter(d => d.uploaded && d.verification_status === 'pending');
                     
                     if (pendingDocs.length === 0) return;
 

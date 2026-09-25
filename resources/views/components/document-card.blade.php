@@ -203,8 +203,8 @@
         @endif
     </div>
     
-    {{-- Rejection Reason (if rejected) --}}
-    @if($isRejected)
+    {{-- Rejection Reason (if rejected) - Only show in tenant view --}}
+    @if($type === 'tenant' && $isRejected)
         <div class="mb-3 p-3 rounded-lg bg-error-50 border border-error-200">
             <p class="text-xs text-error-800">
                 <span class="font-semibold">Alasan Ditolak:</span> {{ $document->rejection_reason }}

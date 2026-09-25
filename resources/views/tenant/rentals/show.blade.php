@@ -763,8 +763,8 @@
                                                         </div>
                                                     </div>
                                                     
-                                                    {{-- File Input + Delete Checkbox (disabled for verified docs) --}}
-                                                    <div x-show="!uploadedDocs[req.document_type]?.verified_at" class="space-y-2">
+                                                    {{-- File Input + Delete Checkbox (disabled ONLY for APPROVED docs) --}}
+                                                    <div x-show="uploadedDocs[req.document_type]?.verification_status !== 'approved'" class="space-y-2">
                                                         {{-- File Input --}}
                                                         <input 
                                                             type="file"
@@ -795,10 +795,10 @@
                                                         </label>
                                                     </div>
                                                     
-                                                    {{-- Verified document info --}}
-                                                    <div x-show="uploadedDocs[req.document_type]?.verified_at" class="p-3 bg-success-100 border border-success-300 rounded-lg">
+                                                    {{-- Approved document info (ONLY for APPROVED docs) --}}
+                                                    <div x-show="uploadedDocs[req.document_type]?.verification_status === 'approved'" class="p-3 bg-success-100 border border-success-300 rounded-lg">
                                                         <p class="text-xs text-success-800">
-                                                            Dokumen telah diverifikasi. Tidak dapat diubah atau dihapus.
+                                                            Dokumen telah disetujui. Tidak dapat diubah atau dihapus.
                                                         </p>
                                                     </div>
                                                 </div>
