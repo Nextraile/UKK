@@ -21,9 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'active' => ActiveUser::class,
         ]);
 
-        // Run ActiveUser on all web routes — it checks if the user is
-        // logged in AND soft-deleted (FR-013). Guest requests pass through
-        // untouched.
         $middleware->appendToGroup('web', [
             ActiveUser::class,
         ]);
