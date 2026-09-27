@@ -36,7 +36,7 @@ class CancelOverdueRentals extends Command
     {
         $this->info('Checking for overdue payment_pending rentals...');
 
-        // FR-076: Check payment.expired_at (48h deadline)
+        // Check payment.expired_at (48h deadline)
         $overduePayments = Payment::where('status', 'pending')
             ->where('expired_at', '<', now())
             ->with('rental.user')
@@ -54,21 +54,18 @@ class CancelOverdueRentals extends Command
         foreach ($overduePayments as $payment) {
             $rental = $payment->rental;
 
-            // Skip if rental already cancelled (idempotency)
             if ($rental->status === 'cancelled') {
                 continue;
             }
 
             try {
                 DB::transaction(function () use ($rental) {
-                    // Update rental status
                     $rental->update([
                         'status' => 'cancelled',
                         'cancelled_at' => now(),
                         'cancelled_reason' => 'Auto-cancelled: Payment not received within 48 hours (deadline expired)',
                     ]);
 
-                    // Record status history
                     RentalStatusHistory::create([
                         'rental_id' => $rental->id,
                         'status' => 'cancelled',
@@ -76,7 +73,6 @@ class CancelOverdueRentals extends Command
                         'internal_notes' => 'Auto-cancelled: Payment not received within 48 hours (deadline expired)',
                     ]);
 
-                    // Queue email notification
                     Mail::to($rental->user->email)->queue(new RentalCancelledMail($rental));
                 });
 

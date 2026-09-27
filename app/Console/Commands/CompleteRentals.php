@@ -49,15 +49,18 @@ class CompleteRentals extends Command
         $errorCount = 0;
 
         foreach ($rentalsToComplete as $rental) {
+
+            if ($rental->status === 'completed') {
+                continue;
+            }
+
             try {
                 DB::transaction(function () use ($rental) {
-                    // Update rental status
                     $rental->update([
                         'status' => 'completed',
                         'completed_at' => now(),
                     ]);
 
-                    // Record status history
                     RentalStatusHistory::create([
                         'rental_id' => $rental->id,
                         'status' => 'completed',
@@ -65,7 +68,6 @@ class CompleteRentals extends Command
                         'internal_notes' => 'Auto-completed on end date',
                     ]);
 
-                    // Queue email notification
                     Mail::to($rental->user->email)->queue(new RentalCompletedMail($rental));
                 });
 

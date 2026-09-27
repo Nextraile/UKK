@@ -36,7 +36,7 @@ class ActivateRentals extends Command
         $this->info('Checking for rentals to activate...');
 
         $rentalsToActivate = Rental::where('status', 'confirmed')
-            ->whereDate('start_date', '=', now()->toDateString())
+            ->whereDate('start_date', '<=', now()->toDateString())
             ->get();
 
         if ($rentalsToActivate->isEmpty()) {
@@ -49,15 +49,18 @@ class ActivateRentals extends Command
         $errorCount = 0;
 
         foreach ($rentalsToActivate as $rental) {
+
+            if ($rental->status === 'active') {
+                continue;
+            }
+
             try {
                 DB::transaction(function () use ($rental) {
-                    // Update rental status
                     $rental->update([
                         'status' => 'active',
                         'activated_at' => now(),
                     ]);
 
-                    // Record status history
                     RentalStatusHistory::create([
                         'rental_id' => $rental->id,
                         'status' => 'active',
@@ -65,7 +68,6 @@ class ActivateRentals extends Command
                         'internal_notes' => 'Auto-activated on start date',
                     ]);
 
-                    // Queue email notification
                     Mail::to($rental->user->email)->queue(new RentalActivatedMail($rental));
                 });
 
