@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\Rental;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Rental\Enums\DurationUnit;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Domain\Rental\Models\RentalStatusHistory;
@@ -191,7 +192,7 @@ class RentalTest extends TestCase
         $this->assertEquals($data['user_id'], $rental->user_id);
         $this->assertEquals($data['price_scheme_id'], $rental->price_scheme_id);
         $this->assertEquals($data['duration_value'], $rental->duration_value);
-        $this->assertEquals($data['duration_unit'], $rental->duration_unit);
+        $this->assertEquals(DurationUnit::from($data['duration_unit']), $rental->duration_unit);
         $this->assertEquals($data['status'], $rental->status);
     }
 
