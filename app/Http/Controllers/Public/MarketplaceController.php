@@ -54,14 +54,17 @@ class MarketplaceController extends Controller
         $kosts = Kost::query()
             ->where('status', 'active')
             ->whereNull('deleted_at')
-            // Search filter (FR-051): name OR city OR district OR full_address
+            // Search filter (FR-051): name OR address fields (optimized with FULLTEXT search)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhereHas('address', function ($subQuery) use ($search) {
-                            $subQuery->where('city', 'like', "%{$search}%")
-                                ->orWhere('district', 'like', "%{$search}%")
-                                ->orWhere('full_address', 'like', "%{$search}%");
+                            // Use FULLTEXT search with BOOLEAN MODE (avoids 50% threshold issue)
+                            // Falls back gracefully for small datasets
+                            $subQuery->whereRaw(
+                                'MATCH(full_address, district, city) AGAINST(? IN BOOLEAN MODE)',
+                                [$search]
+                            );
                         });
                 });
             })

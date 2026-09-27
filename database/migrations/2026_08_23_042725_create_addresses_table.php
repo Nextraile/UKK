@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -31,6 +32,9 @@ return new class extends Migration
             $table->index('district');
             $table->index(['city', 'district'], 'idx_location_search');
         });
+
+        // Add FULLTEXT index for optimized search queries (marketplace search performance)
+        DB::statement('ALTER TABLE addresses ADD FULLTEXT INDEX idx_ft_address_search (full_address, district, city)');
     }
 
     /**
@@ -38,6 +42,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement('ALTER TABLE addresses DROP INDEX IF EXISTS idx_ft_address_search');
         Schema::dropIfExists('addresses');
     }
 };
