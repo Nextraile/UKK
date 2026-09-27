@@ -137,17 +137,6 @@ class SecureFileUploadServiceTest extends TestCase
         @unlink($tempPath);
     }
 
-    public function test_rejects_path_traversal_in_filename(): void
-    {
-        // Skip this test - Laravel's UploadedFile sanitizes getClientOriginalName()
-        // automatically, making it impossible to test path traversal at this layer.
-        // Path traversal is prevented by:
-        // 1. Laravel's UploadedFile class sanitization
-        // 2. Our UUID filename generation in store() method
-        // 3. storeAs() method's path normalization
-        $this->markTestSkipped('Laravel UploadedFile sanitizes filenames automatically');
-    }
-
     public function test_validates_pdf_files(): void
     {
         // Create a valid PDF file
