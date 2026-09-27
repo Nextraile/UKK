@@ -6,7 +6,6 @@ namespace App\Console\Commands;
 
 use App\Domain\Payment\Models\Payment;
 use App\Domain\Rental\Mail\RentalCancelledMail;
-use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalStatusHistory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
