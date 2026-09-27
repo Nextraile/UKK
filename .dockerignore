@@ -64,5 +64,3 @@ Dockerfile*
 # Misc
 .editorconfig
 .npmrc
-FRONTEND-AUDIT-REPORT.md
-FRONTEND-AUDIT-SUMMARY.md
