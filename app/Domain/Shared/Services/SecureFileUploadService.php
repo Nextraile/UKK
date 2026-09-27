@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Services;
 
-use App\Domain\Shared\DTOs\ValidationResult;
 use App\Domain\Shared\Exceptions\InvalidFileException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -38,11 +37,11 @@ class SecureFileUploadService
      *
      * @param  UploadedFile  $file  The uploaded file to validate
      * @param  string  $uploadType  The upload type key from config/secure-uploads.php
-     * @return ValidationResult Validation result with errors if any
+     * @return array Empty array if valid, array of error messages if invalid
      *
      * @throws InvalidFileException If upload type is not configured
      */
-    public function validate(UploadedFile $file, string $uploadType): ValidationResult
+    public function validate(UploadedFile $file, string $uploadType): array
     {
         $config = config("secure-uploads.upload_types.{$uploadType}");
 
@@ -169,9 +168,7 @@ class SecureFileUploadService
             $errors[] = 'Nama file mengandung karakter tidak diizinkan.';
         }
 
-        return empty($errors)
-            ? ValidationResult::success()
-            : ValidationResult::failure($errors);
+        return $errors;
     }
 
     /**
@@ -231,11 +228,11 @@ class SecureFileUploadService
         string $path,
         string $disk = 'public'
     ): string {
-        $validation = $this->validate($file, $uploadType);
+        $errors = $this->validate($file, $uploadType);
 
-        if (! $validation->isValid()) {
+        if (! empty($errors)) {
             throw new InvalidFileException(
-                'Validasi file gagal: '.implode(' ', $validation->getErrors())
+                'Validasi file gagal: '.implode(' ', $errors)
             );
         }
 

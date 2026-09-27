@@ -11,16 +11,16 @@ use App\Http\Controllers\Admin\RentalManagementController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\RoomTypeImageController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KostDetailController;
-use App\Http\Controllers\MarketplaceController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\KostDetailController;
+use App\Http\Controllers\Public\MarketplaceController;
 use App\Http\Controllers\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\SuperAdmin\CategoryController;
 use App\Http\Controllers\SuperAdmin\KostSubmissionController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Tenant\RentalController;
 use App\Http\Controllers\Tenant\ReviewController;
+use App\Http\Controllers\User\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Route model bindings with eager loading (VULN-002 fix)

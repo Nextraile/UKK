@@ -8,7 +8,7 @@ use App\Domain\Review\Models\Review;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class DeleteReviewAction
+class DeleteReview
 {
     /**
      * Delete a review and its associated images.

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class UpdateReviewAction
+class UpdateReview
 {
     /**
      * Update an existing review.

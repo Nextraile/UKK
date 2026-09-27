@@ -9,7 +9,7 @@ use App\Domain\Review\Models\Review;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class SubmitReviewAction
+class SubmitReview
 {
     /**
      * Submit a new review for a completed rental.

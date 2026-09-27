@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Shared;
 
-use App\Domain\Shared\DTOs\ValidationResult;
 use App\Domain\Shared\Exceptions\InvalidFileException;
 use App\Domain\Shared\Services\SecureFileUploadService;
 use Illuminate\Http\UploadedFile;
@@ -27,18 +26,14 @@ class SecureFileUploadServiceTest extends TestCase
         // Create a real image file with proper dimensions
         $file = UploadedFile::fake()->image('avatar.jpg', 200, 200)->size(500); // 200x200, 500KB
 
-        $result = $this->service->validate($file, 'avatar');
-
-        $this->assertInstanceOf(ValidationResult::class, $result);
+        $errors = $this->service->validate($file, 'avatar');
 
         // If validation fails, print errors for debugging
-        if (! $result->isValid()) {
-            $this->fail('Validation failed: '.implode(', ', $result->getErrors()));
+        if (! empty($errors)) {
+            $this->fail('Validation failed: '.implode(', ', $errors));
         }
 
-        $this->assertTrue($result->isValid());
-        $this->assertEmpty($result->getErrors());
-        $this->assertNull($result->getFirstError());
+        $this->assertEmpty($errors);
     }
 
     public function test_rejects_file_below_minimum_size(): void
@@ -46,11 +41,10 @@ class SecureFileUploadServiceTest extends TestCase
         // Create a very small file (less than 1KB)
         $file = UploadedFile::fake()->create('tiny.jpg', 0); // 0KB
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
-        $this->assertNotEmpty($result->getErrors());
-        $this->assertStringContainsString('terlalu kecil', $result->getFirstError());
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('terlalu kecil', $errors[0] ?? '');
     }
 
     public function test_rejects_file_above_maximum_size(): void
@@ -58,20 +52,20 @@ class SecureFileUploadServiceTest extends TestCase
         // Avatar max is 2MB
         $file = UploadedFile::fake()->image('huge.jpg')->size(3000); // 3MB
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
-        $this->assertStringContainsString('terlalu besar', $result->getFirstError());
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('terlalu besar', $errors[0] ?? '');
     }
 
     public function test_rejects_invalid_file_extension(): void
     {
         $file = UploadedFile::fake()->create('document.pdf', 100);
 
-        $result = $this->service->validate($file, 'avatar'); // avatar only accepts jpg/png
+        $errors = $this->service->validate($file, 'avatar'); // avatar only accepts jpg/png
 
-        $this->assertFalse($result->isValid());
-        $this->assertStringContainsString('Ekstensi file tidak diizinkan', $result->getFirstError());
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('Ekstensi file tidak diizinkan', $errors[0] ?? '');
     }
 
     public function test_validates_mime_type_via_magic_bytes(): void
@@ -79,13 +73,13 @@ class SecureFileUploadServiceTest extends TestCase
         // Create a fake file with wrong MIME type
         $file = UploadedFile::fake()->create('fake.jpg', 100);
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
         // Should fail because the file isn't actually an image
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
         $this->assertTrue(
-            str_contains($result->getFirstError(), 'Tipe MIME tidak valid')
-            || str_contains($result->getFirstError(), 'bukan gambar yang valid')
+            str_contains($errors[0] ?? '', 'Tipe MIME tidak valid')
+            || str_contains($errors[0] ?? '', 'bukan gambar yang valid')
         );
     }
 
@@ -94,12 +88,12 @@ class SecureFileUploadServiceTest extends TestCase
         // Create a 50x50 image (below avatar min 100x100)
         $file = UploadedFile::fake()->image('small.jpg', 50, 50);
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
         $this->assertTrue(
-            str_contains(implode(' ', $result->getErrors()), 'Lebar gambar terlalu kecil')
-            || str_contains(implode(' ', $result->getErrors()), 'Tinggi gambar terlalu kecil')
+            str_contains(implode(' ', $errors), 'Lebar gambar terlalu kecil')
+            || str_contains(implode(' ', $errors), 'Tinggi gambar terlalu kecil')
         );
     }
 
@@ -112,12 +106,12 @@ class SecureFileUploadServiceTest extends TestCase
 
         $file = new UploadedFile($tempPath, 'malicious.jpg', 'image/jpeg', null, true);
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
 
         // Check if 'kode berbahaya' is in any error message
-        $allErrors = implode(' ', $result->getErrors());
+        $allErrors = implode(' ', $errors);
         $this->assertStringContainsString('kode berbahaya', $allErrors);
 
         @unlink($tempPath);
@@ -132,12 +126,12 @@ class SecureFileUploadServiceTest extends TestCase
 
         $file = new UploadedFile($tempPath, 'xss.jpg', 'image/jpeg', null, true);
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
 
         // Check if 'kode berbahaya' is in any error message
-        $allErrors = implode(' ', $result->getErrors());
+        $allErrors = implode(' ', $errors);
         $this->assertStringContainsString('kode berbahaya', $allErrors);
 
         @unlink($tempPath);
@@ -151,7 +145,7 @@ class SecureFileUploadServiceTest extends TestCase
         // 1. Laravel's UploadedFile class sanitization
         // 2. Our UUID filename generation in store() method
         // 3. storeAs() method's path normalization
-        $this->assertTrue(true);
+        $this->markTestSkipped('Laravel UploadedFile sanitizes filenames automatically');
     }
 
     public function test_validates_pdf_files(): void
@@ -162,11 +156,12 @@ class SecureFileUploadServiceTest extends TestCase
 
         $file = new UploadedFile($tempPath, 'document.pdf', 'application/pdf', null, true);
 
-        $result = $this->service->validate($file, 'payment_proof');
+        $errors = $this->service->validate($file, 'payment_proof');
 
         // Note: This might still fail due to MIME detection, but PDF magic bytes check should pass
         // The actual validation depends on the system's ability to detect PDF MIME type
-        $this->assertInstanceOf(ValidationResult::class, $result);
+        // We expect the validation to complete and return an array (empty or with errors)
+        $this->expectNotToPerformAssertions();
 
         @unlink($tempPath);
     }
@@ -179,11 +174,10 @@ class SecureFileUploadServiceTest extends TestCase
 
         $file = new UploadedFile($tempPath, 'fake.pdf', 'application/pdf', null, true);
 
-        $result = $this->service->validate($file, 'payment_proof');
+        $errors = $this->service->validate($file, 'payment_proof');
 
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
         // Could fail on MIME check or PDF validation
-        $this->assertNotEmpty($result->getErrors());
 
         @unlink($tempPath);
     }
@@ -205,7 +199,7 @@ class SecureFileUploadServiceTest extends TestCase
         $path = $this->service->store($file, 'avatars', 'public');
 
         // Check file was stored
-        Storage::disk('public')->assertExists($path);
+        $this->assertTrue(Storage::disk('public')->exists($path));
 
         // Check path format: avatars/{uuid}.jpg
         $this->assertStringStartsWith('avatars/', $path);
@@ -235,7 +229,7 @@ class SecureFileUploadServiceTest extends TestCase
 
         $path = $this->service->validateAndStore($file, 'avatar', 'avatars', 'public');
 
-        Storage::disk('public')->assertExists($path);
+        $this->assertTrue(Storage::disk('public')->exists($path));
         $this->assertStringStartsWith('avatars/', $path);
     }
 
@@ -255,9 +249,9 @@ class SecureFileUploadServiceTest extends TestCase
         // Kost image requires min 300x200, max 5MB
         $file = UploadedFile::fake()->image('kost.jpg', 800, 600)->size(2000);
 
-        $result = $this->service->validate($file, 'kost_image');
+        $errors = $this->service->validate($file, 'kost_image');
 
-        $this->assertTrue($result->isValid());
+        $this->assertEmpty($errors);
     }
 
     public function test_rejects_kost_image_with_insufficient_dimensions(): void
@@ -265,10 +259,10 @@ class SecureFileUploadServiceTest extends TestCase
         // Below min dimensions (300x200)
         $file = UploadedFile::fake()->image('kost.jpg', 200, 150)->size(500);
 
-        $result = $this->service->validate($file, 'kost_image');
+        $errors = $this->service->validate($file, 'kost_image');
 
-        $this->assertFalse($result->isValid());
-        $this->assertStringContainsString('terlalu kecil', implode(' ', $result->getErrors()));
+        $this->assertNotEmpty($errors);
+        $this->assertStringContainsString('terlalu kecil', implode(' ', $errors));
     }
 
     public function test_validates_qris_image(): void
@@ -276,18 +270,18 @@ class SecureFileUploadServiceTest extends TestCase
         // QRIS requires min 200x200, max 1MB
         $file = UploadedFile::fake()->image('qris.png', 500, 500)->size(500);
 
-        $result = $this->service->validate($file, 'qris');
+        $errors = $this->service->validate($file, 'qris');
 
-        $this->assertTrue($result->isValid());
+        $this->assertEmpty($errors);
     }
 
     public function test_validates_room_type_image(): void
     {
         $file = UploadedFile::fake()->image('room.jpg', 800, 600)->size(2000);
 
-        $result = $this->service->validate($file, 'room_type_image');
+        $errors = $this->service->validate($file, 'room_type_image');
 
-        $this->assertTrue($result->isValid());
+        $this->assertEmpty($errors);
     }
 
     public function test_accepts_multiple_errors(): void
@@ -295,28 +289,10 @@ class SecureFileUploadServiceTest extends TestCase
         // Create a file that violates multiple rules
         $file = UploadedFile::fake()->image('test.bmp', 50, 50)->size(0);
 
-        $result = $this->service->validate($file, 'avatar');
+        $errors = $this->service->validate($file, 'avatar');
 
-        $this->assertFalse($result->isValid());
+        $this->assertNotEmpty($errors);
         // Should have multiple errors: size too small, wrong extension, etc.
-        $this->assertGreaterThan(1, count($result->getErrors()));
-    }
-
-    public function test_validation_result_success_factory_works(): void
-    {
-        $result = ValidationResult::success();
-
-        $this->assertTrue($result->isValid());
-        $this->assertEmpty($result->getErrors());
-    }
-
-    public function test_validation_result_failure_factory_works(): void
-    {
-        $errors = ['Error 1', 'Error 2'];
-        $result = ValidationResult::failure($errors);
-
-        $this->assertFalse($result->isValid());
-        $this->assertEquals($errors, $result->getErrors());
-        $this->assertEquals('Error 1', $result->getFirstError());
+        $this->assertGreaterThan(1, count($errors));
     }
 }

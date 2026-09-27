@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Rental\Models\Rental;
-use App\Domain\Review\Actions\DeleteReviewAction;
-use App\Domain\Review\Actions\SubmitReviewAction;
-use App\Domain\Review\Actions\UpdateReviewAction;
+use App\Domain\Review\Actions\DeleteReview;
+use App\Domain\Review\Actions\SubmitReview;
+use App\Domain\Review\Actions\UpdateReview;
 use App\Domain\Review\Models\Review;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\ReviewRequest;
@@ -38,7 +38,7 @@ class ReviewController extends Controller
         $this->authorize('create', [Review::class, $rental]);
 
         try {
-            $review = app(SubmitReviewAction::class)->execute(
+            $review = app(SubmitReview::class)->execute(
                 $rental,
                 $request->validated()
             );
@@ -79,7 +79,7 @@ class ReviewController extends Controller
         $this->authorize('update', $review);
 
         try {
-            app(UpdateReviewAction::class)->execute(
+            app(UpdateReview::class)->execute(
                 $review,
                 $request->validated()
             );
@@ -104,7 +104,7 @@ class ReviewController extends Controller
         $this->authorize('delete', $review);
 
         try {
-            app(DeleteReviewAction::class)->execute($review);
+            app(DeleteReview::class)->execute($review);
 
             return redirect()
                 ->route('rentals.show', $rental)

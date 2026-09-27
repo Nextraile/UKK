@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Services\OtpService;
 use App\Domain\Shared\Services\SecureFileUploadService;
-use App\Http\Requests\AvatarUploadRequest;
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\User\AvatarUploadRequest;
+use App\Http\Requests\User\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

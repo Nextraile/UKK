@@ -49,10 +49,10 @@ class SecureFileValidation implements Rule
         }
 
         $service = app(SecureFileUploadService::class);
-        $result = $service->validate($value, $this->uploadType);
+        $errors = $service->validate($value, $this->uploadType);
 
-        if (! $result->isValid()) {
-            $this->errors = $result->getErrors();
+        if (! empty($errors)) {
+            $this->errors = $errors;
 
             return false;
         }

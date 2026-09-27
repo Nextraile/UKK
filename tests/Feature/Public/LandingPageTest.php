@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Feature\Public;
 
 use App\Domain\Kost\Models\Kost;
 use Illuminate\Foundation\Testing\RefreshDatabase;

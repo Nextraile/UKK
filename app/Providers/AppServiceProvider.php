@@ -3,9 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Kost\Models\Kost;
-use App\Http\View\Composers\AdminSidebarComposer;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,8 +23,5 @@ class AppServiceProvider extends ServiceProvider
     {
         // Route model binding for Super Admin kost submissions
         Route::model('submission', Kost::class);
-
-        // Register view composers
-        View::composer('layouts.admin', AdminSidebarComposer::class);
     }
 }
