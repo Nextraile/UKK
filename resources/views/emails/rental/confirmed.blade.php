@@ -12,7 +12,7 @@
     @component('emails.components.panel')
         <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Kamar:</strong> {{ $rental->room->roomType->name }} - {{ $rental->room->code }}</p>
         <p style="margin:0 0 8px 0;"><strong style="color:#111827;">Tanggal Mulai:</strong> {{ $rental->start_date->format('d M Y') }}</p>
-        <p style="margin:0;"><strong style="color:#111827;">Durasi:</strong> {{ $rental->duration_value }} {{ __($rental->duration_unit) }}</p>
+        <p style="margin:0;"><strong style="color:#111827;">Durasi:</strong> {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}</p>
     @endcomponent
 
     <p style="margin:16px 0;">

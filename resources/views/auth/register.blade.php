@@ -7,28 +7,28 @@
 
         <!-- First Name -->
         <div>
-            <x-input-label for="first_name" :value="__('Nama Depan')" required />
+            <x-input-label for="first_name" value="Nama Depan" required />
             <x-text-input id="first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" aria-describedby="first_name-error" />
             <x-input-error id="first_name-error" :messages="$errors->get('first_name')" class="mt-2" />
         </div>
 
         <!-- Last Name -->
         <div class="mt-4">
-            <x-input-label for="last_name" :value="__('Nama Belakang')" />
+            <x-input-label for="last_name" value="Nama Belakang" />
             <x-text-input id="last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" autocomplete="family-name" aria-describedby="last_name-error" />
             <x-input-error id="last_name-error" :messages="$errors->get('last_name')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
         <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" required />
+            <x-input-label for="email" value="Email" required />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" aria-describedby="email-error" />
             <x-input-error id="email-error" :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4" x-data="{ show: false }">
-            <x-input-label for="password" :value="__('Password')" required />
+            <x-input-label for="password" value="Password" required />
 
             <div class="relative mt-1">
                 <input id="password"
@@ -113,7 +113,7 @@
 
         <!-- Confirm Password -->
         <div class="mt-4" x-data="{ show: false }">
-            <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" required />
+            <x-input-label for="password_confirmation" value="Konfirmasi Password" required />
 
             <div class="relative mt-1">
                 <input id="password_confirmation"

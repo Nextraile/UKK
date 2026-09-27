@@ -12,7 +12,7 @@
         <ul style="margin:0;padding-left:20px;">
             <li style="margin:4px 0;">Kamar: {{ $rental->room->roomType->name }} ({{ $rental->room->code }})</li>
             <li style="margin:4px 0;">Tanggal mulai: {{ $rental->start_date->format('d M Y') }}</li>
-            <li style="margin:4px 0;">Durasi: {{ $rental->duration_value }} {{ __($rental->duration_unit) }}</li>
+            <li style="margin:4px 0;">Durasi: {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}</li>
             <li style="margin:4px 0;">Total pembayaran: Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}</li>
         </ul>
     @endcomponent

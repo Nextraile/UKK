@@ -72,7 +72,7 @@
 
         <div class="mt-6">
             <x-primary-button class="w-full justify-center">
-                {{ __('Simpan Password Baru') }}
+                Simpan Password Baru
             </x-primary-button>
         </div>
     </form>

@@ -3,7 +3,7 @@
     variant="centered-card">
     
     <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
-        {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
+        Silakan konfirmasi password Anda sebelum melanjutkan.
     </div>
 
     <form method="POST" action="{{ route('password.confirm') }}">
@@ -11,7 +11,7 @@
 
         <!-- Password -->
         <div>
-            <x-input-label for="password" :value="__('Password')" />
+            <x-input-label for="password" value="Password" />
 
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"
@@ -23,7 +23,7 @@
 
         <div class="flex justify-end mt-4">
             <x-primary-button>
-                {{ __('Confirm') }}
+                Konfirmasi
             </x-primary-button>
         </div>
     </form>

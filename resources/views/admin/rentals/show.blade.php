@@ -69,7 +69,7 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Durasi</dt>
                                 <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
+                                    {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}
                                 </dd>
                             </div>
                             <div>
@@ -98,7 +98,7 @@
                                 <div class="flex justify-between">
                                     <dt class="text-gray-600">Durasi</dt>
                                     <dd class="font-medium text-gray-900">
-                                        × {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
+                                        × {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}
                                     </dd>
                                 </div>
                                 <div class="flex justify-between">

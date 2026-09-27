@@ -97,7 +97,7 @@
                                 <div class="text-gray-500">{{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}</div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                {{ $rental->duration_value }} {{ __($rental->duration_unit) }}
+                                {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}
                                 <div class="text-xs text-gray-500">{{ $rental->start_date->format('d M Y') }}</div>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900">

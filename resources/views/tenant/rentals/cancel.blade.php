@@ -44,7 +44,7 @@
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-gray-600">Durasi:</dt>
-                        <dd class="font-medium">{{ $rental->duration_value }} {{ __($rental->duration_unit) }}</dd>
+                        <dd class="font-medium">{{ $rental->duration_value }} {{ $rental->duration_unit->label() }}</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-gray-600">Total Biaya:</dt>

@@ -1,11 +1,11 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
-            {{ __('Informasi Profil') }}
+            Informasi Profil
         </h2>
 
         <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
-            {{ __('Perbarui informasi akun dan email Anda.') }}
+            Perbarui informasi akun dan email Anda.
         </p>
     </header>
 
@@ -36,7 +36,7 @@
 
             {{-- First Name --}}
             <div>
-                <x-input-label for="first_name" :value="__('Nama Depan')" />
+                <x-input-label for="first_name" value="Nama Depan" />
                 <x-text-input id="first_name" name="first_name" type="text" class="mt-1 block w-full" :value="old('first_name', $user->first_name)" required autofocus autocomplete="given-name" />
                 <x-input-error class="mt-2" :messages="$errors->get('first_name')" />
             </div>
@@ -52,7 +52,7 @@
 
             {{-- Email --}}
             <div>
-                <x-input-label for="email" :value="__('Email')" />
+                <x-input-label for="email" value="Email" />
                 <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
                 <x-input-error class="mt-2" :messages="$errors->get('email')" />
 
@@ -64,7 +64,7 @@
                 @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                     <div class="mt-2">
                         <p class="text-sm text-text-strong dark:text-text-strong-dark">
-                            {{ __('Email Anda belum terverifikasi.') }}
+                            Email Anda belum terverifikasi.
                         </p>
                         <x-verify-email-button class="mt-1" />
                     </div>
@@ -84,7 +84,7 @@
                 <button type="submit" 
                         x-bind:disabled="saving"
                         class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150">
-                    <span x-show="!saving">{{ __('Simpan') }}</span>
+                    <span x-show="!saving">Simpan</span>
                     <span x-show="saving" class="inline-flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

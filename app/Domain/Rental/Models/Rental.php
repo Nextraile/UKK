@@ -6,6 +6,7 @@ namespace App\Domain\Rental\Models;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Payment\Models\Payment;
+use App\Domain\Rental\Enums\DurationUnit;
 use App\Domain\Review\Models\Review;
 use App\Domain\RoomInventory\Models\PriceScheme;
 use App\Domain\RoomInventory\Models\Room;
@@ -60,6 +61,7 @@ class Rental extends Model
     ];
 
     protected $casts = [
+        'duration_unit' => DurationUnit::class,
         'room_price' => 'decimal:2',
         'security_deposit' => 'decimal:2',
         'grand_total' => 'decimal:2',

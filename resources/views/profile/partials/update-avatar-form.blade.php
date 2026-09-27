@@ -15,11 +15,11 @@
 }">
     <header>
         <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
-            {{ __('Foto Profil') }}
+            Foto Profil
         </h2>
 
         <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
-            {{ __('Upload foto profil Anda. Format JPEG, PNG, atau WebP. Maksimal 2MB.') }}
+            Upload foto profil Anda. Format JPEG, PNG, atau WebP. Maksimal 2MB.
         </p>
     </header>
 
@@ -109,7 +109,7 @@
                         x-show="preview || fileName"
                         x-bind:disabled="uploading"
                         class="inline-flex items-center px-4 py-2 bg-primary-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150">
-                    <span x-show="!uploading">{{ __('Upload') }}</span>
+                    <span x-show="!uploading">Upload</span>
                     <span x-show="uploading" class="inline-flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
