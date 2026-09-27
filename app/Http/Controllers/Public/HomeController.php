@@ -25,7 +25,7 @@ class HomeController extends Controller
     public function index(): View
     {
         // Note: Reviews are related through Rental->Room, not directly to Kost,
-        // so we use inRandomOrder() instead of sorting by rating for simplicity.
+        // so we use inRandomOrder() instead of sorting by rating for simplicity, at least for now.
         $featuredKosts = Kost::query()
             ->where('status', 'active')
             ->with([
