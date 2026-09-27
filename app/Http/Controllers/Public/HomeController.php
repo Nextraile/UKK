@@ -11,10 +11,8 @@ use Illuminate\View\View;
 /**
  * Landing page controller.
  *
- * Displays marketing homepage with featured kosts and testimonials.
+ * Displays homepage with featured kosts and testimonials.
  * No authentication required (public access).
- *
- * @see PAGES.md §2 PAGE-001 (lines 66-172)
  */
 class HomeController extends Controller
 {
@@ -26,7 +24,6 @@ class HomeController extends Controller
      */
     public function index(): View
     {
-        // Featured kosts: 6 random active kosts (FR-006: public can browse without auth)
         // Note: Reviews are related through Rental->Room, not directly to Kost,
         // so we use inRandomOrder() instead of sorting by rating for simplicity.
         $featuredKosts = Kost::query()
@@ -39,7 +36,7 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        // Static testimonials (can be moved to DB later if needed)
+        // Static testimonials
         $testimonials = [
             [
                 'quote' => 'Proses booking sangat mudah dan transparan. Pembayaran via QRIS juga cepat. Sangat recommended!',
