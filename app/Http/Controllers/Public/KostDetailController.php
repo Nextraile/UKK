@@ -10,7 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
 /**
- * Handles public kost detail page (PAGE-003).
+ * Handles public kost detail page.
  *
  * Display complete kost information for Active kosts only.
  */
@@ -23,10 +23,8 @@ class KostDetailController extends Controller
      */
     public function show(Kost $kost): View
     {
-        // Only show active kosts (FR-057)
         abort_if($kost->status !== 'active', 404);
 
-        // Eager load all required relationships to prevent N+1 queries
         $kost->load([
             'address',
             'categories',
@@ -34,10 +32,9 @@ class KostDetailController extends Controller
             'documentRequirements',
             'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true),
             'roomTypes.roomTypeImages',
-            'roomTypes.rooms.rentals' => fn ($q) => $q->whereIn('status', ['payment_pending', 'paid', 'confirmed', 'active']),
+            'roomTypes.rooms.rentals' => fn ($q) => $q->whereIn('status', ['payment_pending', 'paid', 'documents_pending', 'confirmed', 'active']),
         ]);
 
-        // Get reviews with pagination (COMP-008)
         $reviews = Review::whereHas('rental.room', function ($query) use ($kost) {
             $query->where('kost_id', $kost->id);
         })
@@ -45,7 +42,6 @@ class KostDetailController extends Controller
             ->latest()
             ->paginate(10);
 
-        // Calculate review metrics
         $avgKostRating = Review::whereHas('rental.room', function ($query) use ($kost) {
             $query->where('kost_id', $kost->id);
         })
