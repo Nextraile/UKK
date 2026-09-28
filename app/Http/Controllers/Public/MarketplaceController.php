@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Public;
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Public\MarketplaceFilterRequest;
 use Illuminate\View\View;
 
 /**
@@ -30,20 +30,13 @@ class MarketplaceController extends Controller
      * - Filters by price range, categories, and minimum rating (AND logic)
      * - Paginates 20 items per page
      *
-     * @param  Request  $request  HTTP request with optional filter parameters
+     * @param  MarketplaceFilterRequest  $request  HTTP request with optional filter parameters
      * @return View marketplace page with paginated active kosts, filters, and all categories.
      */
-    public function index(Request $request): View
+    public function index(MarketplaceFilterRequest $request): View
     {
         // Validate inputs (FR-051, FR-052, FR-053, FR-054)
-        $validated = $request->validate([
-            'search' => 'nullable|string|max:255',
-            'price_min' => 'nullable|numeric|min:0',
-            'price_max' => 'nullable|numeric|min:0|gte:price_min',
-            'categories' => 'nullable|array',
-            'categories.*' => 'exists:categories,id',
-            'rating_min' => 'nullable|numeric|min:1|max:5',
-        ]);
+        $validated = $request->validated();
 
         $search = $validated['search'] ?? null;
         $priceMin = $validated['price_min'] ?? null;

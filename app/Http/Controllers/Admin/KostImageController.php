@@ -9,8 +9,8 @@ use App\Domain\Kost\Models\KostImage;
 use App\Domain\Shared\Services\SecureFileUploadService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreKostImageRequest;
+use App\Http\Requests\Admin\UpdateImageSortOrderRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -140,23 +140,16 @@ class KostImageController extends Controller
      *
      * Expects request data: ['image_ids' => [3, 1, 2]] where array index = sort_order
      *
-     * @param  Request  $request  The HTTP request with sort order array
+     * @param  UpdateImageSortOrderRequest  $request  The HTTP request with sort order array
      * @param  Kost  $kost  The kost owning the images
      *
      * @throws ValidationException If validation fails
      */
-    public function updateSortOrder(Request $request, Kost $kost): RedirectResponse
+    public function updateSortOrder(UpdateImageSortOrderRequest $request, Kost $kost): RedirectResponse
     {
         $this->authorize('update', $kost);
 
-        $validated = $request->validate([
-            'image_ids' => ['required', 'array'],
-            'image_ids.*' => ['required', 'integer', 'exists:kost_images,id'],
-        ], [
-            'image_ids.required' => 'Data urutan gambar tidak ditemukan.',
-            'image_ids.array' => 'Data urutan gambar harus berupa array.',
-            'image_ids.*.exists' => 'Gambar tidak ditemukan.',
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($kost, $validated) {
             foreach ($validated['image_ids'] as $index => $imageId) {

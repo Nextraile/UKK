@@ -11,6 +11,7 @@ use App\Domain\Rental\Actions\VerifyPayment;
 use App\Domain\Rental\Models\Rental;
 use App\Domain\Rental\Models\RentalDocument;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RejectPaymentRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -151,15 +152,13 @@ class RentalManagementController extends Controller
      *
      * FR-073: Admin reject payment with reason
      */
-    public function rejectPayment(Request $request, Rental $rental): JsonResponse
+    public function rejectPayment(RejectPaymentRequest $request, Rental $rental): JsonResponse
     {
         // Authorization: admin must own the kost
         $this->authorize('viewAsAdmin', $rental);
 
         // Validate rejection reason
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string|min:10|max:500',
-        ]);
+        $validated = $request->validated();
 
         try {
             /** @var User $admin */
@@ -243,9 +242,9 @@ class RentalManagementController extends Controller
     }
 
     /**
-     * Approve all pending documents in bulk (AJAX endpoint for Phase 12).
+     * Approve all pending documents for a rental (bulk action for Phase 12).
      *
-     * FR-088: Admin verifies document (bulk action)
+     * FR-088: Admin verifies all pending documents at once
      */
     public function approveAllDocuments(Rental $rental): JsonResponse
     {

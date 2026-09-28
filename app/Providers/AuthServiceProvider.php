@@ -6,9 +6,11 @@ namespace App\Providers;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Identity\Policies\UserPolicy;
+use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\KostDocumentRequirement;
 use App\Domain\Kost\Models\KostImage;
+use App\Domain\Kost\Policies\CategoryPolicy;
 use App\Domain\Kost\Policies\KostDocumentRequirementPolicy;
 use App\Domain\Kost\Policies\KostImagePolicy;
 use App\Domain\Kost\Policies\KostPolicy;
@@ -42,6 +44,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         User::class => UserPolicy::class,
+        Category::class => CategoryPolicy::class,
         Kost::class => KostPolicy::class,
         KostImage::class => KostImagePolicy::class,
         KostDocumentRequirement::class => KostDocumentRequirementPolicy::class,

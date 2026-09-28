@@ -9,8 +9,8 @@ use App\Domain\Kost\Actions\RejectKost;
 use App\Domain\Kost\Exceptions\InvalidKostTransitionException;
 use App\Domain\Kost\Models\Kost;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SuperAdmin\RejectKostRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -80,11 +80,9 @@ class KostSubmissionController extends Controller
     /**
      * Reject a kost submission with reason.
      */
-    public function reject(Request $request, Kost $submission, RejectKost $action): RedirectResponse
+    public function reject(RejectKostRequest $request, Kost $submission, RejectKost $action): RedirectResponse
     {
-        $validated = $request->validate([
-            'rejection_reason' => ['required', 'string', 'min:10', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         try {
             $action->execute($submission, auth()->user(), $validated['rejection_reason']);

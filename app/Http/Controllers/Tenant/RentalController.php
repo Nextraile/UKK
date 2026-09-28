@@ -21,6 +21,7 @@ use App\Http\Requests\Tenant\CancelRentalRequest;
 use App\Http\Requests\Tenant\CreateRentalRequest;
 use App\Http\Requests\Tenant\UploadDocumentRequest;
 use App\Http\Requests\Tenant\UploadPaymentRequest;
+use App\Http\Requests\Tenant\ValidateKostIdRequest;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -74,12 +75,10 @@ class RentalController extends Controller
      *
      * Query params: kost_id (required)
      */
-    public function create(Request $request): View
+    public function create(ValidateKostIdRequest $request): View
     {
         // Validate kost_id
-        $request->validate([
-            'kost_id' => 'required|exists:kosts,id',
-        ]);
+        $request->validated();
 
         $kost = Kost::with([
             'address',

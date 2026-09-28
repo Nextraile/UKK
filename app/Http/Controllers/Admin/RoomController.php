@@ -7,10 +7,10 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\RoomInventory\Models\Room;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SetRoomStatusRequest;
 use App\Http\Requests\Admin\StoreRoomRequest;
 use App\Http\Requests\Admin\UpdateRoomRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class RoomController extends Controller
@@ -80,11 +80,9 @@ class RoomController extends Controller
      * FR-046: Room can only be set unavailable if no active rentals.
      * ADR-009: Authorization enforced via RoomPolicy::setUnavailable().
      */
-    public function setStatus(Request $request, Kost $kost, Room $room): RedirectResponse
+    public function setStatus(SetRoomStatusRequest $request, Kost $kost, Room $room): RedirectResponse
     {
-        $validated = $request->validate([
-            'status' => ['required', 'in:available,unavailable'],
-        ]);
+        $validated = $request->validated();
 
         // Policy enforcement: setUnavailable checks used_slots === 0
         if ($validated['status'] === 'unavailable') {

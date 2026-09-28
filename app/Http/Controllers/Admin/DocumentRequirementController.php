@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Kost\Models\Kost;
 use App\Domain\Kost\Models\KostDocumentRequirement;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreDocumentRequirementRequest;
+use App\Http\Requests\Admin\UpdateDocumentRequirementRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -42,29 +42,14 @@ class DocumentRequirementController extends Controller
     /**
      * Store a newly created document requirement for the kost.
      *
+     * @param  StoreDocumentRequirementRequest  $request  The HTTP request with form data
      * @param  Kost  $kost  The kost to add requirement to
      */
-    public function store(Request $request, Kost $kost): RedirectResponse
+    public function store(StoreDocumentRequirementRequest $request, Kost $kost): RedirectResponse
     {
         $this->authorize('update', $kost);
 
-        $validated = $request->validate([
-            'document_type' => [
-                'required',
-                'string',
-                Rule::in(array_keys(config('kost.document_types'))),
-                Rule::unique('kost_document_requirements')->where('kost_id', $kost->id),
-            ],
-            'is_required' => ['required', 'boolean'],
-            'reason' => ['nullable', 'string', 'max:500'],
-        ], [
-            'document_type.required' => 'Jenis dokumen harus dipilih.',
-            'document_type.in' => 'Jenis dokumen tidak valid.',
-            'document_type.unique' => 'Jenis dokumen ini sudah ditambahkan untuk kost ini.',
-            'is_required.required' => 'Status wajib harus dipilih.',
-            'is_required.boolean' => 'Status wajib tidak valid.',
-            'reason.max' => 'Alasan maksimal 500 karakter.',
-        ]);
+        $validated = $request->validated();
 
         $kost->documentRequirements()->create($validated);
 
@@ -76,33 +61,16 @@ class DocumentRequirementController extends Controller
     /**
      * Update the specified document requirement.
      *
+     * @param  UpdateDocumentRequirementRequest  $request  The HTTP request with form data
      * @param  Kost  $kost  The kost owning the requirement
      * @param  KostDocumentRequirement  $requirement  The requirement to update
      */
-    public function update(Request $request, Kost $kost, KostDocumentRequirement $requirement): RedirectResponse
+    public function update(UpdateDocumentRequirementRequest $request, Kost $kost, KostDocumentRequirement $requirement): RedirectResponse
     {
         $this->authorize('update', $kost);
         $this->authorize('update', $requirement);
 
-        $validated = $request->validate([
-            'document_type' => [
-                'required',
-                'string',
-                Rule::in(array_keys(config('kost.document_types'))),
-                Rule::unique('kost_document_requirements')
-                    ->where('kost_id', $kost->id)
-                    ->ignore($requirement->id),
-            ],
-            'is_required' => ['required', 'boolean'],
-            'reason' => ['nullable', 'string', 'max:500'],
-        ], [
-            'document_type.required' => 'Jenis dokumen harus dipilih.',
-            'document_type.in' => 'Jenis dokumen tidak valid.',
-            'document_type.unique' => 'Jenis dokumen ini sudah ditambahkan untuk kost ini.',
-            'is_required.required' => 'Status wajib harus dipilih.',
-            'is_required.boolean' => 'Status wajib tidak valid.',
-            'reason.max' => 'Alasan maksimal 500 karakter.',
-        ]);
+        $validated = $request->validated();
 
         $requirement->update($validated);
 
