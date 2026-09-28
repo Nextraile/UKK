@@ -2,10 +2,8 @@
 
 use App\Domain\Payment\Models\Payment;
 use App\Http\Controllers\Admin\DocumentRequirementController;
-use App\Http\Controllers\Admin\DocumentVerificationController;
 use App\Http\Controllers\Admin\KostController;
 use App\Http\Controllers\Admin\KostImageController;
-use App\Http\Controllers\Admin\PaymentVerificationController;
 use App\Http\Controllers\Admin\PriceSchemeController;
 use App\Http\Controllers\Admin\RentalManagementController;
 use App\Http\Controllers\Admin\RoomController;
@@ -184,18 +182,6 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
             ->name('rentals.documents.reject');
         Route::post('rentals/{rental}/documents/approve-all', [RentalManagementController::class, 'approveAllDocuments'])
             ->name('rentals.documents.approve-all');
-
-        // Legacy payment verification routes (deprecated, use rentals.payment.* routes above)
-        Route::post('payments/{payment}/approve', [PaymentVerificationController::class, 'approve'])
-            ->name('payments.approve');
-        Route::post('payments/{payment}/reject', [PaymentVerificationController::class, 'reject'])
-            ->name('payments.reject');
-
-        // Legacy document verification routes (deprecated, use rentals.documents.* routes above)
-        Route::post('documents/{document}/approve', [DocumentVerificationController::class, 'approve'])
-            ->name('documents.approve');
-        Route::post('documents/{document}/reject', [DocumentVerificationController::class, 'reject'])
-            ->name('documents.reject');
 
         Route::get('rentals/documents/{document}', [RentalManagementController::class, 'viewDocument'])
             ->name('rentals.documents.show');

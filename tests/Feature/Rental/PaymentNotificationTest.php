@@ -49,10 +49,14 @@ class PaymentNotificationTest extends TestCase
 
         // Admin approves payment
         $response = $this->actingAs($admin)->post(
-            route('admin.payments.approve', $rental->payment)
+            route('admin.rentals.payment.approve', $rental)
         );
 
-        $response->assertRedirect();
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Payment approved successfully',
+            ]);
 
         // Assert email was queued for tenant
         Mail::assertQueued(PaymentVerifiedMail::class, function ($mail) use ($tenant, $rental) {
@@ -90,11 +94,15 @@ class PaymentNotificationTest extends TestCase
 
         // Admin rejects payment
         $response = $this->actingAs($admin)->post(
-            route('admin.payments.reject', $rental->payment),
+            route('admin.rentals.payment.reject', $rental),
             ['rejection_reason' => 'Bukti transfer tidak jelas']
         );
 
-        $response->assertRedirect();
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Payment rejected, tenant notified',
+            ]);
 
         // Assert email was queued for tenant
         Mail::assertQueued(PaymentRejectedMail::class, function ($mail) use ($tenant, $rental) {
