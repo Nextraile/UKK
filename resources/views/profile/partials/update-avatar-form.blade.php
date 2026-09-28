@@ -14,11 +14,11 @@
     }
 }">
     <header>
-        <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
+        <h2 class="text-lg font-medium text-text-strong">
             Foto Profil
         </h2>
 
-        <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
+        <p class="mt-1 text-sm text-text">
             Upload foto profil Anda. Format JPEG, PNG, atau WebP. Maksimal 2MB.
         </p>
     </header>
@@ -26,14 +26,14 @@
     @if ($errors->avatar->any())
         <div role="alert" aria-live="assertive" class="mt-4 rounded-md bg-error/10 border border-error/20 p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-error-700 dark:text-error-300 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <svg class="w-5 h-5 text-error-700 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
                 <div class="flex-1">
-                    <h3 class="text-sm font-semibold text-error-700 dark:text-error-300">
+                    <h3 class="text-sm font-semibold text-error-700">
                         Terdapat {{ $errors->avatar->count() }} kesalahan
                     </h3>
-                    <ul class="mt-2 text-sm text-error-700 dark:text-error-300 space-y-1">
+                    <ul class="mt-2 text-sm text-error-700 space-y-1">
                         @foreach ($errors->avatar->all() as $error)
                         <li>{{ $error }}</li>
                         @endforeach
@@ -53,16 +53,16 @@
                     <template x-if="preview">
                         <img :src="preview" 
                              alt="Preview avatar baru"
-                             class="h-24 w-24 rounded-full object-cover border-2 border-primary-300 dark:border-primary-700" />
+                             class="h-24 w-24 rounded-full object-cover border-2 border-primary-300" />
                     </template>
                     <template x-if="!preview">
                         @if ($user->avatar_path)
                             <img src="{{ $user->avatar_url }}"
                                  alt="Avatar saat ini"
-                                 class="h-24 w-24 rounded-full object-cover border-2 border-border dark:border-border-dark" />
+                                 class="h-24 w-24 rounded-full object-cover border-2 border-border" />
                         @else
-                            <div class="h-24 w-24 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center border-2 border-border dark:border-border-dark">
-                                <span class="text-3xl font-bold text-primary-600 dark:text-primary-400">
+                            <div class="h-24 w-24 rounded-full bg-primary-100 flex items-center justify-center border-2 border-border">
+                                <span class="text-3xl font-bold text-primary-600">
                                     {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}
                                 </span>
                             </div>
@@ -74,22 +74,22 @@
                 <div class="flex-1 w-full">
                     <label for="avatar" 
                            class="flex flex-col items-center justify-center w-full px-6 py-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors
-                                  border-border dark:border-border-dark 
-                                  hover:border-primary-400 dark:hover:border-primary-600
-                                  hover:bg-primary-50 dark:hover:bg-primary-900/10
+                                  border-border 
+                                  hover:border-primary-400
+                                  hover:bg-primary-50
                                   focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
                         <div class="flex flex-col items-center text-center">
-                            <svg class="w-10 h-10 text-text-muted dark:text-text-muted-dark mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-10 h-10 text-text-muted mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            <p class="text-sm text-text dark:text-text-dark">
-                                <span class="font-semibold text-primary-600 dark:text-primary-400">Klik untuk upload</span>
+                            <p class="text-sm text-text">
+                                <span class="font-semibold text-primary-600">Klik untuk upload</span>
                                 <span x-show="!fileName"> atau drag & drop</span>
                             </p>
-                            <p class="text-xs text-text-muted dark:text-text-muted-dark mt-1" x-show="!fileName">
+                            <p class="text-xs text-text-muted mt-1" x-show="!fileName">
                                 JPEG, PNG, atau WebP (maks. 2MB)
                             </p>
-                            <p class="text-sm text-text-strong dark:text-text-strong-dark mt-2 font-medium" x-show="fileName" x-text="fileName"></p>
+                            <p class="text-sm text-text-strong mt-2 font-medium" x-show="fileName" x-text="fileName"></p>
                         </div>
                         <input 
                             id="avatar"
@@ -122,7 +122,7 @@
                     type="button" 
                     @click="preview = null; fileName = null; uploading = false; $el.closest('form').reset()"
                     x-show="preview"
-                    class="text-sm text-text-muted dark:text-text-muted-dark hover:text-text dark:hover:text-text-dark">
+                    class="text-sm text-text-muted hover:text-text">
                     Batal
                 </button>
             </div>

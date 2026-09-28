@@ -3,7 +3,7 @@
     variant="centered-card">
     
     @if (session('status'))
-        <div class="mb-4 rounded-md bg-success-50 p-3 text-sm font-medium text-success-600 dark:bg-success-900/30 dark:text-success-400">
+        <div class="mb-4 rounded-md bg-success-50 p-3 text-sm font-medium text-success-600">
             {{ session('status') }}
         </div>
     @endif
@@ -24,7 +24,7 @@
             <x-text-input id="email" class="block mt-1 w-full" type="email"
                           value="{{ session('password_reset_email', old('email')) }}"
                           disabled autocomplete="username" />
-            <p class="mt-1 text-xs text-text dark:text-text-dark">Email penerima reset password ini tidak dapat diubah.</p>
+            <p class="mt-1 text-xs text-text">Email penerima reset password ini tidak dapat diubah.</p>
         </div>
 
         <!-- Password -->
@@ -44,7 +44,7 @@
 
             <div class="relative mt-1">
                 <input id="password_confirmation"
-                       class="border-border-strong dark:border-border-dark dark:bg-surface-dark dark:text-text-dark focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-xs block w-full pr-10"
+                       class="border-border-strong focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password_confirmation"
                        required
@@ -53,7 +53,7 @@
 
                 <button
                     type="button"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong dark:text-text-muted-dark dark:hover:text-text-strong-dark focus:outline-none"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong focus:outline-none"
                     @click="show = !show"
                     x-bind:aria-label="show ? 'Sembunyikan password' : 'Tampilkan password'"
                 >

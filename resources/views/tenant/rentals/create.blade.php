@@ -13,13 +13,13 @@
             />
             @if(empty($availabilityMatrix))
                 <!-- Empty State: No Available Rooms -->
-                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                    <div class="p-12 text-center text-gray-900 dark:text-gray-100">
-                        <svg class="mx-auto h-16 w-16 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div class="p-12 text-center text-gray-900">
+                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         <h3 class="mt-4 text-lg font-semibold">Tidak Ada Kamar Tersedia</h3>
-                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <p class="mt-2 text-sm text-gray-600">
                             Maaf, saat ini tidak ada kamar yang tersedia untuk dibooking.
                         </p>
                         <div class="mt-6">
@@ -31,8 +31,8 @@
                     </div>
                 </div>
             @else
-                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900">
                         <form method="POST" action="{{ route('rentals.store') }}" 
                               x-data="{
                                   price: 0,
@@ -111,7 +111,7 @@
                                 <select id="room_id" name="room_id" required
                                         x-model.number="selectedRoomId"
                                         @change="filterSchemes(); price=0; deposit=0; selectedSchemeId=null; updateAvailability()"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
                                     <option value="">-- Pilih Kamar --</option>
                                     @foreach($availabilityMatrix as $roomId => $roomData)
                                         <option value="{{ $roomId }}">
@@ -129,7 +129,7 @@
                                         x-model.number="selectedSchemeId"
                                         x-on:change="price = parseFloat($event.target.selectedOptions[0].dataset.price || 0); deposit = parseFloat($event.target.selectedOptions[0].dataset.deposit || 0); updateAvailability()"
                                         :disabled="!selectedRoomId || availableSchemes.length === 0"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Paket --</option>
                                     <template x-for="scheme in availableSchemes" :key="scheme.id">
                                         <option :value="scheme.id" 
@@ -142,7 +142,7 @@
                                 <x-input-error :messages="$errors->get('price_scheme_id')" class="mt-2" />
                                 <p x-show="selectedRoomId && availableSchemes.length === 0" 
                                    x-cloak
-                                   class="mt-2 text-sm text-error-600 dark:text-error-400">
+                                   class="mt-2 text-sm text-error-600">
                                     Tidak ada paket harga tersedia untuk kamar ini.
                                 </p>
                             </div>
@@ -170,7 +170,7 @@
                             </div>
 
                             <!-- Total Display -->
-                            <div class="mb-6 rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
+                            <div class="mb-6 rounded-lg bg-gray-100 p-4">
                                 <h3 class="mb-3 text-lg font-semibold">Ringkasan Biaya</h3>
                                 <div class="mb-2 flex justify-between">
                                     <span>Harga per unit:</span>
@@ -184,7 +184,7 @@
                                     <span>Deposit:</span>
                                     <span x-text="'Rp ' + deposit.toLocaleString('id-ID')"></span>
                                 </div>
-                                <div class="flex justify-between border-t border-gray-300 pt-2 text-xl font-bold dark:border-gray-700">
+                                <div class="flex justify-between border-t border-gray-300 pt-2 text-xl font-bold">
                                     <span>Total:</span>
                                     <span x-text="'Rp ' + total.toLocaleString('id-ID')"></span>
                                 </div>

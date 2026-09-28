@@ -21,7 +21,7 @@
 
             <div class="relative mt-1">
                 <input id="password"
-                       class="border-border-strong dark:border-border-dark dark:bg-surface-dark dark:text-text-dark focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-xs block w-full pr-10"
+                       class="border-border-strong focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password"
                        required
@@ -30,7 +30,7 @@
 
                 <button
                     type="button"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong dark:text-text-muted-dark dark:hover:text-text-strong-dark focus:outline-none"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong focus:outline-none"
                     @click="show = !show"
                     x-bind:aria-label="show ? 'Hide password' : 'Show password'"
                 >
@@ -50,8 +50,8 @@
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-surface-dark border-border-strong dark:border-border-dark text-primary-600 shadow-xs focus:ring-primary-500 dark:focus:ring-primary-600 dark:focus:ring-offset-surface-raised-dark" name="remember">
-                <span class="ms-2 text-sm text-text dark:text-text-muted-dark">Ingat saya</span>
+                <input id="remember_me" type="checkbox" class="rounded border-border-strong text-primary-600 shadow-xs focus:ring-primary-500" name="remember">
+                <span class="ms-2 text-sm text-text">Ingat saya</span>
             </label>
         </div>
 
@@ -65,15 +65,15 @@
         <!-- Links -->
         <div class="mt-6 flex flex-col items-center gap-2 text-sm">
             @if (Route::has('password.request'))
-                <a class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300" href="{{ route('password.request') }}">
+                <a class="text-primary-600 hover:text-primary-500" href="{{ route('password.request') }}">
                     Lupa Password?
                 </a>
             @endif
 
             @if (Route::has('register'))
-                <div class="text-text dark:text-text-muted-dark">
+                <div class="text-text">
                     Belum punya akun?
-                    <a class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300" href="{{ route('register') }}">
+                    <a class="font-medium text-primary-600 hover:text-primary-500" href="{{ route('register') }}">
                         Daftar
                     </a>
                 </div>

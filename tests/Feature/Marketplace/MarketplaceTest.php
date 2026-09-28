@@ -231,7 +231,7 @@ class MarketplaceTest extends TestCase
 
         $response->assertStatus(200);
         // Verify component-specific classes (from kost-card.blade.php)
-        $response->assertSee('bg-white dark:bg-surface-raised-dark rounded-xl', false);
+        $response->assertSee('bg-white rounded-xl', false);
     }
 
     /**

@@ -51,11 +51,11 @@ $color = $config['color'];
 
 // Color mapping (DESIGN.md §3.4)
 $colorClasses = [
-    'warning' => 'bg-warning/10 text-warning-700 dark:bg-warning-900/20 dark:text-warning-200',
-    'success' => 'bg-success/10 text-success-700 dark:bg-success-900/20 dark:text-success-200',
-    'error' => 'bg-error/10 text-error-700 dark:bg-error-900/20 dark:text-error-200',
-    'info' => 'bg-info/10 text-info-700 dark:bg-info-900/20 dark:text-info-200',
-    'gray' => 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    'warning' => 'bg-warning/10 text-warning-700',
+    'success' => 'bg-success/10 text-success-700',
+    'error' => 'bg-error/10 text-error-700',
+    'info' => 'bg-info/10 text-info-700',
+    'gray' => 'bg-gray-100 text-gray-700',
 ];
 
 $colorClass = $colorClasses[$color] ?? $colorClasses['gray'];

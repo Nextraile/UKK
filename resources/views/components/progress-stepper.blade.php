@@ -93,23 +93,23 @@
             <div class="p-4">
                 {{-- Full vertical stepper inside modal --}}
                 <ol role="list" aria-label="Rental completion progress" class="space-y-6">
-                    @foreach($steps as $index => $step)
-                        <li class="flex items-start gap-3 
-                            @if($step['status'] === 'completed') text-green-700 dark:text-green-400
-                            @elseif($step['status'] === 'active') text-primary-600 dark:text-primary-400
-                            @else text-gray-400 dark:text-gray-500 opacity-60
-                            @endif"
+        @foreach($steps as $index => $step)
+            <li class="flex items-start gap-3 
+                @if($step['status'] === 'completed') text-green-700
+                @elseif($step['status'] === 'active') text-primary-600
+                @else text-gray-400 opacity-60
+                @endif"
                             @if($step['status'] === 'active') aria-current="step" @endif>
                             
                             {{-- Step Icon --}}
-                            <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full
-                                @if($step['status'] === 'completed')
-                                    bg-green-100 dark:bg-green-900/20 ring-2 ring-green-500 dark:ring-green-600 ring-offset-2
-                                @elseif($step['status'] === 'active')
-                                    bg-primary-100 dark:bg-primary-900/20 ring-2 ring-primary-500 dark:ring-primary-600 ring-offset-2 animate-pulse
-                                @else
-                                    bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-400 dark:border-gray-600
-                                @endif">
+            <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full
+                @if($step['status'] === 'completed')
+                    bg-green-100 ring-2 ring-green-500 ring-offset-2
+                @elseif($step['status'] === 'active')
+                    bg-primary-100 ring-2 ring-primary-500 ring-offset-2 animate-pulse
+                @else
+                    bg-gray-100 border-2 border-dashed border-gray-400
+                @endif">
                                 
                                 @if($step['status'] === 'completed')
                                     {{-- Checkmark icon --}}
@@ -118,7 +118,7 @@
                                     </svg>
                                 @elseif($step['status'] === 'active')
                                     {{-- Filled dot --}}
-                                    <span class="h-3 w-3 rounded-full bg-primary-600 dark:bg-primary-400"></span>
+                    <span class="h-3 w-3 rounded-full bg-primary-600"></span>
                                 @else
                                     {{-- Lock icon --}}
                                     <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -131,17 +131,17 @@
                             <div class="flex-1 min-w-0">
                                 <h4 class="font-semibold text-base">{{ $step['label'] }}</h4>
                                 
-                                @if($step['status'] === 'completed' && isset($step['timestamp']))
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        Completed {{ $step['timestamp'] }}
-                                    </p>
-                                @elseif($step['status'] === 'active' && isset($step['progress']))
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        {{ $step['progress'] }}
-                                    </p>
-                                @elseif($step['status'] === 'locked' && isset($step['message']))
-                                    <p class="text-sm mt-1">{{ $step['message'] }}</p>
-                                @endif
+                    @if($step['status'] === 'completed' && isset($step['timestamp']))
+                        <p class="text-sm text-gray-600 mt-1">
+                            Completed {{ $step['timestamp'] }}
+                        </p>
+                    @elseif($step['status'] === 'active' && isset($step['progress']))
+                        <p class="text-sm text-gray-600 mt-1">
+                            {{ $step['progress'] }}
+                        </p>
+                    @elseif($step['status'] === 'locked' && isset($step['message']))
+                        <p class="text-sm mt-1">{{ $step['message'] }}</p>
+                    @endif
                             </div>
                         </li>
                     @endforeach
@@ -155,20 +155,20 @@
     <ol role="list" aria-label="Rental completion progress" class="space-y-4 {{ $attributes->get('class') }}">
         @foreach($steps as $index => $step)
             <li class="flex items-start gap-3 
-                @if($step['status'] === 'completed') text-green-700 dark:text-green-400
-                @elseif($step['status'] === 'active') text-primary-600 dark:text-primary-400
-                @else text-gray-400 dark:text-gray-500 opacity-60
+                @if($step['status'] === 'completed') text-green-700
+                @elseif($step['status'] === 'active') text-primary-600
+                @else text-gray-400 opacity-60
                 @endif"
                 @if($step['status'] === 'active') aria-current="step" @endif>
                 
                 {{-- Step Icon --}}
                 <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full
                     @if($step['status'] === 'completed')
-                        bg-green-100 dark:bg-green-900/20 ring-2 ring-green-500 dark:ring-green-600 ring-offset-2
+                        bg-green-100 ring-2 ring-green-500 ring-offset-2
                     @elseif($step['status'] === 'active')
-                        bg-primary-100 dark:bg-primary-900/20 ring-2 ring-primary-500 dark:ring-primary-600 ring-offset-2 animate-pulse
+                        bg-primary-100 ring-2 ring-primary-500 ring-offset-2 animate-pulse
                     @else
-                        bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-400 dark:border-gray-600
+                        bg-gray-100 border-2 border-dashed border-gray-400
                     @endif">
                     
                     @if($step['status'] === 'completed')
@@ -178,7 +178,7 @@
                         </svg>
                     @elseif($step['status'] === 'active')
                         {{-- Filled dot --}}
-                        <span class="h-3 w-3 rounded-full bg-primary-600 dark:bg-primary-400"></span>
+                        <span class="h-3 w-3 rounded-full bg-primary-600"></span>
                     @else
                         {{-- Lock icon --}}
                         <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -192,11 +192,11 @@
                     <h4 class="font-semibold text-sm">{{ $step['label'] }}</h4>
                     
                     @if($step['status'] === 'completed' && isset($step['timestamp']))
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                        <p class="text-xs text-gray-600 mt-0.5">
                             Completed {{ $step['timestamp'] }}
                         </p>
                     @elseif($step['status'] === 'active' && isset($step['progress']))
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                        <p class="text-xs text-gray-600 mt-0.5">
                             {{ $step['progress'] }}
                         </p>
                     @elseif($step['status'] === 'locked' && isset($step['message']))

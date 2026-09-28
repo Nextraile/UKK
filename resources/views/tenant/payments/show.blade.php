@@ -20,13 +20,13 @@
             </x-page-header>
             <!-- Deadline Warning -->
             @if($rental->payment->expired_at->isFuture())
-                <div class="mb-6 rounded-lg bg-warning-light p-3 sm:p-4 dark:bg-warning-900/20" role="status" aria-live="polite" aria-atomic="true">
+                <div class="mb-6 rounded-lg bg-warning-light p-3 sm:p-4" role="status" aria-live="polite" aria-atomic="true">
                     <div class="flex">
                         <svg class="h-5 w-5 text-warning-700" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                         </svg>
                         <div class="ml-3">
-                            <p class="text-sm font-semibold text-warning-700 dark:text-warning-200">
+                            <p class="text-sm font-semibold text-warning-700">
                                 Selesaikan pembayaran sebelum {{ $rental->payment->expired_at->format('d M Y H:i') }}
                                 ({{ $rental->payment->expired_at->diffForHumans() }})
                             </p>
@@ -34,8 +34,8 @@
                     </div>
                 </div>
             @else
-                <div class="mb-6 rounded-lg bg-error-light p-3 sm:p-4 dark:bg-error-900/20">
-                    <p class="text-sm font-semibold text-error-700 dark:text-error-200">
+                <div class="mb-6 rounded-lg bg-error-light p-3 sm:p-4">
+                    <p class="text-sm font-semibold text-error-700">
                         Deadline pembayaran telah terlewati. Rental akan dibatalkan otomatis oleh sistem.
                     </p>
                 </div>
@@ -44,7 +44,7 @@
             <!-- Payment Amount -->
             <x-card class="mb-6">
                 <div class="text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Pembayaran</p>
+                    <p class="text-sm text-gray-600">Total Pembayaran</p>
                     <p class="text-4xl font-bold text-primary-600">
                         Rp {{ number_format((float) $rental->grand_total, 0, ',', '.') }}
                     </p>
@@ -53,12 +53,12 @@
 
             <!-- QRIS & Bank Info -->
             <x-card class="mb-6">
-                <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Informasi Pembayaran</h3>
+                <h3 class="mb-4 text-lg font-bold text-gray-900">Informasi Pembayaran</h3>
                 
                 <!-- QRIS Image -->
                 @if($rental->payment->qris_image_path)
                     <div class="mb-4 text-center">
-                        <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Scan QRIS:</p>
+                        <p class="mb-2 text-sm font-medium text-gray-700">Scan QRIS:</p>
                         <img src="{{ route('rentals.payment.qris', $rental) }}" 
                              alt="QRIS Payment" 
                              class="mx-auto w-full max-w-xs sm:w-64 h-auto rounded-lg border border-gray-300">
@@ -70,20 +70,20 @@
                     $kost = $rental->room->roomType->kost;
                 @endphp
                 @if($kost->bank_name && $kost->account_number)
-                    <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Atau transfer ke rekening:</p>
+                    <div class="rounded-lg bg-gray-50 p-4">
+                        <p class="text-sm font-medium text-gray-700">Atau transfer ke rekening:</p>
                         <div class="mt-2 space-y-1">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Bank</p>
-                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->bank_name }}</p>
+                            <p class="text-sm text-gray-600">Bank</p>
+                            <p class="text-base font-semibold text-gray-900">{{ $kost->bank_name }}</p>
                         </div>
                         <div class="mt-2 space-y-1">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">No. Rekening</p>
-                            <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->account_number }}</p>
+                            <p class="text-sm text-gray-600">No. Rekening</p>
+                            <p class="text-base font-semibold text-gray-900">{{ $kost->account_number }}</p>
                         </div>
                         @if($kost->account_holder_name)
                             <div class="mt-2 space-y-1">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Atas Nama</p>
-                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $kost->account_holder_name }}</p>
+                                <p class="text-sm text-gray-600">Atas Nama</p>
+                                <p class="text-base font-semibold text-gray-900">{{ $kost->account_holder_name }}</p>
                             </div>
                         @endif
                     </div>
@@ -92,18 +92,18 @@
 
             <!-- Upload Proof Section -->
             <x-card>
-                <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Upload Bukti Pembayaran</h3>
+                <h3 class="mb-4 text-lg font-bold text-gray-900">Upload Bukti Pembayaran</h3>
                 
                 <!-- Show rejection reason if exists -->
                 @if($rental->payment->rejection_reason)
-                    <div class="mb-4 rounded-lg bg-error-light p-4 dark:bg-error-900/20">
-                        <p class="text-sm font-semibold text-error-700 dark:text-error-200">
+                    <div class="mb-4 rounded-lg bg-error-light p-4">
+                        <p class="text-sm font-semibold text-error-700">
                             Bukti pembayaran ditolak:
                         </p>
-                        <p class="mt-1 text-sm text-error-700 dark:text-error-300">
+                        <p class="mt-1 text-sm text-error-700">
                             {{ $rental->payment->rejection_reason }}
                         </p>
-                        <p class="mt-2 text-xs text-error-600 dark:text-error-400">
+                        <p class="mt-2 text-xs text-error-600">
                             Silakan upload bukti pembayaran yang baru.
                         </p>
                     </div>
@@ -111,8 +111,8 @@
 
                 <!-- Show current proof if exists -->
                 @if($rental->payment->proof_of_payment_path && !$rental->payment->rejection_reason)
-                    <div class="mb-4 rounded-lg bg-primary-light p-4 dark:bg-primary-900/20">
-                        <p class="text-sm font-semibold text-primary-700 dark:text-primary-200">
+                    <div class="mb-4 rounded-lg bg-primary-light p-4">
+                        <p class="text-sm font-semibold text-primary-700">
                             Bukti pembayaran sudah diupload. Menunggu verifikasi admin.
                         </p>
                         <img src="{{ route('rentals.payment.proof', $rental) }}" 
@@ -135,7 +135,7 @@
                                name="proof" 
                                accept="image/jpeg,image/png,image/jpg"
                                required
-                               class="mt-1 block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-primary-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-700 hover:file:bg-primary-100 dark:text-gray-100">
+                               class="mt-1 block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-primary-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-700 hover:file:bg-primary-100">
                         <x-input-error :messages="$errors->get('proof')" class="mt-2" />
                     </div>
 

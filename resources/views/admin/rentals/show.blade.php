@@ -12,7 +12,7 @@
                 ]"
             >
                 <x-slot:actions>
-                    <a href="{{ route('admin.rentals.index') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+                    <a href="{{ route('admin.rentals.index') }}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                         ← Kembali
                     </a>
                 </x-slot:actions>
@@ -47,7 +47,7 @@
                     <!-- Rental Info Card -->
                     <x-card>
                         <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                            <h3 class="text-xl font-bold text-gray-900">
                                 Informasi Rental
                             </h3>
                             <x-status-badge :status="$rental->status" type="rental" size="md" />
@@ -55,32 +55,32 @@
 
                         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Kost</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                                <dt class="text-sm font-medium text-gray-600">Kost</dt>
+                                <dd class="mt-1 text-base font-semibold text-gray-900">
                                     {{ $rental->room->roomType->kost->name }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Kamar</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                                <dt class="text-sm font-medium text-gray-600">Kamar</dt>
+                                <dd class="mt-1 text-base font-semibold text-gray-900">
                                     {{ $rental->room->roomType->name }} - Kamar {{ $rental->room->code }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Durasi</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                                <dt class="text-sm font-medium text-gray-600">Durasi</dt>
+                                <dd class="mt-1 text-base font-semibold text-gray-900">
                                     {{ $rental->duration_value }} {{ $rental->duration_unit->label() }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Tanggal Mulai</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                                <dt class="text-sm font-medium text-gray-600">Tanggal Mulai</dt>
+                                <dd class="mt-1 text-base font-semibold text-gray-900">
                                     {{ $rental->start_date->format('d M Y') }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-sm font-medium text-gray-600 dark:text-gray-400">Tanggal Selesai</dt>
-                                <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                                <dt class="text-sm font-medium text-gray-600">Tanggal Selesai</dt>
+                                <dd class="mt-1 text-base font-semibold text-gray-900">
                                     {{ $rental->end_date->format('d M Y') }}
                                 </dd>
                             </div>
@@ -127,7 +127,7 @@
 
                     <!-- Status History Timeline -->
                     <x-card>
-                        <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Riwayat Status</h3>
+                        <h3 class="mb-4 text-lg font-bold text-gray-900">Riwayat Status</h3>
                         <div class="relative">
                             @foreach($rental->statusHistories->reverse() as $history)
                                     <div class="flex gap-4">
@@ -168,7 +168,7 @@
                     @if($rental->status === 'payment_pending' && $rental->payment->proof_of_payment_path)
                         <div class="border-2 rounded-lg p-6 transition-all"
                              :class="payment.verified_at || payment.rejected_at ? 'border-gray-300 bg-gray-50' : 'border-primary-500 bg-white'">
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">
+                            <h3 class="mb-4 text-lg font-bold text-gray-900">
                                 Verifikasi Pembayaran
                             </h3>
                             
@@ -188,7 +188,7 @@
                                          class="h-auto max-w-md rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity">
                                 </div>
                                 @if($rental->payment->notes)
-                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <p class="mt-2 text-sm text-gray-600">
                                         <strong>Catatan dari tenant:</strong> {{ $rental->payment->notes }}
                                     </p>
                                 @endif
@@ -267,7 +267,7 @@
                         </div>
                     @elseif($rental->payment->status === 'success')
                         <div class="border-2 bg-white border-gray-300 bg-gray-50 rounded-lg p-6">
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Status Pembayaran</h3>
+                            <h3 class="mb-4 text-lg font-bold text-gray-900">Status Pembayaran</h3>
                             <div class="flex items-start gap-3 rounded-lg bg-success-50 border border-success-200 p-4">
                                 <svg class="h-6 w-6 text-success-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -289,7 +289,7 @@
                         <div class="border-2 rounded-lg p-6 transition-all"
                              :class="allDocumentsVerified() ? 'border-gray-300 bg-gray-50' : 'border-primary-500 bg-white'">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                <h3 class="text-lg font-bold text-gray-900">
                                     Verifikasi Dokumen
                                 </h3>
                                 
@@ -328,7 +328,7 @@
                         </div>
                     @elseif($rental->status === 'confirmed' || $rental->status === 'active' || $rental->status === 'completed')
                         <div class="border-2 border-gray-300 bg-gray-50 rounded-lg p-6">
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Dokumen Terverifikasi</h3>
+                            <h3 class="mb-4 text-lg font-bold text-gray-900">Dokumen Terverifikasi</h3>
                             <div class="flex items-start gap-3 rounded-lg bg-success-50 border border-success-200 p-4">
                                 <svg class="h-6 w-6 text-success-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -351,7 +351,7 @@
                     <!-- Verification Stats -->
                     @if($rental->status === 'paid' || $rental->status === 'documents_pending')
                         <x-card>
-                            <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-gray-100">Verification Stats</h3>
+                            <h3 class="mb-4 text-lg font-bold text-gray-900">Verification Stats</h3>
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-600">Documents</span>
@@ -368,22 +368,22 @@
                     <!-- Rental Summary -->
                     <x-card>
                         <h3 class="text-sm font-semibold text-gray-700 mb-4">Ringkasan</h3>
-                        <dl class="space-y-2 text-sm">
+                            <dl class="space-y-2 text-sm">
                             <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">ID Rental</dt>
+                                <dt class="text-gray-600">ID Rental</dt>
                                 <dd class="font-semibold">#{{ $rental->id }}</dd>
                             </div>
                             <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">Dibuat</dt>
+                                <dt class="text-gray-600">Dibuat</dt>
                                 <dd class="font-semibold">{{ $rental->created_at->format('d M Y') }}</dd>
                             </div>
                             <div class="flex justify-between">
-                                <dt class="text-gray-600 dark:text-gray-400">Terakhir Update</dt>
+                                <dt class="text-gray-600">Terakhir Update</dt>
                                 <dd class="font-semibold">{{ $rental->updated_at->diffForHumans() }}</dd>
                             </div>
                             @if($rental->payment->expired_at)
                                 <div class="flex justify-between">
-                                    <dt class="text-gray-600 dark:text-gray-400">Payment Deadline</dt>
+                                    <dt class="text-gray-600">Payment Deadline</dt>
                                     <dd class="font-semibold text-error-600">{{ $rental->payment->expired_at->format('d M Y H:i') }}</dd>
                                 </div>
                             @endif

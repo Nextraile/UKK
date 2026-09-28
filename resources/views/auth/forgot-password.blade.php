@@ -2,7 +2,7 @@
     title="Lupa Password - SewaKost"
     variant="centered-card">
     
-    <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
+    <div class="mb-4 text-sm text-text">
         Lupa password? Tidak masalah. Masukkan alamat email Anda dan kami akan mengirimkan kode OTP untuk mengatur ulang password.
     </div>
 

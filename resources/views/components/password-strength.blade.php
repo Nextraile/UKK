@@ -26,7 +26,7 @@
     get labelClass() { return ['', 'text-error-700', 'text-warning-700', 'text-info-700', 'text-success-700'][this.score]; }
 }" x-cloak class="space-y-2">
 
-    <label for="{{ $inputId }}" class="block text-sm font-medium text-gray-700 dark:text-text-strong-dark">
+    <label for="{{ $inputId }}" class="block text-sm font-medium text-gray-700">
         {{ $label }}
         @if ($required)
             <span class="text-error-700" aria-label="required">*</span>
@@ -42,13 +42,13 @@
                autocomplete="{{ $autocomplete }}"
                aria-describedby="{{ $inputId }}-hint {{ $inputId }}-strength {{ $inputId }}-error"
                {{ $required ? 'required' : '' }}
-               class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-border-strong-dark rounded-md focus:ring-2 focus:ring-primary-500 transition-all @error($name) border-error-500 @enderror">
+               class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 transition-all @error($name) border-error-500 @enderror">
         
         <button type="button" 
                 @click="show = !show" 
                 :aria-pressed="show ? 'true' : 'false'"
                 :aria-label="show ? 'Sembunyikan password' : 'Tampilkan password'"
-                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
             <!-- Eye icon (show password) -->
             <svg x-show="!show" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -65,7 +65,7 @@
     <div class="flex gap-1" aria-hidden="true" x-show="value.length > 0">
         <template x-for="i in 4" :key="i">
             <div class="h-1.5 flex-1 rounded-full transition-colors"
-                 :class="i <= score ? bar : 'bg-gray-200 dark:bg-border-dark'"></div>
+                 :class="i <= score ? bar : 'bg-gray-200'"></div>
         </template>
     </div>
 
@@ -78,7 +78,7 @@
        x-show="value.length > 0"></p>
 
     <!-- Password hints -->
-    <ul id="{{ $inputId }}-hint" class="text-xs text-gray-500 dark:text-text-muted-dark space-y-0.5">
+    <ul id="{{ $inputId }}-hint" class="text-xs text-gray-500 space-y-0.5">
         <li>Minimal 8 karakter</li>
         <li>Kombinasi huruf besar & kecil, angka, simbol</li>
     </ul>

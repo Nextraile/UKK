@@ -39,18 +39,18 @@
   <!-- Map Container (only rendered if coordinates exist) -->
   <div x-show="hasCoordinates" 
     x-ref="mapEl" 
-    class="{{ $height }} w-full rounded-lg overflow-hidden z-0 border border-gray-200 dark:border-border-dark" 
+    class="{{ $height }} w-full rounded-lg overflow-hidden z-0 border border-gray-200" 
     aria-hidden="true"></div>
   
   <!-- Fallback: Address Text + Google Maps Link -->
   <div x-ref="address" 
     :class="hasCoordinates ? 'mt-2' : ''"
-    class="text-sm text-gray-600 dark:text-text-dark">
+    class="text-sm text-gray-600">
     <span class="font-medium">Alamat:</span> {{ $address }}
     <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($address) }}"
       target="_blank" 
       rel="noopener noreferrer"
-      class="ml-1 font-medium text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded transition-colors">
+      class="ml-1 font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded transition-colors">
       Buka di Google Maps
       <svg class="inline w-3 h-3 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -59,7 +59,7 @@
   </div>
   
   <!-- No coordinates fallback message -->
-  <p x-show="!hasCoordinates" class="text-sm text-gray-500 dark:text-text-muted-dark italic">
+  <p x-show="!hasCoordinates" class="text-sm text-gray-500 italic">
     Koordinat lokasi belum tersedia untuk kost ini.
   </p>
 </div>

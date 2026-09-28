@@ -34,7 +34,7 @@
   {{ $attributes->merge(['class' => 'relative mx-auto max-w-2xl']) }}>
 
   <!-- Testimonial Card (aria-live announces changes) -->
-  <div class="rounded-xl bg-white dark:bg-surface-raised-dark p-6 shadow-md sm:p-8" 
+  <div class="rounded-xl bg-white p-6 shadow-md sm:p-8" 
     aria-live="polite" 
     aria-atomic="true">
     <!-- Quote Icon -->
@@ -43,7 +43,7 @@
     </svg>
     
     <!-- Quote Text -->
-    <blockquote class="text-lg leading-relaxed text-gray-700 dark:text-text-dark" x-text="items[index].quote"></blockquote>
+    <blockquote class="text-lg leading-relaxed text-gray-700" x-text="items[index].quote"></blockquote>
     
     <!-- Author -->
     <footer class="mt-5 flex items-center gap-3">
@@ -51,13 +51,13 @@
         <img :src="items[index].avatar" :alt="items[index].name" class="h-10 w-10 rounded-full object-cover">
       </template>
       <template x-if="!items[index].avatar">
-        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30 font-semibold text-primary-700 dark:text-primary-400" 
+        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 font-semibold text-primary-700" 
           aria-hidden="true" 
           x-text="items[index].name.charAt(0)"></span>
       </template>
       <div>
-        <p class="text-sm font-semibold text-gray-900 dark:text-text-strong-dark" x-text="items[index].name"></p>
-        <p class="text-xs text-gray-500 dark:text-text-muted-dark" x-text="items[index].location"></p>
+        <p class="text-sm font-semibold text-gray-900" x-text="items[index].name"></p>
+        <p class="text-xs text-gray-500" x-text="items[index].location"></p>
       </div>
     </footer>
   </div>
@@ -68,7 +68,7 @@
     <button type="button" 
       @click="prev()" 
       aria-label="Testimoni sebelumnya"
-      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-border-strong-dark text-gray-600 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
@@ -83,7 +83,7 @@
           :aria-label="'Tampilkan testimoni ' + item.name"
           class="group flex h-6 w-6 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
           <span aria-hidden="true"
-            :class="i === index ? 'w-6 bg-primary-600' : 'w-2.5 bg-gray-300 dark:bg-border-dark group-hover:bg-gray-400 dark:group-hover:bg-border-strong-dark'"
+            :class="i === index ? 'w-6 bg-primary-600' : 'w-2.5 bg-gray-300 group-hover:bg-gray-400'"
             class="block h-2.5 rounded-full transition-all duration-300"></span>
         </button>
       </template>
@@ -93,7 +93,7 @@
     <button type="button" 
       @click="next()" 
       aria-label="Testimoni berikutnya"
-      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-border-strong-dark text-gray-600 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
+      class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 transition-colors">
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
       </svg>

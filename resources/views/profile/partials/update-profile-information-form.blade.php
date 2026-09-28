@@ -1,25 +1,25 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
+        <h2 class="text-lg font-medium text-text-strong">
             Informasi Profil
         </h2>
 
-        <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
+        <p class="mt-1 text-sm text-text">
             Perbarui informasi akun dan email Anda.
         </p>
     </header>
 
     @if ($errors->updateProfile->any())
-        <div role="alert" aria-live="assertive" class="mt-4 rounded-md bg-error/10 border border-error/20 p-4">
+        <div role="alert" aria-live="assertive" class="rounded-md bg-error/10 border border-error/20 p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-error-700 dark:text-error-300 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <svg class="w-5 h-5 text-error-700 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
                 <div class="flex-1">
-                    <h3 class="text-sm font-semibold text-error-700 dark:text-error-300">
+                    <h3 class="text-sm font-semibold text-error-700">
                         Terdapat {{ $errors->updateProfile->count() }} kesalahan pada formulir
                     </h3>
-                    <ul class="mt-2 text-sm text-error-700 dark:text-error-300 space-y-1">
+                    <ul class="mt-2 text-sm text-error-700 space-y-1">
                         @foreach ($errors->updateProfile->all() as $error)
                         <li>{{ $error }}</li>
                         @endforeach
@@ -44,7 +44,7 @@
             {{-- Last Name --}}
             <div>
                 <x-input-label for="last_name">
-                    Nama Belakang <span class="text-text-muted dark:text-text-muted-dark font-normal text-xs">(opsional)</span>
+                    Nama Belakang <span class="text-text-muted font-normal text-xs">(opsional)</span>
                 </x-input-label>
                 <x-text-input id="last_name" name="last_name" type="text" class="mt-1 block w-full" :value="old('last_name', $user->last_name)" autocomplete="family-name" />
                 <x-input-error class="mt-2" :messages="$errors->get('last_name')" />
@@ -63,7 +63,7 @@
 
                 @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                     <div class="mt-2">
-                        <p class="text-sm text-text-strong dark:text-text-strong-dark">
+                        <p class="text-sm text-text-strong">
                             Email Anda belum terverifikasi.
                         </p>
                         <x-verify-email-button class="mt-1" />
@@ -74,7 +74,7 @@
             {{-- Phone --}}
             <div>
                 <x-input-label for="phone">
-                    Nomor Telepon <span class="text-text-muted dark:text-text-muted-dark font-normal text-xs">(opsional)</span>
+                    Nomor Telepon <span class="text-text-muted font-normal text-xs">(opsional)</span>
                 </x-input-label>
                 <x-text-input id="phone" name="phone" type="tel" class="mt-1 block w-full" :value="old('phone', $user->phone)" autocomplete="tel" />
                 <x-input-error class="mt-2" :messages="$errors->get('phone')" />

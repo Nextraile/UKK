@@ -3,30 +3,30 @@
 {{-- Specification: DESIGN.md §3.6 (line 1200-1287) --}}
 
 <nav x-data="{ mobileMenuOpen: false }" 
-  class="bg-white dark:bg-surface-raised-dark border-b border-gray-200 dark:border-border-dark sticky top-0 z-50 shadow-sm">
+  class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16">
       <!-- Logo -->
       <div class="flex-shrink-0">
         <a href="/" class="flex items-center gap-2">
-          <span class="text-xl font-bold text-gray-900 dark:text-text-strong-dark">SewaKost</span>
+          <span class="text-xl font-bold text-gray-900">SewaKost</span>
         </a>
       </div>
       
       <!-- Desktop Navigation Links -->
       <div class="hidden md:flex md:items-center md:gap-6">
         <a href="/marketplace" 
-          class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+          class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
           Cari Kost
         </a>
         
         @auth
           <a href="/profile" 
-            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+            class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
             Profile
           </a>
           <a href="{{ auth()->user()->dashboardRoute() }}" 
-            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+            class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
             Dashboard
           </a>
           <form method="POST" action="/logout" class="inline">
@@ -38,7 +38,7 @@
           </form>
         @else
           <a href="/login" 
-            class="text-gray-700 dark:text-text-dark hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
+            class="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg">
             Masuk
           </a>
           <a href="/register" 
@@ -53,7 +53,7 @@
         <button @click="mobileMenuOpen = !mobileMenuOpen"
           aria-label="Buka menu navigasi"
           :aria-expanded="mobileMenuOpen"
-          class="p-2 text-gray-600 dark:text-text-dark hover:text-gray-900 dark:hover:text-text-strong-dark focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg transition-colors">
+          class="p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
@@ -71,31 +71,31 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100 translate-y-0"
     x-transition:leave-end="opacity-0 -translate-y-1"
-    class="md:hidden border-t border-gray-200 dark:border-border-dark">
+    class="md:hidden border-t border-gray-200">
     <div class="px-2 pt-2 pb-3 space-y-1">
       <a href="/marketplace" 
-        class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+        class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors">
         Cari Kost
       </a>
       @auth
         <a href="/profile" 
-          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors">
           Profile
         </a>
         <a href="{{ auth()->user()->dashboardRoute() }}" 
-          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors">
           Dashboard
         </a>
         <form method="POST" action="/logout">
           @csrf
           <button type="submit" 
-            class="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-error-700 hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+            class="w-full text-left px-3 py-2 rounded-lg text-base font-medium text-error-700 hover:bg-gray-50 transition-colors">
             Logout
           </button>
         </form>
       @else
         <a href="/login" 
-          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 dark:text-text-dark hover:bg-gray-50 dark:hover:bg-surface-muted-dark transition-colors">
+          class="block px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors">
           Masuk
         </a>
         <a href="/register" 

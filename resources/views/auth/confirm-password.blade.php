@@ -2,7 +2,7 @@
     title="Konfirmasi Password - SewaKost"
     variant="centered-card">
     
-    <div class="mb-4 text-sm text-text dark:text-text-muted-dark">
+    <div class="mb-4 text-sm text-text">
         Silakan konfirmasi password Anda sebelum melanjutkan.
     </div>
 

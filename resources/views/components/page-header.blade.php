@@ -18,13 +18,13 @@
       @endif
 
       @if ($title)
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-text-strong-dark">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">
           {{ $title }}
         </h1>
       @endif
 
       @if ($subtitle)
-        <p class="mt-1 text-sm text-gray-500 dark:text-text-muted-dark">
+        <p class="mt-1 text-sm text-gray-500">
           {{ $subtitle }}
         </p>
       @endif

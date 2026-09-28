@@ -1,10 +1,10 @@
 <section class="space-y-6">
     <header>
-        <h2 class="text-lg font-medium text-text-strong dark:text-text-strong-dark">
+        <h2 class="text-lg font-medium text-text-strong">
             Ubah Password
         </h2>
 
-        <p class="mt-1 text-sm text-text dark:text-text-muted-dark">
+        <p class="mt-1 text-sm text-text">
             Pastikan akun Anda menggunakan password yang kuat dan aman.
         </p>
     </header>
@@ -12,14 +12,14 @@
     @if ($errors->updatePassword->any())
         <div role="alert" aria-live="assertive" class="rounded-md bg-error/10 border border-error/20 p-4">
             <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-error-700 dark:text-error-300 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                <svg class="w-5 h-5 text-error-700 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
                 <div class="flex-1">
-                    <h3 class="text-sm font-semibold text-error-700 dark:text-error-300">
+                    <h3 class="text-sm font-semibold text-error-700">
                         Terdapat {{ $errors->updatePassword->count() }} kesalahan pada formulir
                     </h3>
-                    <ul class="mt-2 text-sm text-error-700 dark:text-error-300 space-y-1">
+                    <ul class="mt-2 text-sm text-error-700 space-y-1">
                         @foreach ($errors->updatePassword->all() as $error)
                         <li>{{ $error }}</li>
                         @endforeach
@@ -48,16 +48,16 @@
                 {{-- Strength meter --}}
                 <div class="mt-2" x-show="password.length > 0">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Kekuatan Password</span>
+                        <span class="text-xs font-medium text-gray-700">Kekuatan Password</span>
                         <span class="text-xs font-semibold" 
                               :class="{
-                                'text-error-700 dark:text-error-400': strength === 'weak',
-                                'text-warning-700 dark:text-warning-400': strength === 'fair',
-                                'text-success-700 dark:text-success-400': strength === 'good' || strength === 'strong'
+                                'text-error-700': strength === 'weak',
+                                'text-warning-700': strength === 'fair',
+                                'text-success-700': strength === 'good' || strength === 'strong'
                               }"
                               x-text="strengthLabel"></span>
                     </div>
-                    <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div class="h-full transition-all duration-300"
                              :class="{
                                'bg-error-600 w-1/4': strength === 'weak',
@@ -69,26 +69,26 @@
                 </div>
                 
                 {{-- Requirements checklist --}}
-                <ul class="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-400" x-show="password.length > 0">
-                    <li :class="checks.length && 'text-success-600 dark:text-success-400'">
+                <ul class="mt-3 space-y-1 text-xs text-gray-600" x-show="password.length > 0">
+                    <li :class="checks.length && 'text-success-600'">
                         <svg class="w-3 h-3 inline mr-1" :class="checks.length ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
                         Minimal 8 karakter
                     </li>
-                    <li :class="checks.uppercase && 'text-success-600 dark:text-success-400'">
+                    <li :class="checks.uppercase && 'text-success-600'">
                         <svg class="w-3 h-3 inline mr-1" :class="checks.uppercase ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
                         Huruf besar
                     </li>
-                    <li :class="checks.number && 'text-success-600 dark:text-success-400'">
+                    <li :class="checks.number && 'text-success-600'">
                         <svg class="w-3 h-3 inline mr-1" :class="checks.number ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
                         Angka
                     </li>
-                    <li :class="checks.special && 'text-success-600 dark:text-success-400'">
+                    <li :class="checks.special && 'text-success-600'">
                         <svg class="w-3 h-3 inline mr-1" :class="checks.special ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -123,7 +123,7 @@
                         x-show="show"
                         x-transition
                         x-init="setTimeout(() => show = false, 2000)"
-                        class="text-sm text-text dark:text-text-muted-dark"
+                        class="text-sm text-text"
                     >Tersimpan.</p>
                 @endif
             </div>

@@ -12,15 +12,15 @@
 $roleConfig = [
     'superadmin' => [
         'label' => 'Super Admin',
-        'class' => 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900/40 dark:text-secondary-300'
+        'class' => 'bg-secondary-100 text-secondary-800'
     ],
     'admin' => [
         'label' => 'Admin',
-        'class' => 'bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-300'
+        'class' => 'bg-primary-100 text-primary-800'
     ],
     'user' => [
         'label' => 'Tenant',
-        'class' => 'bg-success-100 text-success-800 dark:bg-success-900/40 dark:text-success-300'
+        'class' => 'bg-success-100 text-success-800'
     ],
 ];
 

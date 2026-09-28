@@ -57,19 +57,19 @@
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
         x-trap.noscroll.inert="open"
-        class="lg:hidden fixed right-0 top-0 bottom-0 w-80 max-w-full bg-white dark:bg-surface-raised-dark shadow-2xl z-50 overflow-y-auto"
+        class="lg:hidden fixed right-0 top-0 bottom-0 w-80 max-w-full bg-white shadow-2xl z-50 overflow-y-auto"
         style="display: none;"
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
     >
         {{-- Header --}}
-        <div class="sticky top-0 bg-white dark:bg-surface-raised-dark border-b border-border dark:border-border-dark px-4 py-4 flex items-center justify-between z-10">
-            <h2 id="drawer-title" class="text-lg font-semibold text-gray-900 dark:text-text-strong-dark">Filter</h2>
+        <div class="sticky top-0 bg-white border-b border-border px-4 py-4 flex items-center justify-between z-10">
+            <h2 id="drawer-title" class="text-lg font-semibold text-gray-900">Filter</h2>
             <button 
                 type="button"
                 x-on:click="open = false"
-                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-muted-dark transition-colors"
+                class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label="Tutup filter"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -88,7 +88,7 @@
                 
                 {{-- Price Range Filter (FR-052) --}}
                 <fieldset>
-                    <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Harga (per bulan)</legend>
+                    <legend class="text-sm font-medium text-gray-700 mb-2">Harga (per bulan)</legend>
                     <div class="space-y-2">
                         <input 
                             type="number" 
@@ -96,7 +96,7 @@
                             value="{{ request('price_min') }}"
                             placeholder="Min"
                             min="0"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
                         >
                         <input 
                             type="number" 
@@ -104,14 +104,14 @@
                             value="{{ request('price_max') }}"
                             placeholder="Max"
                             min="0"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
                         >
                     </div>
                 </fieldset>
                 
                 {{-- Category Filter (FR-053) --}}
                 <fieldset>
-                    <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</legend>
+                    <legend class="text-sm font-medium text-gray-700 mb-2">Kategori</legend>
                     <div class="space-y-2">
                         @foreach($categories as $category)
                             <label class="flex items-center space-x-2 cursor-pointer">
@@ -122,7 +122,7 @@
                                     {{ in_array($category->id, request('categories', [])) ? 'checked' : '' }}
                                     class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                 >
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ $category->name }}</span>
+                                <span class="text-sm text-gray-700">{{ $category->name }}</span>
                             </label>
                         @endforeach
                     </div>
@@ -130,10 +130,10 @@
                 
                 {{-- Rating Filter (FR-054) --}}
                 <fieldset>
-                    <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating Minimum</legend>
+                    <legend class="text-sm font-medium text-gray-700 mb-2">Rating Minimum</legend>
                     <select 
                         name="rating_min"
-                        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-100"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
                     >
                         <option value="">Semua Rating</option>
                         @for($i = 5; $i >= 1; $i--)
@@ -157,7 +157,7 @@
                 @if(request('price_min') || request('price_max') || request('categories') || request('rating_min'))
                     <a 
                         href="{{ route('marketplace.index', ['search' => request('search')]) }}"
-                        class="block w-full text-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        class="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                         x-on:click="open = false"
                     >
                         Reset Filter

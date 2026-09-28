@@ -31,7 +31,7 @@ x-cloak>
       <button 
         type="button"
         @click="goto({{ $idx }})"
-        class="aspect-square overflow-hidden rounded-lg bg-gray-200 dark:bg-surface-muted-dark hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500">
+        class="aspect-square overflow-hidden rounded-lg bg-gray-200 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500">
         <img 
           src="{{ $image['url'] }}" 
           alt="{{ $image['alt'] ?? 'Gambar ' . ($idx + 1) }}"

@@ -20,11 +20,11 @@
                 </svg>
             </div>
 
-            <h3 id="verify-email-modal-title" class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h3 id="verify-email-modal-title" class="text-xl font-semibold text-gray-900">
                 Email Anda Belum Diverifikasi
             </h3>
 
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p class="mt-2 text-sm text-gray-600">
                 Beberapa fitur, seperti membuat pemesanan, memerlukan email terverifikasi. Verifikasi sekarang untuk membuka seluruh fitur SewaKost.
             </p>
 

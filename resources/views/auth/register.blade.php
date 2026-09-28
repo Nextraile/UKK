@@ -32,7 +32,7 @@
 
             <div class="relative mt-1">
                 <input id="password"
-                       class="border-border-strong dark:border-border-dark dark:bg-surface-dark dark:text-text-dark focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-xs block w-full pr-10"
+                       class="border-border-strong focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password"
                        required
@@ -43,7 +43,7 @@
 
                 <button
                     type="button"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong dark:text-text-muted-dark dark:hover:text-text-strong-dark focus:outline-none"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong focus:outline-none"
                     @click="show = !show"
                     x-bind:aria-label="show ? 'Sembunyikan password' : 'Tampilkan password'"
                 >
@@ -62,16 +62,16 @@
             {{-- Strength meter --}}
             <div class="mt-2" x-show="password.length > 0">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Kekuatan Password</span>
+                    <span class="text-xs font-medium text-gray-700">Kekuatan Password</span>
                     <span class="text-xs font-semibold" 
                           :class="{
-                            'text-error-700 dark:text-error-400': strength === 'weak',
-                            'text-warning-700 dark:text-warning-400': strength === 'fair',
-                            'text-success-700 dark:text-success-400': strength === 'good' || strength === 'strong'
+                            'text-error-700': strength === 'weak',
+                            'text-warning-700': strength === 'fair',
+                            'text-success-700': strength === 'good' || strength === 'strong'
                           }"
                           x-text="strengthLabel"></span>
                 </div>
-                <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div class="h-full transition-all duration-300"
                          :class="{
                            'bg-error-600 w-1/4': strength === 'weak',
@@ -83,26 +83,26 @@
             </div>
             
             {{-- Requirements checklist --}}
-            <ul class="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-400" x-show="password.length > 0">
-                <li :class="checks.length && 'text-success-600 dark:text-success-400'">
+            <ul class="mt-3 space-y-1 text-xs text-gray-600" x-show="password.length > 0">
+                <li :class="checks.length && 'text-success-600'">
                     <svg class="w-3 h-3 inline mr-1" :class="checks.length ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                     Minimal 8 karakter
                 </li>
-                <li :class="checks.uppercase && 'text-success-600 dark:text-success-400'">
+                <li :class="checks.uppercase && 'text-success-600'">
                     <svg class="w-3 h-3 inline mr-1" :class="checks.uppercase ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                     Huruf besar
                 </li>
-                <li :class="checks.number && 'text-success-600 dark:text-success-400'">
+                <li :class="checks.number && 'text-success-600'">
                     <svg class="w-3 h-3 inline mr-1" :class="checks.number ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                     Angka
                 </li>
-                <li :class="checks.special && 'text-success-600 dark:text-success-400'">
+                <li :class="checks.special && 'text-success-600'">
                     <svg class="w-3 h-3 inline mr-1" :class="checks.special ? 'text-success-600' : 'text-gray-400'" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
@@ -117,7 +117,7 @@
 
             <div class="relative mt-1">
                 <input id="password_confirmation"
-                       class="border-border-strong dark:border-border-dark dark:bg-surface-dark dark:text-text-dark focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-xs block w-full pr-10"
+                       class="border-border-strong focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-xs block w-full pr-10"
                        x-bind:type="show ? 'text' : 'password'"
                        name="password_confirmation"
                        required
@@ -126,9 +126,9 @@
 
                 <button
                     type="button"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong dark:text-text-muted-dark dark:hover:text-text-strong-dark focus:outline-none"
+                    class="absolute inset-y-0 right-0 flex items-center px-3 text-text hover:text-text-strong focus:outline-none"
                     @click="show = !show"
-                    x-bind:aria-label="show ? 'Hide password' : 'Show password'"
+                    x-bind:aria-label="show ? 'Sembunyikan password' : 'Tampilkan password'"
                 >
                     <svg x-show="!show" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -151,9 +151,9 @@
         </div>
 
         <!-- Links -->
-        <div class="mt-6 text-center text-sm text-text dark:text-text-muted-dark">
+        <div class="mt-6 text-center text-sm text-text">
             Sudah punya akun?
-            <a class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300" href="{{ route('login') }}">
+            <a class="font-medium text-primary-600 hover:text-primary-500" href="{{ route('login') }}">
                 Masuk
             </a>
         </div>
