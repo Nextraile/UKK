@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Middleware to prevent soft-deleted (inactive) users from using the application.
  *
- * Per FR-013, users with a non-null `deleted_at` are considered inactive and
+ * Users with a non-null `deleted_at` are considered inactive and
  * should be logged out immediately.
  */
 class ActiveUser
