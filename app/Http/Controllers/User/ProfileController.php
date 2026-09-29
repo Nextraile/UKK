@@ -25,7 +25,7 @@ class ProfileController extends Controller
     ) {}
 
     /**
-     * Display the user's profile. (FR-009)
+     * Display the user's profile
      */
     public function show(Request $request): View
     {
@@ -35,7 +35,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Display the profile edit form. (FR-009, FR-010)
+     * Display the profile edit form
      */
     public function edit(Request $request): View
     {
@@ -45,7 +45,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information. (FR-010, FR-129)
+     * Update the user's profile information
      *
      * If email is changed, nullify email_verified_at and trigger OTP re-verification.
      */
@@ -55,13 +55,10 @@ class ProfileController extends Controller
         $user->fill($request->validated());
 
         if ($user->isDirty('email')) {
-            // FR-129: Email change requires re-verification
             $user->email_verified_at = null;
 
-            // Save first so the new email is persisted
             $user->save();
 
-            // Generate and send OTP to the new email
             $this->otpService->generate($user);
 
             return Redirect::route('verification.notice')
@@ -75,7 +72,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Upload and update user avatar. (FR-011)
+     * Upload and update user avatar
      */
     public function updateAvatar(AvatarUploadRequest $request): RedirectResponse
     {
@@ -84,15 +81,12 @@ class ProfileController extends Controller
         DB::transaction(function () use ($request, $service) {
             $user = $request->user();
 
-            // Lock user row to prevent concurrent updates
             $user = User::lockForUpdate()->findOrFail($user->id);
 
-            // Delete old avatar if exists
             if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
                 Storage::disk('public')->delete($user->avatar_path);
             }
 
-            // Store new avatar with UUID filename
             $path = $service->store($request->file('avatar'), 'avatars', 'public');
 
             $user->update(['avatar_path' => $path]);
@@ -103,7 +97,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account (soft delete). (FR-012)
+     * Delete the user's account (soft delete)
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -115,7 +109,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        // Soft delete — sets deleted_at (User model uses SoftDeletes trait)
+        // Soft delete
         $user->delete();
 
         $request->session()->invalidate();
