@@ -8,6 +8,7 @@ use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\MarketplaceFilterRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -24,10 +25,10 @@ class MarketplaceController extends Controller
      * FR-052 (price filter), FR-053 (category filter), FR-054 (rating filter), FR-055 (combined filters).
      * Query optimizations:
      * - Eager loads address, categories, thumbnail images (prevents N+1)
-     * - Aggregates review ratings counts (COMP-008, gracefully handles if not yet implemented)
      * - Filters only active kosts, respects soft deletes
      * - Search by name, city, district, or full address (OR logic)
      * - Filters by price range, categories, and minimum rating (AND logic)
+     * - Rating filter uses subquery to calculate average kost_rating at database level
      * - Paginates 20 items per page
      *
      * @param  MarketplaceFilterRequest  $request  HTTP request with optional filter parameters
@@ -86,15 +87,26 @@ class MarketplaceController extends Controller
                     $q->whereIn('categories.id', $categories);
                 });
             })
+            // Rating filter (FR-054): filter by average kost rating
+            ->when($ratingMin, function ($query, $ratingMin) {
+                $kostIdsWithRating = DB::table('reviews')
+                    ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereNotNull('reviews.kost_rating')
+                    ->groupBy('room_types.kost_id')
+                    ->havingRaw('AVG(reviews.kost_rating) >= ?', [$ratingMin])
+                    ->pluck('room_types.kost_id');
+
+                $query->whereIn('id', $kostIdsWithRating);
+            })
             ->with([
                 'address:id,kost_id,full_address,district,city,province,postal_code',
                 'categories:id,name,slug',
                 'kostImages' => fn ($q) => $q->where('is_thumbnail', true)
                     ->select('id', 'kost_id', 'image_path', 'is_thumbnail'),
             ])
-            // Note: Cannot use withAvg/withCount for reviews due to complex relationship
-            // Reviews are accessed via accessor methods (average_kost_rating, review_count)
-            ->orderByDesc('published_at') // Newest first
+            ->orderByDesc('published_at')
             ->paginate(20);
 
         // Get all categories for filter sidebar
