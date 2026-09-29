@@ -35,7 +35,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        // Role-based redirect per FR-007
+        // Role-based redirect
         return redirect()->intended($user->dashboardRoute());
     }
 

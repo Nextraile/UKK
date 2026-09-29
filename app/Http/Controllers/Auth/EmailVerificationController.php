@@ -14,36 +14,20 @@ use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 /**
- * Handles OTP-based email verification, replacing Breeze's link-based
- * verification flow.
- *
- * Exposes three actions:
- *  - {@see show()} — display the OTP entry page (PAGE-006)
- *  - {@see verify()} — validate a submitted 6-digit code (FR-004)
- *  - {@see resend()} — generate and dispatch a fresh OTP (FR-005),
- *    throttled to one request per minute.
+ * Handles OTP-based email verification, throttled to one request per minute.
  */
 class EmailVerificationController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     */
-    public function __construct(
-        private readonly OtpService $otpService,
-    ) {}
+    public function __construct(private readonly OtpService $otpService) {}
 
     /**
      * Show the OTP verification page.
      *
-     * OTP is generated lazily (FR-003/FR-004 on-demand): the verification
+     * OTP is generated lazily (on-demand): the verification
      * email is sent the first time this page is opened, and again once the
      * previous OTP has expired — NOT at registration. The `alreadyVerified`
      * branch above returns early, so no OTP is ever generated for verified
      * users.
-     *
-     * When the user's email is already verified, the page renders an
-     * "already verified" state instead of redirecting, so the user can
-     * follow a link to their role-based dashboard.
      *
      * @param  Request  $request  The incoming HTTP request.
      */

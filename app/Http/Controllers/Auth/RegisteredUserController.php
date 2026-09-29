@@ -38,17 +38,14 @@ class RegisteredUserController extends Controller
             'email_verified_at' => null,
         ]);
 
-        // Set role explicitly (not via mass-assignment).
         $user->role = 'user';
         $user->save();
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        // NOTE: No OTP is sent here (FR-003/FR-004 on-demand). The OTP is
-        // generated lazily the first time the user opens the verification
-        // page (EmailVerificationController::show). New users stay
-        // unverified but can browse the marketplace freely.
+        // NOTE: The OTP is generated lazily the first time the user opens the verification
+        // page (EmailVerificationController::show). New users stay unverified but can browse the marketplace freely.
         return redirect()
             ->route('marketplace.index')
             ->with('status', 'Akun Anda berhasil dibuat. Selamat datang di SewaKost!');

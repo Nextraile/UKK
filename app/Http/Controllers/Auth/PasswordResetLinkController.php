@@ -14,7 +14,6 @@ use Illuminate\View\View;
 
 /**
  * Handles the first two steps of the OTP-based password reset flow
- * (Flow A): requesting a reset code and verifying it.
  *
  * All actions run in the guest context — the flow is driven entirely by
  * session state (`password_reset_email`, `password_reset_verified`), never
@@ -23,12 +22,7 @@ use Illuminate\View\View;
  */
 class PasswordResetLinkController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     */
-    public function __construct(
-        private readonly OtpService $otpService,
-    ) {}
+    public function __construct( private readonly OtpService $otpService ) {}
 
     /**
      * Display the password reset link request view.

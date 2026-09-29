@@ -16,12 +16,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
- * Handles the final step of the OTP-based password reset flow (Flow A):
- * choosing a new password once the OTP has been verified.
- *
- * Unlike Breeze's token-based flow there is no reset token; access is
- * gated by the session flags `password_reset_email` and
- * `password_reset_verified` set by PasswordResetLinkController.
+ * Handles the final step of the OTP-based password reset flow
  */
 class NewPasswordController extends Controller
 {
@@ -48,8 +43,7 @@ class NewPasswordController extends Controller
      * Update the user's password after successful OTP verification.
      *
      * The submitted email must match the email stored in the session during
-     * the forgot-password step; this binds the password change to the user
-     * who actually requested the reset.
+     * the forgot-password step. If the email does not match, a validation exception is thrown.
      *
      * @param  ResetPasswordRequest  $request  The validated request.
      * @return RedirectResponse Toward the login page on success.
