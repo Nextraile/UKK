@@ -43,8 +43,32 @@
                                   availableSchemes: [],
                                   availabilityData: @js($availabilityMatrix),
                                   currentAvailability: null,
+                                  durationUnit: null,
+                                  durationValue: 1,
+                                  maxSliderValue: 24,
+                                  startDate: @js(old('start_date')),
                                   get total() {
                                       return (this.price * this.duration) + this.deposit;
+                                  },
+                                  get calculatedDuration() {
+                                      return this.durationValue * this.duration;
+                                  },
+                                  get calculatedDurationLabel() {
+                                      const total = this.calculatedDuration;
+                                      const labels = {
+                                          'day': 'hari',
+                                          'week': 'minggu',
+                                          'month': 'bulan'
+                                      };
+                                      return `${total} ${labels[this.durationUnit] || 'unit'}`;
+                                  },
+                                  get rentalPeriodDisplay() {
+                                      if (!this.startDate || !this.durationUnit || !this.calculatedDuration) {
+                                          return '-';
+                                      }
+                                      const start = new Date(this.startDate);
+                                      const end = this.calculateEndDate(start, this.calculatedDuration, this.durationUnit);
+                                      return this.formatDate(start) + ' - ' + this.formatDate(end);
                                   },
                                   filterSchemes() {
                                       if (!this.selectedRoomId) {
@@ -52,6 +76,8 @@
                                           this.price = 0;
                                           this.deposit = 0;
                                           this.currentAvailability = null;
+                                          this.durationUnit = null;
+                                          this.durationValue = 1;
                                           return;
                                       }
                                       const roomData = this.availabilityData[this.selectedRoomId];
@@ -60,10 +86,10 @@
                                       // Convert schemes object to array for template iteration
                                       this.availableSchemes = Object.entries(roomData.schemes).map(([id, scheme]) => ({
                                           id: parseInt(id),
-                                          name: this.getDurationLabel(scheme.duration_unit),
                                           price: scheme.price,
                                           deposit: scheme.deposit,
                                           duration_unit: scheme.duration_unit,
+                                          duration_value: scheme.duration_value,
                                           free_slots: scheme.free_slots,
                                           estimated_start: scheme.estimated_start,
                                           estimated_end: scheme.estimated_end,
@@ -85,17 +111,37 @@
                                           };
                                       }
                                   },
-                                  getDurationLabel(unit) {
+                                  calculateMaxSlider(unit) {
+                                      const limits = {
+                                          'month': 24,
+                                          'week': 52,
+                                          'day': 90
+                                      };
+                                      return limits[unit] || 24;
+                                  },
+                                  calculateEndDate(startDate, totalDuration, unit) {
+                                      const date = new Date(startDate);
+                                      if (unit === 'day') {
+                                          date.setDate(date.getDate() + totalDuration);
+                                      } else if (unit === 'week') {
+                                          date.setDate(date.getDate() + (totalDuration * 7));
+                                      } else if (unit === 'month') {
+                                          date.setMonth(date.getMonth() + totalDuration);
+                                      }
+                                      return date;
+                                  },
+                                  getDurationUnitLabel(unit) {
                                       const labels = {
-                                          'day': 'Harian',
-                                          'week': 'Mingguan', 
-                                          'month': 'Bulanan'
+                                          'day': 'hari',
+                                          'week': 'minggu',
+                                          'month': 'bulan'
                                       };
                                       return labels[unit] || unit;
                                   },
                                   formatDate(dateStr) {
                                       if (!dateStr) return '';
-                                      return new Date(dateStr).toLocaleDateString('id-ID', {
+                                      const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+                                      return date.toLocaleDateString('id-ID', {
                                           day: 'numeric',
                                           month: 'short',
                                           year: 'numeric'
@@ -115,7 +161,7 @@
                                     <option value="">-- Pilih Kamar --</option>
                                     @foreach($availabilityMatrix as $roomId => $roomData)
                                         <option value="{{ $roomId }}">
-                                            {{ $roomData['room_code'] }} ({{ array_sum(array_column($roomData['schemes'], 'free_slots')) > 0 ? 'Tersedia' : 'Penuh' }})
+                                            {{ $roomData['room_code'] }}{{ isset($roomData['room_type_name']) ? ' - ' . $roomData['room_type_name'] : '' }} ({{ array_sum(array_column($roomData['schemes'], 'free_slots')) > 0 ? 'Tersedia' : 'Penuh' }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -127,7 +173,16 @@
                                 <x-input-label for="price_scheme_id" value="Paket Harga" />
                                 <select id="price_scheme_id" name="price_scheme_id" required
                                         x-model.number="selectedSchemeId"
-                                        x-on:change="price = parseFloat($event.target.selectedOptions[0].dataset.price || 0); deposit = parseFloat($event.target.selectedOptions[0].dataset.deposit || 0); updateAvailability()"
+                                        x-on:change="
+                                            const option = $event.target.selectedOptions[0];
+                                            price = parseFloat(option.dataset.price || 0);
+                                            deposit = parseFloat(option.dataset.deposit || 0);
+                                            durationUnit = option.dataset.unit;
+                                            durationValue = parseInt(option.dataset.value);
+                                            maxSliderValue = calculateMaxSlider(durationUnit);
+                                            duration = 1;
+                                            updateAvailability()
+                                        "
                                         :disabled="!selectedRoomId || availableSchemes.length === 0"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <option value="">-- Pilih Paket --</option>
@@ -135,8 +190,10 @@
                                         <option :value="scheme.id" 
                                                 :data-price="scheme.price"
                                                 :data-deposit="scheme.deposit"
+                                                :data-unit="scheme.duration_unit"
+                                                :data-value="scheme.duration_value"
                                                 :selected="scheme.id == selectedSchemeId"
-                                                x-text="scheme.name + ' - Rp ' + scheme.price.toLocaleString('id-ID')"></option>
+                                                x-text="scheme.duration_value + ' ' + getDurationUnitLabel(scheme.duration_unit) + ' - Rp ' + scheme.price.toLocaleString('id-ID')"></option>
                                     </template>
                                 </select>
                                 <x-input-error :messages="$errors->get('price_scheme_id')" class="mt-2" />
@@ -152,6 +209,7 @@
                                 <x-input-label for="start_date" value="Tanggal Mulai (min {{ now()->addDays(4)->format('d M Y') }})" />
                                 <x-text-input id="start_date" name="start_date" type="date" 
                                               class="mt-1 block w-full"
+                                              x-model="startDate"
                                               min="{{ now()->addDays(4)->format('Y-m-d') }}"
                                               max="{{ now()->addDays(30)->format('Y-m-d') }}"
                                               :value="old('start_date')" required />
@@ -160,12 +218,23 @@
 
                             <!-- Duration -->
                             <div class="mb-6">
-                                <x-input-label for="duration" value="Durasi" />
-                                <x-text-input id="duration" name="duration" type="number" 
-                                              class="mt-1 block w-full"
-                                              min="1" max="24"
-                                              x-model.number="duration"
-                                              :value="old('duration', 1)" required />
+                                <x-input-label for="duration" value="Durasi (multiplier)" />
+                                <input id="duration" type="range" 
+                                       x-model.number="duration"
+                                       :min="1" 
+                                       :max="maxSliderValue"
+                                       step="1"
+                                       :disabled="!selectedSchemeId"
+                                       class="mt-1 block w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                
+                                <!-- Visual feedback: calculated duration -->
+                                <div x-show="selectedSchemeId" class="mt-2 text-sm text-gray-700 font-medium">
+                                    <span x-text="calculatedDurationLabel"></span>
+                                </div>
+                                
+                                <!-- Hidden input for form submission -->
+                                <input type="hidden" name="duration" :value="duration">
+                                
                                 <x-input-error :messages="$errors->get('duration')" class="mt-2" />
                             </div>
 
@@ -178,7 +247,7 @@
                                 </div>
                                 <div class="mb-2 flex justify-between">
                                     <span>Durasi:</span>
-                                    <span x-text="duration + ' unit'"></span>
+                                    <span x-text="rentalPeriodDisplay"></span>
                                 </div>
                                 <div class="mb-2 flex justify-between">
                                     <span>Deposit:</span>

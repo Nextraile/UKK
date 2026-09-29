@@ -99,11 +99,14 @@ class RentalController extends Controller
      * [
      *   room_id => [
      *     'room_code' => string,
+     *     'room_type_name' => string,
      *     'max_occupants' => int,
      *     'schemes' => [
      *       price_scheme_id => [
+     *         'duration_value' => int,
      *         'duration_unit' => string,
      *         'price' => float,
+     *         'deposit' => float,
      *         'free_slots' => int,
      *         'estimated_start' => Y-m-d,
      *         'estimated_end' => Y-m-d,
@@ -127,6 +130,7 @@ class RentalController extends Controller
 
                 $matrix[$room->id] = [
                     'room_code' => $room->code,
+                    'room_type_name' => $roomType->name,
                     'max_occupants' => $roomType->max_occupants,
                     'schemes' => [],
                 ];
@@ -144,6 +148,7 @@ class RentalController extends Controller
                     $freeSlots = $room->getFreeSlotsForPeriod($startDate, $endDate);
 
                     $matrix[$room->id]['schemes'][$priceScheme->id] = [
+                        'duration_value' => $priceScheme->duration_value,
                         'duration_unit' => $priceScheme->duration_unit,
                         'price' => (float) $priceScheme->price,
                         'deposit' => (float) $roomType->security_deposit,
