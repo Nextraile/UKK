@@ -246,6 +246,12 @@ class Kost extends Model
      */
     public function getAverageKostRatingAttribute(): ?float
     {
+        if (array_key_exists('average_kost_rating', $this->attributes)) {
+            return $this->attributes['average_kost_rating'] !== null
+                ? (float) $this->attributes['average_kost_rating']
+                : null;
+        }
+
         $average = $this->reviewsQuery()
             ->whereNotNull('kost_rating')
             ->avg('kost_rating');
@@ -270,6 +276,10 @@ class Kost extends Model
      */
     public function getReviewCountAttribute(): int
     {
+        if (array_key_exists('review_count', $this->attributes)) {
+            return (int) $this->attributes['review_count'];
+        }
+
         return $this->reviewsQuery()->count();
     }
 

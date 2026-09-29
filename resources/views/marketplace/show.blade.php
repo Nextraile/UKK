@@ -446,6 +446,9 @@
                                         <div class="mt-3 pl-4 border-l-2 border-gray-200">
                                             <div class="flex items-center gap-2 mb-1">
                                                 <span class="text-xs font-medium text-gray-700">Rating Kamar:</span>
+                                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                                                    {{ $review->rental->room->roomType->name ?? '-' }} - {{ $review->rental->room->code ?? '-' }}
+                                                </span>
                                                 <div class="flex items-center gap-0.5">
                                                     @for($i = 1; $i <= 5; $i++)
                                                         <svg class="w-3 h-3 {{ $i <= $review->room_rating ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">

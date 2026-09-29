@@ -38,7 +38,11 @@ class KostDetailController extends Controller
         $reviews = Review::whereHas('rental.room', function ($query) use ($kost) {
             $query->where('kost_id', $kost->id);
         })
-            ->with(['rental.user'])
+            ->with([
+                'rental.user',
+                'rental.room.roomType',
+                'rental.room',
+            ])
             ->latest()
             ->paginate(10);
 

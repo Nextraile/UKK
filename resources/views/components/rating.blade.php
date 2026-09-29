@@ -12,6 +12,10 @@
 ])
 
 @php
+// Ensure value is always a valid number
+$ratingValue = is_numeric($value) ? (float) $value : 0;
+$ratingValue = max(0, min(5, $ratingValue)); // Clamp between 0-5
+
 $sizeClasses = [
     'sm' => 'w-3 h-3',
     'md' => 'w-4 h-4',
@@ -21,7 +25,7 @@ $starSize = $sizeClasses[$size] ?? $sizeClasses['md'];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'flex items-center gap-2']) }}
-  role="img" aria-label="{{ number_format($value, 1, ',', '.') }} dari 5{{ $count ? ' (' . $count . ' ulasan)' : '' }}">
+  role="img" aria-label="{{ number_format($ratingValue, 1, ',', '.') }} dari 5{{ $count ? ' (' . $count . ' ulasan)' : '' }}">
   <span class="flex items-center gap-0.5 text-warning-700" aria-hidden="true">
     @for ($i = 1; $i <= 5; $i++)
       <span class="relative inline-block {{ $starSize }}">
@@ -32,7 +36,7 @@ $starSize = $sizeClasses[$size] ?? $sizeClasses['md'];
         
         <!-- Overlay fill (partial width based on value) -->
         @php
-          $fillPercent = min(max($value - ($i - 1), 0), 1) * 100;
+          $fillPercent = min(max($ratingValue - ($i - 1), 0), 1) * 100;
         @endphp
         @if ($fillPercent > 0)
           <span class="absolute inset-0 overflow-hidden" style="width: {{ $fillPercent }}%">
@@ -45,9 +49,9 @@ $starSize = $sizeClasses[$size] ?? $sizeClasses['md'];
     @endfor
   </span>
   
-  <span class="text-sm font-semibold text-gray-900">{{ number_format($value, 1, ',', '.') }}</span>
+  <span class="text-sm font-semibold text-gray-900">{{ number_format($ratingValue, 1, ',', '.') }}</span>
   
   @if ($count !== null)
-    <span class="text-sm text-gray-500">({{ $count }} ulasan)</span>
+    <span class="text-sm text-gray-600">({{ $count }} ulasan)</span>
   @endif
 </div>
