@@ -36,16 +36,12 @@ class RentalController extends Controller
 {
     /**
      * Display list of tenant's rentals (dashboard).
-     *
-     * FR-096: View own rentals
-     * PAGE-007: Dashboard with stat cards + filters
      */
     public function index(): View
     {
         /** @var User $user */
         $user = auth()->user();
 
-        // Load rentals with relationships (eager loading to avoid N+1)
         $rentals = $user->rentals()
             ->with([
                 'room.roomType.kost.owner',
@@ -55,11 +51,8 @@ class RentalController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calculate stats from collection (no separate queries)
         $stats = [
             'active' => $rentals->where('status', 'active')->count(),
-            // Pending actions: only payment_pending (awaiting payment) and paid (awaiting doc upload)
-            // Confirmed status excluded because admin verifies documents (no tenant action needed)
             'pending_actions' => $rentals->whereIn('status', ['payment_pending', 'paid'])->count(),
             'completed' => $rentals->where('status', 'completed')->count(),
             'cancelled' => $rentals->where('status', 'cancelled')->count(),
@@ -70,14 +63,9 @@ class RentalController extends Controller
 
     /**
      * Show rental creation form.
-     *
-     * FR-063: Display available rooms & price schemes
-     *
-     * Query params: kost_id (required)
      */
     public function create(ValidateKostIdRequest $request): View
     {
-        // Validate kost_id
         $request->validated();
 
         $kost = Kost::with([
@@ -120,12 +108,12 @@ class RentalController extends Controller
     {
         $matrix = [];
         $today = now();
-        $minStartDate = $today->copy()->addDays(4); // ADR-016: Min 4 days advance
+        $minStartDate = $today->copy()->addDays(4); // Min 4 days advance
 
         foreach ($roomTypes as $roomType) {
             foreach ($roomType->rooms as $room) {
                 if ($room->status !== 'available') {
-                    continue; // Skip unavailable rooms
+                    continue;
                 }
 
                 $matrix[$room->id] = [
@@ -140,7 +128,7 @@ class RentalController extends Controller
                     $startDate = $minStartDate->copy();
                     $endDate = $this->calculateEndDate(
                         $startDate,
-                        1, // 1 unit of duration (for estimation)
+                        1, // 1 unit of duration (for estimation) seharusnya duration_value
                         $priceScheme->duration_unit
                     );
 
