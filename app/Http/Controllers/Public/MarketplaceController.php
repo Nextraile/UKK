@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Review\Models\Review;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\MarketplaceFilterRequest;
 use Illuminate\Support\Facades\DB;
@@ -21,22 +22,11 @@ class MarketplaceController extends Controller
     /**
      * Display marketplace landing page active kosts.
      *
-     * Implements FR-048 (marketplace browsing), FR-049 (display kost info), FR-051 (search),
-     * FR-052 (price filter), FR-053 (category filter), FR-054 (rating filter), FR-055 (combined filters).
-     * Query optimizations:
-     * - Eager loads address, categories, thumbnail images (prevents N+1)
-     * - Filters only active kosts, respects soft deletes
-     * - Search by name, city, district, or full address (OR logic)
-     * - Filters by price range, categories, and minimum rating (AND logic)
-     * - Rating filter uses subquery to calculate average kost_rating at database level
-     * - Paginates 20 items per page
-     *
      * @param  MarketplaceFilterRequest  $request  HTTP request with optional filter parameters
      * @return View marketplace page with paginated active kosts, filters, and all categories.
      */
     public function index(MarketplaceFilterRequest $request): View
     {
-        // Validate inputs (FR-051, FR-052, FR-053, FR-054)
         $validated = $request->validated();
 
         $search = $validated['search'] ?? null;
@@ -48,7 +38,6 @@ class MarketplaceController extends Controller
         $kosts = Kost::query()
             ->where('status', 'active')
             ->whereNull('deleted_at')
-            // Search filter (FR-051): name OR address fields (optimized with FULLTEXT search)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -68,7 +57,6 @@ class MarketplaceController extends Controller
                         });
                 });
             })
-            // Price filter (FR-052): filter by active price schemes
             ->when($priceMin, function ($query, $priceMin) {
                 $query->whereHas('roomTypes.priceSchemes', function ($q) use ($priceMin) {
                     $q->where('is_active', true)
@@ -81,13 +69,11 @@ class MarketplaceController extends Controller
                         ->where('price', '<=', $priceMax);
                 });
             })
-            // Category filter (FR-053): filter by category IDs
             ->when(! empty($categories), function ($query) use ($categories) {
                 $query->whereHas('categories', function ($q) use ($categories) {
                     $q->whereIn('categories.id', $categories);
                 });
             })
-            // Rating filter (FR-054): filter by average kost rating
             ->when($ratingMin, function ($query, $ratingMin) {
                 $kostIdsWithRating = DB::table('reviews')
                     ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
@@ -100,6 +86,21 @@ class MarketplaceController extends Controller
 
                 $query->whereIn('id', $kostIdsWithRating);
             })
+            ->addSelect([
+                'kosts.*',
+                'average_kost_rating' => Review::selectRaw('ROUND(AVG(kost_rating), 1)')
+                    ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->whereNotNull('kost_rating'),
+                'review_count' => Review::selectRaw('COUNT(*)')
+                    ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->whereNotNull('kost_rating'),
+            ])
             ->with([
                 'address:id,kost_id,full_address,district,city,province,postal_code',
                 'categories:id,name,slug',
@@ -109,7 +110,6 @@ class MarketplaceController extends Controller
             ->orderByDesc('published_at')
             ->paginate(20);
 
-        // Get all categories for filter sidebar
         $allCategories = Category::orderBy('name')->get();
 
         return view('marketplace.index', compact('kosts', 'search', 'allCategories'));
