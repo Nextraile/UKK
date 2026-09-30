@@ -48,80 +48,107 @@
                 
                 <!-- Kost Info -->
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $kost->name }}</h1>
+                    @php
+                        $nonThumbnailImages = $kost->kostImages->where('is_thumbnail', false);
+                    @endphp
                     
-                    <!-- Location -->
-                    <div class="flex items-start text-gray-600 mb-4">
-                        <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <div>
-                            @if($kost->address)
-                                <p>{{ $kost->address->full_address }}, 
-                                    {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
-                                    @if($kost->address->postal_code)
-                                        ({{ $kost->address->postal_code }})
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <!-- Left column: Kost data (2/3 width on desktop) -->
+                        <div class="w-full md:w-2/3 order-2 md:order-1">
+                            <!-- Kost name + badge -->
+                            <div class="flex flex-wrap items-center gap-3 mb-4">
+                                <h1 class="text-3xl font-bold text-gray-900">{{ $kost->name }}</h1>
+                                @if($kost->completed_rentals_count > 0)
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-medium bg-blue-100 text-blue-700 rounded-full">
+                                        {{ $kost->completed_rentals_count }} kali disewa
+                                    </span>
+                                @endif
+                            </div>
+                            
+                            <!-- Location -->
+                            <div class="flex items-start text-gray-600 mb-4">
+                                <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <div>
+                                    @if($kost->address)
+                                        <p>{{ $kost->address->full_address }}, 
+                                            {{ $kost->address->district }}, {{ $kost->address->city }}, {{ $kost->address->province }}
+                                            @if($kost->address->postal_code)
+                                                ({{ $kost->address->postal_code }})
+                                            @endif
+                                        </p>
+                                    @else
+                                        <p>Alamat tidak tersedia</p>
                                     @endif
-                                </p>
-                            @else
-                                <p>Alamat tidak tersedia</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Categories -->
+                            @if($kost->categories->isNotEmpty())
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    @foreach($kost->categories as $category)
+                                        <span class="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full">
+                                            {{ $category->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                            
+                            <!-- Description -->
+                            @if($kost->description)
+                                <div class="prose max-w-none mb-6">
+                                    <h3 class="text-lg font-semibold mb-2">Deskripsi</h3>
+                                    <p class="text-gray-600">{{ $kost->description }}</p>
+                                </div>
+                            @endif
+                            
+                            <!-- Facilities -->
+                            @if($kost->facilities)
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Fasilitas</h3>
+                                    <ul class="grid grid-cols-2 gap-2">
+                                        @foreach($kost->facilities as $facility)
+                                            <li class="flex items-center text-sm text-gray-600">
+                                                <svg class="w-4 h-4 mr-2 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                {{ $facility }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            
+                            <!-- Rules -->
+                            @if($kost->rules)
+                                <div class="mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Peraturan</h3>
+                                    <ul class="space-y-1">
+                                        @foreach($kost->rules as $rule)
+                                            <li class="flex items-start text-sm text-gray-600">
+                                                <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                                {{ $rule }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+                        
+                        <!-- Right column: Image gallery (1/3 width on desktop) -->
+                        <div class="w-full md:w-1/3 order-1 md:order-2">
+                            @if($nonThumbnailImages->count() > 0)
+                                <x-grid-gallery 
+                                    :images="$nonThumbnailImages" 
+                                    :gallery-id="'kost-' . $kost->id" 
+                                />
                             @endif
                         </div>
                     </div>
-                    
-                    <!-- Categories -->
-                    @if($kost->categories->isNotEmpty())
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            @foreach($kost->categories as $category)
-                                <span class="px-3 py-1 bg-primary-100 text-primary-700 text-sm rounded-full">
-                                    {{ $category->name }}
-                                </span>
-                            @endforeach
-                        </div>
-                    @endif
-                    
-                    <!-- Description -->
-                    @if($kost->description)
-                        <div class="prose max-w-none mb-6">
-                            <h3 class="text-lg font-semibold mb-2">Deskripsi</h3>
-                            <p class="text-gray-600">{{ $kost->description }}</p>
-                        </div>
-                    @endif
-                    
-                    <!-- Facilities -->
-                    @if($kost->facilities)
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Fasilitas</h3>
-                            <ul class="grid grid-cols-2 gap-2">
-                                    @foreach($kost->facilities as $facility)
-                                        <li class="flex items-center text-sm text-gray-600">
-                                            <svg class="w-4 h-4 mr-2 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                            {{ $facility }}
-                                        </li>
-                                    @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                    
-                    <!-- Rules -->
-                    @if($kost->rules)
-                        <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Peraturan</h3>
-                            <ul class="space-y-1">
-                                @foreach($kost->rules as $rule)
-                                    <li class="flex items-start text-sm text-gray-600">
-                                        <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                        {{ $rule }}
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
                     
                     <!-- Document Requirements -->
                     @if($kost->documentRequirements->isNotEmpty())
@@ -173,11 +200,6 @@
                                         L.marker([{{ $kost->address->latitude }}, {{ $kost->address->longitude }}])
                                             .addTo(this.map)
                                             .bindPopup('{{ $kost->name }}');
-                                    });
-                                    this.$cleanup(() => {
-                                        if (this.map) {
-                                            this.map.remove();
-                                        }
                                     });
                                 }
                             }"
@@ -252,8 +274,8 @@
                                                 {{ $roomType->name }}
                                             </h3>
                                             <p class="text-sm text-gray-600 mt-1">
-                                                @if($roomType->size)
-                                                    {{ $roomType->size }} m² •
+                                                @if($roomType->room_size)
+                                                    {{ $roomType->room_size }} •
                                                 @endif
                                                 Max {{ $roomType->max_occupants }} orang
                                                 •
@@ -264,6 +286,9 @@
                                                     Kamar tidak tersedia
                                                   @endif
                                                 </span>
+                                                @if($roomType->completed_rentals_count > 0)
+                                                    • {{ $roomType->completed_rentals_count }} kali disewa
+                                                @endif
                                             </p>
                                         </div>
                                         <svg 
@@ -281,22 +306,88 @@
                                     <div 
                                         x-show="open"
                                         x-collapse
-                                        class="px-4 py-4 bg-white"
+                                        class="px-6 pb-6"
                                     >
-                                        
-                                        <!-- Thumbnail (if exists) -->
-                                        @php $thumbnail = $roomType->roomTypeImages->first(); @endphp
-                                        @if($thumbnail)
-                                            <div class="mb-4">
-                                                <img 
-                                                    src="{{ $thumbnail->image_url }}" 
-                                                    alt="{{ $roomType->name }}"
-                                                    class="w-full h-48 object-cover rounded-lg"
-                                                >
+                                        <!-- 2-column section: Gallery + Room details -->
+                                        <div class="flex flex-col md:flex-row gap-4 mb-4">
+                                            <!-- Left column: Image gallery -->
+                                            <div class="w-full md:w-1/3 order-1">
+                                                @if($roomType->roomTypeImages->count() > 0)
+                                                    <x-grid-gallery 
+                                                        :images="$roomType->roomTypeImages" 
+                                                        :gallery-id="'room-type-' . $roomType->id" 
+                                                    />
+                                                @endif
                                             </div>
-                                        @endif
+                                            
+                                            <!-- Right column: Room type data ONLY -->
+                                            <div class="w-full md:w-2/3 order-2">
+                                                <div class="space-y-3">
+                                                    @if($roomType->description)
+                                                        <div>
+                                                            <p class="text-sm text-gray-700">{{ $roomType->description }}</p>
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    <div class="flex flex-wrap gap-4 text-sm">
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"/>
+                                                            </svg>
+                                                            <span class="text-gray-700">{{ $roomType->room_size }}</span>
+                                                        </div>
+                                                        
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                            </svg>
+                                                            <span class="text-gray-700">Max {{ $roomType->max_occupants }} orang</span>
+                                                        </div>
+                                                        
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                            </svg>
+                                                            <span class="text-gray-700">Deposit: Rp {{ number_format($roomType->security_deposit, 0, ',', '.') }}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    @if($roomType->facilities && count($roomType->facilities) > 0)
+                                                        <div>
+                                                            <h5 class="text-xs font-semibold text-gray-700 uppercase mb-2">Fasilitas Kamar</h5>
+                                                            <ul class="grid grid-cols-2 gap-1.5">
+                                                                @foreach($roomType->facilities as $facility)
+                                                                    <li class="flex items-center text-sm text-gray-600">
+                                                                        <svg class="w-3 h-3 mr-1.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                                        </svg>
+                                                                        {{ $facility }}
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    @if($roomType->rules && count($roomType->rules) > 0)
+                                                        <div>
+                                                            <h5 class="text-xs font-semibold text-gray-700 uppercase mb-2">Peraturan Kamar</h5>
+                                                            <ul class="space-y-1">
+                                                                @foreach($roomType->rules as $rule)
+                                                                    <li class="flex items-start text-sm text-gray-600">
+                                                                        <svg class="w-3 h-3 mr-1.5 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                                        </svg>
+                                                                        {{ $rule }}
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
                                         
-                                        <!-- Price Schemes -->
+                                        <!-- Full-width section: Pilihan Harga -->
                                         @if($roomType->priceSchemes->isNotEmpty())
                                             <div class="mb-4">
                                                 <h4 class="text-sm font-semibold text-gray-700 mb-3">Pilihan Harga</h4>
@@ -318,9 +409,6 @@
                                                                  <p class="text-xl font-bold text-primary-600">
                                                                      Rp {{ number_format($scheme->price, 0, ',', '.') }}
                                                                  </p>
-                                                                <p class="text-xs text-gray-500">
-                                                                    per {{ $scheme->duration_unit === 'month' ? 'bulan' : ($scheme->duration_unit === 'week' ? 'minggu' : 'hari') }}
-                                                                </p>
                                                             </div>
                                                         </div>
                                                     @endforeach
@@ -330,22 +418,24 @@
                                             <p class="text-sm text-gray-500 mb-4">Tidak ada skema harga aktif</p>
                                         @endif
                                         
-                                        <!-- Action Button -->
-                                        @if($roomType->available_count > 0)
-                                            <a 
-                                                href="{{ route('rentals.create', ['kost_id' => $kost->id, 'room_type_id' => $roomType->id]) }}"
-                                                class="block w-full px-4 py-2 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors"
-                                            >
-                                                Pilih Kamar Ini
-                                            </a>
-                                        @else
-                                            <button 
-                                                disabled
-                                                class="block w-full px-4 py-2 bg-gray-400 text-white text-center font-semibold rounded-lg opacity-50 cursor-not-allowed"
-                                            >
-                                                Tidak Tersedia
-                                            </button>
-                                        @endif
+                                        <!-- Full-width section: Action button -->
+                                        <div>
+                                            @if($roomType->available_count > 0)
+                                                <a 
+                                                    href="{{ route('rentals.create', ['kost_id' => $kost->id, 'room_type_id' => $roomType->id]) }}"
+                                                    class="block w-full px-4 py-2 bg-primary-600 text-white text-center font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+                                                >
+                                                    Pilih Kamar Ini
+                                                </a>
+                                            @else
+                                                <button 
+                                                    disabled
+                                                    class="block w-full px-4 py-2 bg-gray-400 text-white text-center font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                                                >
+                                                    Tidak Tersedia
+                                                </button>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -434,7 +524,7 @@
                                                 </div>
                                             </div>
                                             @if($review->kost_comment)
-                                                <p class="text-gray-700 text-sm leading-relaxed ml-4">
+                                                <p class="text-gray-700 text-sm leading-relaxed">
                                                     {{ $review->kost_comment }}
                                                 </p>
                                             @endif
@@ -445,10 +535,10 @@
                                     @if($review->room_rating)
                                         <div class="mt-3 pl-4 border-l-2 border-gray-200">
                                             <div class="flex items-center gap-2 mb-1">
-                                                <span class="text-xs font-medium text-gray-700">Rating Kamar:</span>
+                                                <span class="text-xs font-medium text-gray-700">Rating Kamar
                                                 <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
                                                     {{ $review->rental->room->roomType->name ?? '-' }} - {{ $review->rental->room->code ?? '-' }}
-                                                </span>
+                                                </span> :</span>
                                                 <div class="flex items-center gap-0.5">
                                                     @for($i = 1; $i <= 5; $i++)
                                                         <svg class="w-3 h-3 {{ $i <= $review->room_rating ? 'text-yellow-400' : 'text-gray-300' }} fill-current" viewBox="0 0 20 20">
