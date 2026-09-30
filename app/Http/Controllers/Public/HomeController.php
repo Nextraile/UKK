@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Rental\Models\Rental;
+use App\Domain\Review\Models\Review;
 use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
@@ -19,7 +21,8 @@ class HomeController extends Controller
     /**
      * Display landing page with featured kosts.
      *
-     * Featured kosts: 6 random active kosts.
+     * Featured kosts: 6 kosts with highest ratings (Kost Terpopuler).
+     * Falls back to newest kosts if no ratings available.
      * Static testimonials for social proof.
      */
     public function index(): View
@@ -32,7 +35,28 @@ class HomeController extends Controller
                 'address',
                 'kostImages' => fn ($q) => $q->where('is_thumbnail', true),
             ])
-            ->inRandomOrder()
+            ->addSelect([
+                'kosts.*',
+                'average_kost_rating' => Review::selectRaw('ROUND(AVG(kost_rating), 1)')
+                    ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->whereNotNull('kost_rating'),
+                'review_count' => Review::selectRaw('COUNT(*)')
+                    ->join('rentals', 'reviews.rental_id', '=', 'rentals.id')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->whereNotNull('kost_rating'),
+                'completed_rentals_count' => Rental::selectRaw('COUNT(*)')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->where('rentals.status', 'completed'),
+            ])
+            ->orderByRaw('COALESCE(average_kost_rating, 0) DESC')
+            ->orderBy('created_at', 'desc')
             ->limit(6)
             ->get();
 
