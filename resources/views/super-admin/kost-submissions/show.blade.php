@@ -118,8 +118,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" x-data="{ lightbox: false, currentImage: '' }">
                         @foreach($submission->kostImages as $image)
                             <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition cursor-pointer"
-                                 @click="lightbox = true; currentImage = '/storage/{{ $image->image_path }}'">
-                                <img src="/storage/{{ $image->image_path }}" 
+                                 @click="lightbox = true; currentImage = '{{ $image->image_url }}'">
+                                <img src="{{ $image->image_url }}" 
                                      alt="Kost image {{ $loop->iteration }}"
                                      class="w-full h-full object-cover">
                             </div>
@@ -162,7 +162,7 @@
                         @if($submission->qris_image_path)
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-700 mb-2">QRIS</h4>
-                                <img src="/storage/{{ $submission->qris_image_path }}" 
+                                <img src="{{ image_url($submission->qris_image_path) }}" 
                                      alt="QRIS Code"
                                      class="max-w-xs border-2 border-gray-300 rounded-lg">
                             </div>
@@ -265,7 +265,7 @@
                                     {{-- Room Type Image --}}
                                     @if($roomType->roomTypeImages->first())
                                         <div class="flex-shrink-0">
-                                            <img src="/storage/{{ $roomType->roomTypeImages->first()->image_path }}" 
+                                            <img src="{{ $roomType->roomTypeImages->first()->image_url }}" 
                                                  alt="{{ $roomType->name }}"
                                                  class="w-24 h-24 object-cover rounded-lg">
                                         </div>

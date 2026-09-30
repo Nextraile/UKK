@@ -217,8 +217,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4" x-data="{ lightbox: false, currentImage: '' }">
                 @foreach($kost->kostImages as $image)
                     <div class="relative aspect-square rounded-lg overflow-hidden bg-gray-100 hover:opacity-90 transition cursor-pointer"
-                         @click="lightbox = true; currentImage = '/storage/{{ $image->image_path }}'">
-                        <img src="/storage/{{ $image->image_path }}" 
+                         @click="lightbox = true; currentImage = '{{ $image->image_url }}'">
+                        <img src="{{ $image->image_url }}" 
                              alt="Kost image {{ $loop->iteration }}"
                              class="w-full h-full object-cover">
                         @if($image->is_thumbnail)
@@ -277,7 +277,7 @@
                 @if($kost->qris_image_path)
                     <div>
                         <h4 class="text-sm font-semibold text-gray-700 mb-2">QRIS</h4>
-                        <img src="/storage/{{ $kost->qris_image_path }}" 
+                        <img src="{{ image_url($kost->qris_image_path) }}" 
                              alt="QRIS Code"
                              class="max-w-xs border-2 border-gray-300 rounded-lg">
                     </div>
@@ -464,7 +464,7 @@
                                 class="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition rounded-lg">
                             <div class="flex items-center gap-4">
                                 @if($roomType->roomTypeImages->first())
-                                    <img src="/storage/{{ $roomType->roomTypeImages->first()->image_path }}" 
+                                    <img src="{{ $roomType->roomTypeImages->first()->image_url }}" 
                                          alt="{{ $roomType->name }}"
                                          class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
                                 @endif
@@ -530,7 +530,7 @@
                                         <h5 class="text-sm font-semibold text-gray-700 mb-2">Foto Tipe Kamar ({{ $roomType->roomTypeImages->count() }})</h5>
                                         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                                             @foreach($roomType->roomTypeImages as $image)
-                                                <img src="/storage/{{ $image->image_path }}" 
+                                                <img src="{{ $image->image_url }}" 
                                                      alt="Room type image"
                                                      class="w-full aspect-square object-cover rounded cursor-pointer hover:opacity-75 transition">
                                             @endforeach

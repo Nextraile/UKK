@@ -854,9 +854,9 @@
                                             
                                             {{-- Document Preview --}}
                                             <div class="mb-3">
-                                                <a href="/storage/{{ $document->document_path }}" target="_blank" class="block group relative">
-                                                    @if(in_array(pathinfo($document->document_path, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png']))
-                                                        <img src="/storage/{{ $document->document_path }}" 
+                                                <a href="{{ route('rentals.documents.download', $document) }}" target="_blank" class="block group relative">
+                                                    @if(in_array(pathinfo($document->document_path, PATHINFO_EXTENSION), ['jpg', 'jpeg', 'jpe', 'png']))
+                                                        <img src="{{ route('rentals.documents.download', $document) }}" 
                                                              alt="{{ $document->document_type }}"
                                                              class="w-full h-48 object-cover rounded-lg border border-success-300 group-hover:opacity-90 transition-opacity">
                                                     @else
@@ -881,7 +881,7 @@
                                             </div>
                                             
                                             {{-- Download Button --}}
-                                            <a href="/storage/{{ $document->document_path }}" 
+                                            <a href="{{ route('rentals.documents.download', $document) }}" 
                                                download
                                                class="block w-full text-center px-4 py-2 bg-white border-gray-200 border-2 border-success-300 font-medium rounded-lg hover:bg-success-50 transition-colors">
                                                 <span class="flex items-center justify-center gap-2">
