@@ -2,3 +2,6 @@
 !private/
 !public/
 !.gitignore
+!public/seed-samples/
+public/seed-samples/*
+!public/seed-samples/.gitkeep
