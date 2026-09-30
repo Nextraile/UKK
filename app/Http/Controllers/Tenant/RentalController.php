@@ -128,7 +128,7 @@ class RentalController extends Controller
                     $startDate = $minStartDate->copy();
                     $endDate = $this->calculateEndDate(
                         $startDate,
-                        1, // 1 unit of duration (for estimation) seharusnya duration_value
+                        $priceScheme->duration_value,
                         $priceScheme->duration_unit
                     );
 
