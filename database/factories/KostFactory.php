@@ -75,7 +75,7 @@ class KostFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'approved',
             'approved_at' => now(),
-            'approved_by' => User::factory()->superAdmin(),
+            'approved_by' => $attributes['approved_by'] ?? User::factory()->superAdmin(),
         ]);
     }
 
@@ -87,7 +87,7 @@ class KostFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => 'active',
             'approved_at' => now()->subDays(2),
-            'approved_by' => User::factory()->superAdmin(),
+            'approved_by' => $attributes['approved_by'] ?? User::factory()->superAdmin(),
             'published_at' => now()->subDay(),
         ]);
     }

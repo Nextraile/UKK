@@ -4,87 +4,65 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Domain\Seeding\ImageUrlGenerator;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
+/**
+ * DEPRECATED: This seeder previously downloaded 60 document files via HTTP.
+ *
+ * Now replaced by ImageUrlGenerator which generates external URLs instantly.
+ * Kept for backward compatibility but does nothing when executed.
+ *
+ * Migration guide:
+ * - Use ImageUrlGenerator::document($id) for document URLs
+ * - Use ImageUrlGenerator::documentBatch($count) for batch generation
+ * - No HTTP downloads required - URLs point to external services
+ */
 class DevSampleDocumentSeeder extends Seeder
 {
     /**
-     * Download dummy documents from LoremFlickr for testing.
+     * Generate dummy document URLs (no downloads).
      *
-     * Downloads:
+     * Previously downloaded:
      * - 20 KTP documents (600x400 portrait)
      * - 20 Selfie with KTP documents (400x600 portrait)
      * - 20 Payment proofs (800x600 landscape)
      *
-     * Total: 60 files (~30 seconds download time)
-     *
-     * These files are stored in private disk and referenced by RentalSeeder.
+     * Now: Generates external URLs instantly using ImageUrlGenerator.
+     * Total: 60 URLs generated (~instant, no HTTP calls).
      */
     public function run(): void
     {
-        $this->command->info('📄 Downloading dummy documents for testing...');
+        $this->command->info('🔗 Generating document URLs (no downloads)...');
         $this->command->newLine();
 
-        // Create directories if they don't exist
-        Storage::disk('private')->makeDirectory('rental-documents');
-        Storage::disk('private')->makeDirectory('payment-proofs');
+        // Generate document URLs instantly (no HTTP downloads)
+        $this->command->info('📄 Generating document URLs (60 URLs)...');
 
-        // Download 20 KTP documents (600x400 portrait)
-        $this->downloadDocuments('rental-documents', 'seed-ktp', 20, 600, 400);
+        // Generate 20 KTP document URLs
+        $ktpUrls = ImageUrlGenerator::documentBatch(20, startId: 1);
+        $this->command->info('   ✓ Generated 20 KTP document URLs');
 
-        // Download 20 selfie with KTP documents (400x600 portrait)
-        $this->downloadDocuments('rental-documents', 'seed-selfie', 20, 400, 600);
+        // Generate 20 selfie document URLs
+        $selfieUrls = ImageUrlGenerator::documentBatch(20, startId: 21);
+        $this->command->info('   ✓ Generated 20 Selfie document URLs');
 
-        // Download 20 payment proofs (800x600 landscape)
-        $this->downloadDocuments('payment-proofs', 'seed-payment', 20, 800, 600);
+        // Generate 20 payment proof URLs
+        $paymentUrls = ImageUrlGenerator::documentBatch(20, startId: 41);
+        $this->command->info('   ✓ Generated 20 Payment proof URLs');
+
+        // Store URLs in cache for RentalSeeder to consume (optional)
+        cache()->put('seeder:ktp_document_urls', $ktpUrls, now()->addHour());
+        cache()->put('seeder:selfie_document_urls', $selfieUrls, now()->addHour());
+        cache()->put('seeder:payment_proof_urls', $paymentUrls, now()->addHour());
 
         $this->command->newLine();
-        $this->command->info('✅ Documents downloaded successfully!');
-        $this->command->info('   - 20 KTP documents in storage/app/private/rental-documents/');
-        $this->command->info('   - 20 Selfie documents in storage/app/private/rental-documents/');
-        $this->command->info('   - 20 Payment proofs in storage/app/private/payment-proofs/');
-    }
-
-    /**
-     * Download documents from LoremFlickr.
-     *
-     * @param  string  $dir  Directory to store files (relative to private disk)
-     * @param  string  $prefix  Filename prefix
-     * @param  int  $count  Number of files to download
-     * @param  int  $width  Image width
-     * @param  int  $height  Image height
-     */
-    private function downloadDocuments(string $dir, string $prefix, int $count, int $width, int $height): void
-    {
-        $this->command->info("📥 Downloading {$count} {$prefix} files ({$width}x{$height})...");
-        $bar = $this->command->getOutput()->createProgressBar($count);
-        $bar->start();
-
-        for ($i = 1; $i <= $count; $i++) {
-            try {
-                // Use LoremFlickr with contextual tags for better variety
-                $tags = match ($prefix) {
-                    'seed-ktp' => 'document,card,id',
-                    'seed-selfie' => 'portrait,person,face',
-                    'seed-payment' => 'receipt,document,paper',
-                    default => 'document',
-                };
-
-                $url = "https://loremflickr.com/{$width}/{$height}/{$tags}?random={$i}";
-                $content = Http::timeout(20)->get($url)->throw()->body();
-
-                Storage::disk('private')->put("{$dir}/{$prefix}-{$i}.jpg", $content);
-            } catch (\Exception $e) {
-                $this->command->warn("\n⚠️  Failed to download {$prefix}-{$i}: {$e->getMessage()}");
-                $this->command->warn('   Skipping and continuing...');
-            }
-
-            $bar->advance();
-        }
-
-        $bar->finish();
+        $this->command->info('✅ Document URLs generated successfully!');
+        $this->command->info('   - 20 KTP document URLs cached');
+        $this->command->info('   - 20 Selfie document URLs cached');
+        $this->command->info('   - 20 Payment proof URLs cached');
         $this->command->newLine();
+        $this->command->warn('⚠️  MIGRATION NOTE: This seeder no longer downloads files.');
+        $this->command->info('   Use ImageUrlGenerator::document($id) in your seeders instead.');
     }
 }

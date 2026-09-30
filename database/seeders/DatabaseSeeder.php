@@ -24,19 +24,27 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database with comprehensive demo data.
      *
-     * Execution order respects FK constraints:
+     * Seeding strategy: High-volume realistic test data for SewaKost marketplace.
+     * - 82 users (2 superadmins, 30 admins, 50 tenants) with avatar URLs
+     * - 300 kosts across multiple cities, status distributions, room hierarchies
+     * - 500 rentals with full payment/document/history chains
+     * - ~200 reviews for completed rentals
+     *
+     * Execution order respects FK constraints and data dependencies:
      * 1. SystemUserSeeder - System user (id=1) for automated operations
-     * 2. CategorySeeder - Independent master data (8 categories)
-     * 3. UserSeeder - Independent identity data (17 users, avatar URLs)
-     * 4. DevImageUrlSeeder - Generate image URLs (no downloads)
-     * 5. DevSampleDocumentSeeder - Download document files (60 files)
-     * 6. KostSeeder - Depends on users, categories, images (25 kosts, 4 cities)
-     * 7. RentalSeeder - Depends on kosts, users, documents (20 rentals)
-     * 8. ReviewSeeder - Depends on rentals (reviews for completed rentals)
+     * 2. SuperAdminSeeder - Superadmin account (id=2) for platform management
+     * 3. CategorySeeder - Master data (8 categories: Putra, Putri, Campur, etc.)
+     * 4. UserSeeder - Identity data (82 users with roles, avatar URLs)
+     * 5. KostSeeder - Kosts with room types, rooms, facilities, images (300 kosts)
+     * 6. RentalSeeder - Rental lifecycle with payments, documents, histories (500 rentals)
+     * 7. ReviewSeeder - Reviews for completed rentals (~200 reviews, ~90% coverage)
+     *
+     * Image/document handling: Uses external Picsum/Lorem.space URLs + ImageUrlGenerator.
+     * No file downloads during seeding (performance optimization).
      */
     public function run(): void
     {
-        // Environment check
+        // Environment check - only seed comprehensive data in local/testing
         if (! app()->environment(['local', 'testing'])) {
             $this->command->warn('⚠️  Comprehensive seeding only runs in local/testing environments');
             $this->command->info('Current environment: '.app()->environment());
@@ -44,43 +52,110 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $this->command->info('🌱 Starting comprehensive seeding for SewaKost...');
+        $this->command->info('🌱 Seeding database for '.app()->environment().' environment...');
         $this->command->newLine();
 
-        // Execution order (respect FK constraints)
+        $startTime = microtime(true);
+
+        // Execute seeders in dependency order
         $this->call([
-            SystemUserSeeder::class,          // System user (id=1)
-            SuperAdminSeeder::class,          // Super Admin account (COMP-009)
-            CategorySeeder::class,            // Independent (master data) - 8 categories
-            UserSeeder::class,                // Independent (identity) - 17 users, avatar URLs
-            DevImageUrlSeeder::class,         // Generate image URLs (no downloads)
-            DevSampleDocumentSeeder::class,   // Download documents (60 files) BEFORE rentals
-            KostSeeder::class,                // Depends: users, categories, images - 25 kosts
-            RentalSeeder::class,              // Depends: kosts, users, documents - 20 rentals
-            ReviewSeeder::class,              // Depends: rentals - reviews for completed
+            SystemUserSeeder::class,   // System user for automated operations
+            SuperAdminSeeder::class,   // Superadmin account
+            CategorySeeder::class,     // 8 categories (master data)
+            UserSeeder::class,         // 82 users (2 SA, 30 admins, 50 tenants)
+            KostSeeder::class,         // 300 kosts with all children (room types, rooms, facilities, images)
+            RentalSeeder::class,       // 500 rentals with payments, documents, histories
+            ReviewSeeder::class,       // ~200 reviews (~90% of completed rentals)
         ]);
 
+        $duration = round(microtime(true) - $startTime, 2);
+
         $this->command->newLine();
-        $this->command->info('✅ Seeding complete!');
+        $this->command->info('📊 Database Seeding Summary');
         $this->command->newLine();
 
-        // Summary table with all seeded entities
+        // Comprehensive summary table with counts and details
         $this->command->table(
-            ['Entity', 'Count'],
+            ['Entity', 'Count', 'Details'],
             [
-                ['Users', User::count()],
-                ['Categories', Category::count()],
-                ['Kosts', Kost::count()],
-                ['Active Kosts (Marketplace)', Kost::where('status', 'active')->count()],
-                ['Room Types', RoomType::count()],
-                ['Rooms', Room::count()],
-                ['Price Schemes', PriceScheme::count()],
-                ['Rentals', Rental::count()],
-                ['Active Rentals', Rental::where('status', 'active')->count()],
-                ['Payments', Payment::count()],
-                ['Rental Documents', RentalDocument::count()],
-                ['Reviews', Review::count()],
+                [
+                    'Users',
+                    User::count(),
+                    sprintf(
+                        '2 superadmins, %d admins, %d tenants',
+                        User::where('role', 'admin')->count(),
+                        User::where('role', 'tenant')->count()
+                    ),
+                ],
+                [
+                    'Categories',
+                    Category::count(),
+                    'Master data (Putra, Putri, Campur, etc.)',
+                ],
+                [
+                    'Kosts',
+                    Kost::count(),
+                    sprintf(
+                        '%d active, %d draft, %d pending, %d approved, %d rejected',
+                        Kost::where('status', 'active')->count(),
+                        Kost::where('status', 'draft')->count(),
+                        Kost::where('status', 'pending_review')->count(),
+                        Kost::where('status', 'approved')->count(),
+                        Kost::where('status', 'rejected')->count()
+                    ),
+                ],
+                [
+                    'Room Types',
+                    RoomType::count(),
+                    '2 per active/approved kost',
+                ],
+                [
+                    'Rooms',
+                    Room::count(),
+                    '5 per room type',
+                ],
+                [
+                    'Price Schemes',
+                    PriceScheme::count(),
+                    '2-3 per room type (daily, monthly, yearly)',
+                ],
+                [
+                    'Rentals',
+                    Rental::count(),
+                    sprintf(
+                        '%d pending, %d paid, %d confirmed, %d active, %d completed, %d cancelled',
+                        Rental::where('status', 'pending')->count(),
+                        Rental::where('status', 'paid')->count(),
+                        Rental::where('status', 'confirmed')->count(),
+                        Rental::where('status', 'active')->count(),
+                        Rental::where('status', 'completed')->count(),
+                        Rental::where('status', 'cancelled')->count()
+                    ),
+                ],
+                [
+                    'Payments',
+                    Payment::count(),
+                    'QRIS transfers with verification timestamps',
+                ],
+                [
+                    'Rental Documents',
+                    RentalDocument::count(),
+                    'KTP, Selfie, Family Card uploads',
+                ],
+                [
+                    'Reviews',
+                    Review::count(),
+                    sprintf(
+                        '~%.0f%% of completed rentals',
+                        Rental::where('status', 'completed')->count() > 0
+                            ? (Review::count() / Rental::where('status', 'completed')->count() * 100)
+                            : 0
+                    ),
+                ],
             ]
         );
+
+        $this->command->newLine();
+        $this->command->info("✓ Database seeded successfully in {$duration}s");
     }
 }

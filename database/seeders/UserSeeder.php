@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Seeding\ImageUrlGenerator;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -13,9 +14,12 @@ class UserSeeder extends Seeder
      * Seed users for comprehensive demo data.
      *
      * Creates:
-     * - 1 SuperAdmin
-     * - 3 Admins (kost owners)
-     * - 13 Tenants (11 verified, 1 unverified, 1 soft deleted)
+     * - 1 System SuperAdmin (preserved test data)
+     * - 1 SuperAdmin (preserved test data)
+     * - 30 Admins (3 preserved test data + 27 generated)
+     * - 50 Tenants (48 verified + 1 unverified + 1 soft deleted)
+     *
+     * Total: ~82 users
      *
      * Stores LoremFlickr avatar URLs (no downloads).
      */
@@ -23,231 +27,164 @@ class UserSeeder extends Seeder
     {
         $this->command->info('👤 Seeding users...');
 
-        // SuperAdmin
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'superadmin@sewakost.com'],
+        $avatarCounter = 1;
+
+        // ============================================================
+        // PRESERVED TEST USERS (config/seeding.php)
+        // ============================================================
+
+        // System User (SuperAdmin)
+        User::firstOrCreate(
+            ['email' => 'system@sewakost.local'],
             [
-                'first_name' => 'Ahmad',
-                'last_name' => 'Superadmin',
-                'password' => 'password', // Will be hashed by factory/model cast
+                'first_name' => 'System',
+                'last_name' => 'User',
+                'password' => 'password',
                 'role' => 'superadmin',
                 'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=1',
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
             ]
         );
+        $avatarCounter++;
 
-        // Admins (Kost Owners)
-        $admin1 = User::firstOrCreate(
-            ['email' => 'budi.admin@sewakost.com'],
+        // Super Administrator
+        User::firstOrCreate(
+            ['email' => 'superadmin@sewakost.local'],
             [
-                'first_name' => 'Budi',
-                'last_name' => 'Santoso',
+                'first_name' => 'Super',
+                'last_name' => 'Administrator',
                 'password' => 'password',
-                'phone' => '081234567890',
+                'role' => 'superadmin',
+                'email_verified_at' => now(),
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
+            ]
+        );
+        $avatarCounter++;
+
+        // Admin 1 (Preserved)
+        User::firstOrCreate(
+            ['email' => 'admin1@sewakost.local'],
+            [
+                'first_name' => 'Admin',
+                'last_name' => 'Pertama',
+                'password' => 'password',
+                'phone' => '081234567801',
                 'role' => 'admin',
                 'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=2',
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
             ]
         );
+        $avatarCounter++;
 
-        $admin2 = User::firstOrCreate(
-            ['email' => 'siti.admin@sewakost.com'],
+        // Admin 2 (Preserved)
+        User::firstOrCreate(
+            ['email' => 'admin2@sewakost.local'],
             [
-                'first_name' => 'Siti',
-                'last_name' => 'Rahayu',
+                'first_name' => 'Admin',
+                'last_name' => 'Kedua',
                 'password' => 'password',
-                'phone' => '081234567891',
+                'phone' => '081234567802',
                 'role' => 'admin',
                 'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=3',
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
             ]
         );
+        $avatarCounter++;
 
-        $admin3 = User::firstOrCreate(
-            ['email' => 'andi.admin@sewakost.com'],
+        // Admin 3 (Preserved)
+        User::firstOrCreate(
+            ['email' => 'admin3@sewakost.local'],
             [
-                'first_name' => 'Andi',
-                'last_name' => 'Wijaya',
+                'first_name' => 'Admin',
+                'last_name' => 'Ketiga',
                 'password' => 'password',
-                'phone' => '081234567892',
+                'phone' => '081234567803',
                 'role' => 'admin',
                 'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=4',
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
             ]
         );
+        $avatarCounter++;
 
-        // Tenants
-        $tenant1 = User::firstOrCreate(
-            ['email' => 'rina.tenant@example.com'],
-            [
-                'first_name' => 'Rina',
-                'last_name' => 'Kusuma',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=5',
-            ]
-        );
+        $this->command->info('   ✓ Preserved test users created (2 superadmins, 3 admins)');
 
-        $tenant2 = User::firstOrCreate(
-            ['email' => 'doni.tenant@example.com'],
-            [
-                'first_name' => 'Doni',
-                'last_name' => 'Pratama',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=6',
-            ]
-        );
+        // ============================================================
+        // ADDITIONAL ADMINS (27 more to reach 30 total)
+        // ============================================================
 
-        $tenant3 = User::firstOrCreate(
-            ['email' => 'maya.tenant@example.com'],
-            [
-                'first_name' => 'Maya',
-                'last_name' => 'Lestari',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=7',
-            ]
-        );
+        $this->command->info('   🔄 Generating 27 additional admins...');
+        $output = $this->command->getOutput();
+        $output->progressStart(27);
 
-        $tenant4 = User::firstOrCreate(
-            ['email' => 'riko.tenant@example.com'],
-            [
-                'first_name' => 'Riko',
-                'last_name' => 'Saputra',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=8',
-            ]
-        );
-
-        // Additional tenants for rental seed data
-        $tenant5 = User::firstOrCreate(
-            ['email' => 'budi.tenant@example.com'],
-            [
-                'first_name' => 'Budi',
-                'last_name' => 'Hartono',
-                'password' => 'password',
-                'phone' => '081234567897',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=9',
-            ]
-        );
-
-        $tenant6 = User::firstOrCreate(
-            ['email' => 'ani.tenant@example.com'],
-            [
-                'first_name' => 'Ani',
-                'last_name' => 'Susanti',
-                'password' => 'password',
-                'phone' => '081234567898',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=10',
-            ]
-        );
-
-        $tenant7 = User::firstOrCreate(
-            ['email' => 'eko.tenant@example.com'],
-            [
-                'first_name' => 'Eko',
-                'last_name' => 'Prasetyo',
-                'password' => 'password',
-                'phone' => '081234567899',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=11',
-            ]
-        );
-
-        $tenant8 = User::firstOrCreate(
-            ['email' => 'sari.tenant@example.com'],
-            [
-                'first_name' => 'Sari',
-                'last_name' => 'Melati',
-                'password' => 'password',
-                'phone' => '081234567900',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=12',
-            ]
-        );
-
-        $tenant9 = User::firstOrCreate(
-            ['email' => 'dedi.tenant@example.com'],
-            [
-                'first_name' => 'Dedi',
-                'last_name' => 'Santoso',
-                'password' => 'password',
-                'phone' => '081234567901',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=13',
-            ]
-        );
-
-        $tenant10 = User::firstOrCreate(
-            ['email' => 'lina.tenant@example.com'],
-            [
-                'first_name' => 'Lina',
-                'last_name' => 'Wijaya',
-                'password' => 'password',
-                'phone' => '081234567902',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=14',
-            ]
-        );
-
-        $tenant11 = User::firstOrCreate(
-            ['email' => 'tono.tenant@example.com'],
-            [
-                'first_name' => 'Tono',
-                'last_name' => 'Suryadi',
-                'password' => 'password',
-                'phone' => '081234567903',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=15',
-            ]
-        );
-
-        // Unverified tenant
-        $unverified = User::firstOrCreate(
-            ['email' => 'unverified@example.com'],
-            [
-                'first_name' => 'Dewi',
-                'last_name' => 'Anggraini',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => null, // NOT verified
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=16',
-            ]
-        );
-
-        // Soft deleted tenant
-        $deletedUser = User::withTrashed()->firstOrCreate(
-            ['email' => 'deleted@example.com'],
-            [
-                'first_name' => 'Joko',
-                'last_name' => 'Susanto',
-                'password' => 'password',
-                'role' => 'user',
-                'email_verified_at' => now(),
-                'avatar_path' => 'https://loremflickr.com/400/400/portrait,face?random=17',
-            ]
-        );
-
-        if (! $deletedUser->trashed()) {
-            $deletedUser->delete();
+        for ($i = 0; $i < 27; $i++) {
+            User::factory()
+                ->admin()
+                ->create([
+                    'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
+                ]);
+            $avatarCounter++;
+            $output->progressAdvance();
         }
 
-        $this->command->info('✅ Users seeded: 17 total (1 SuperAdmin, 3 Admins, 13 Tenants)');
-        $this->command->info('   🔗 Avatar URLs generated (LoremFlickr)');
+        $output->progressFinish();
+        $this->command->info('   ✓ 27 additional admins created');
+
+        // ============================================================
+        // TENANTS (50 total: 48 verified + 1 unverified + 1 deleted)
+        // ============================================================
+
+        $this->command->info('   🔄 Generating 48 verified tenants...');
+        $output->progressStart(48);
+
+        for ($i = 0; $i < 48; $i++) {
+            User::factory()
+                ->tenant()
+                ->create([
+                    'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
+                ]);
+            $avatarCounter++;
+            $output->progressAdvance();
+        }
+
+        $output->progressFinish();
+        $this->command->info('   ✓ 48 verified tenants created');
+
+        // Unverified tenant
+        User::factory()
+            ->tenant()
+            ->unverified()
+            ->create([
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
+            ]);
+        $avatarCounter++;
+        $this->command->info('   ✓ 1 unverified tenant created');
+
+        // Soft deleted tenant
+        $deletedTenant = User::factory()
+            ->tenant()
+            ->create([
+                'avatar_path' => ImageUrlGenerator::avatar($avatarCounter),
+            ]);
+        $deletedTenant->delete();
+        $avatarCounter++;
+        $this->command->info('   ✓ 1 soft deleted tenant created');
+
+        // ============================================================
+        // SUMMARY
+        // ============================================================
+
+        $totalUsers = User::withTrashed()->count();
+        $activeUsers = User::count();
+        $superAdmins = User::where('role', 'superadmin')->count();
+        $admins = User::where('role', 'admin')->count();
+        $tenants = User::where('role', 'user')->count();
+        $deletedUsers = User::onlyTrashed()->count();
+
+        $this->command->newLine();
+        $this->command->info("✅ Users seeded: {$totalUsers} total ({$activeUsers} active, {$deletedUsers} deleted)");
+        $this->command->info("   • {$superAdmins} SuperAdmins");
+        $this->command->info("   • {$admins} Admins");
+        $this->command->info("   • {$tenants} Tenants (excluding deleted)");
+        $this->command->info("   🔗 Avatar URLs generated (LoremFlickr, {$avatarCounter} total)");
     }
 }
