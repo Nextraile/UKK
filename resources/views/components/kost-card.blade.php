@@ -60,6 +60,12 @@
           <span class="text-sm text-gray-500">Belum ada rating</span>
         @endif
       </div>
+      
+      @if($kost->completed_rentals_count > 0)
+        <div class="text-xs text-gray-600">
+          {{ $kost->completed_rentals_count }} kali disewa
+        </div>
+      @endif
     </div>
   </a>
 </article>
