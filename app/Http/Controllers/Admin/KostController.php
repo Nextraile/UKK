@@ -24,9 +24,6 @@ use Illuminate\View\View;
 
 /**
  * Admin Kost management controller.
- *
- * Handles CRUD operations for kosts owned by authenticated Admin.
- * Admin can only manage kosts in draft or rejected status.
  */
 class KostController extends Controller
 {
@@ -117,17 +114,16 @@ class KostController extends Controller
 
         $data = $request->validated();
 
-        // FR-020: Auto-revert rejected → draft on update
+        // Auto-revert rejected → draft on update
         $wasRejected = $kost->isRejected();
 
         // Handle fallback for JS-disabled clients
         $data = $this->parseFacilitiesAndRules($request, $data);
 
         DB::transaction(function () use ($kost, $data, $wasRejected, $request) {
-            // Update fillable fields
             $kost->fill($data);
 
-            // If was rejected, revert to draft (TASK-016: direct assignment)
+            // If was rejected, revert to draft
             if ($wasRejected) {
                 $kost->status = 'draft';
                 $kost->rejected_reason = null;
@@ -205,8 +201,7 @@ class KostController extends Controller
     /**
      * Submit kost for Super Admin review.
      *
-     * Validates data completeness before transitioning draft → pending_review.
-     * FR-016, FR-017: Nama, alamat, kategori, room type must be complete.
+     * Validates data completeness before transitioning draft → pending_review
      */
     public function submit(Kost $kost): RedirectResponse
     {
@@ -230,7 +225,6 @@ class KostController extends Controller
      * Publish approved kost (approved → active).
      *
      * Makes kost visible to tenants in marketplace.
-     * FR-021: Admin can publish approved kost.
      */
     public function publish(Kost $kost): RedirectResponse
     {
@@ -254,7 +248,7 @@ class KostController extends Controller
      * Cancel kost submission and revert to draft.
      *
      * Allows admin to withdraw pending_review submission for editing.
-     * FR-016, FR-023: Admin can cancel submission before approval.
+     * Admin can cancel submission before approval.
      */
     public function cancel(Kost $kost): RedirectResponse
     {

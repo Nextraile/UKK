@@ -22,7 +22,7 @@ use Illuminate\View\View;
  */
 class PasswordResetLinkController extends Controller
 {
-    public function __construct( private readonly OtpService $otpService ) {}
+    public function __construct(private readonly OtpService $otpService) {}
 
     /**
      * Display the password reset link request view.

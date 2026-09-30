@@ -61,7 +61,6 @@ class AdminManagementController extends Controller
             'email_verified_at' => null, // Admin must verify via OTP on first login
         ]);
 
-        // Send welcome email with credentials (synchronous)
         Mail::to($admin->email)->send(new AdminAccountCreated($admin, $plainPassword));
 
         return redirect()
@@ -105,7 +104,7 @@ class AdminManagementController extends Controller
      */
     public function destroy(User $admin): RedirectResponse
     {
-        // Prevent self-deletion (check first before role check)
+        // Prevent self-deletion
         if ($admin->id === auth()->id()) {
             return redirect()
                 ->route('super-admin.admins.index')

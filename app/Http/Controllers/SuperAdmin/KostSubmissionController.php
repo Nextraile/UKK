@@ -15,12 +15,6 @@ use Illuminate\View\View;
 
 /**
  * Super Admin controller for reviewing kost submissions.
- *
- * Routes: /super-admin/kost-submissions
- *
- * FR-018: Super Admin review submitted kosts (list pending_review, view details, approve/reject)
- * FR-019: Approval transitions Pending Review → Approved (auto-notify Owner)
- * FR-023: Rejection reason (min 10 chars) transitions Pending Review → Rejected
  */
 class KostSubmissionController extends Controller
 {
@@ -53,7 +47,6 @@ class KostSubmissionController extends Controller
             'roomTypes.roomTypeImages',
             'roomTypes.priceSchemes' => fn ($q) => $q->where('is_active', true)->orderBy('duration_value'),
             'documentRequirements',
-            // TODO: Add 'bankAccounts' when BankAccount model is created (COMP-007)
         ]);
 
         return view('super-admin.kost-submissions.show', [

@@ -15,15 +15,13 @@ class PaymentController extends Controller
 {
     /**
      * Show payment page with QRIS and upload form.
-     *
-     * FR-069: Display QRIS + bank info
      */
     public function show(Rental $rental): View
     {
         $this->authorize('view', $rental);
         abort_if($rental->status !== 'payment_pending', 403, 'Payment hanya untuk rental dengan status payment_pending');
 
-        // Eager load kost for bank info display (FR-069)
+        // Eager load kost for bank info display
         $rental->load('room.roomType.kost', 'payment');
 
         return view('tenant.payments.show', compact('rental'));
