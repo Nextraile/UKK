@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\RoomInventory\Models;
 
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Rental\Models\Rental;
 use Database\Factories\RoomTypeFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -136,5 +137,15 @@ class RoomType extends Model
         return $availableRooms->filter(function (Room $room): bool {
             return $room->free_slots > 0;
         })->count();
+    }
+
+    /**
+     * Get the total count of completed rentals for this room type.
+     */
+    public function getCompletedRentalsCountAttribute(): int
+    {
+        return Rental::whereHas('room', function ($query) {
+            $query->where('room_type_id', $this->id);
+        })->where('status', 'completed')->count();
     }
 }

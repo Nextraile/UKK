@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Domain\Kost\Models\Category;
 use App\Domain\Kost\Models\Kost;
+use App\Domain\Rental\Models\Rental;
 use App\Domain\Review\Models\Review;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\MarketplaceFilterRequest;
@@ -100,6 +101,11 @@ class MarketplaceController extends Controller
                     ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
                     ->whereColumn('room_types.kost_id', 'kosts.id')
                     ->whereNotNull('kost_rating'),
+                'completed_rentals_count' => Rental::selectRaw('COUNT(*)')
+                    ->join('rooms', 'rentals.room_id', '=', 'rooms.id')
+                    ->join('room_types', 'rooms.room_type_id', '=', 'room_types.id')
+                    ->whereColumn('room_types.kost_id', 'kosts.id')
+                    ->where('rentals.status', 'completed'),
             ])
             ->with([
                 'address:id,kost_id,full_address,district,city,province,postal_code',

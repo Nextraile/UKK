@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Kost\Models;
 
 use App\Domain\Identity\Models\User;
+use App\Domain\Rental\Models\Rental;
 use App\Domain\Review\Models\Review;
 use App\Domain\RoomInventory\Models\Room;
 use App\Domain\RoomInventory\Models\RoomType;
@@ -281,6 +282,20 @@ class Kost extends Model
         }
 
         return $this->reviewsQuery()->count();
+    }
+
+    /**
+     * Get the total count of completed rentals for this kost.
+     */
+    public function getCompletedRentalsCountAttribute(): int
+    {
+        if (array_key_exists('completed_rentals_count', $this->attributes)) {
+            return (int) $this->attributes['completed_rentals_count'];
+        }
+
+        return Rental::whereHas('room.roomType', function ($query) {
+            $query->where('kost_id', $this->id);
+        })->where('status', 'completed')->count();
     }
 
     /**
