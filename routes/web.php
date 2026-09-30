@@ -197,6 +197,14 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         Route::post('/kost-submissions/{submission}/reject', [KostSubmissionController::class, 'reject'])
             ->name('kost-submissions.reject');
 
+        // Category restore and force delete (must be before resource route)
+        Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])
+            ->withTrashed()
+            ->name('categories.restore');
+        Route::delete('categories/{category}/force', [CategoryController::class, 'forceDelete'])
+            ->withTrashed()
+            ->name('categories.force-delete');
+
         Route::resource('categories', CategoryController::class)->except(['show']);
 
         Route::resource('admins', AdminManagementController::class)

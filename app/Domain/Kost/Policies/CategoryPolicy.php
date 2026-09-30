@@ -67,4 +67,32 @@ class CategoryPolicy
     {
         return $user->isSuperAdmin();
     }
+
+    /**
+     * Determine if user can restore soft-deleted category.
+     *
+     * Only SuperAdmin can restore categories. Business rule validation
+     * (checking if category is actually soft-deleted) is handled in controller.
+     *
+     * @param  User  $user  The authenticated user.
+     * @param  Category  $category  The soft-deleted category.
+     */
+    public function restore(User $user, Category $category): bool
+    {
+        return $user->isSuperAdmin();
+    }
+
+    /**
+     * Determine if user can permanently delete category.
+     *
+     * Only SuperAdmin can force delete categories. Business rule validation
+     * (must be soft-deleted first, must not be used by any kost) is handled in controller.
+     *
+     * @param  User  $user  The authenticated user.
+     * @param  Category  $category  The category being permanently deleted.
+     */
+    public function forceDelete(User $user, Category $category): bool
+    {
+        return $user->isSuperAdmin();
+    }
 }

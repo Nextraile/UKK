@@ -6,6 +6,7 @@ namespace Tests\Feature\SuperAdmin;
 
 use App\Domain\Identity\Models\User;
 use App\Domain\Kost\Models\Category;
+use App\Domain\Kost\Models\Kost;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -294,5 +295,109 @@ class CategoryManagementTest extends TestCase
             ]);
 
         $response->assertSessionHasErrors('description');
+    }
+
+    /**
+     * Test SuperAdmin can view deleted categories.
+     */
+    public function test_superadmin_can_view_deleted_categories(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $active = Category::factory()->create(['name' => 'Active']);
+        $deleted = Category::factory()->create(['name' => 'Deleted']);
+        $deleted->delete();
+
+        $response = $this->actingAs($superAdmin)
+            ->get(route('super-admin.categories.index', ['status' => 'deleted']));
+
+        $response->assertOk();
+        $response->assertSee('Deleted');
+        $response->assertDontSee('Active');
+    }
+
+    /**
+     * Test SuperAdmin can restore deleted category.
+     */
+    public function test_superadmin_can_restore_deleted_category(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $category = Category::factory()->create(['name' => 'To Restore']);
+        $category->delete();
+
+        $response = $this->actingAs($superAdmin)
+            ->post(route('super-admin.categories.restore', $category));
+
+        $response->assertRedirect(route('super-admin.categories.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'deleted_at' => null,
+        ]);
+    }
+
+    /**
+     * Test cannot restore active category.
+     */
+    public function test_cannot_restore_active_category(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $category = Category::factory()->create(['name' => 'Active']);
+
+        $response = $this->actingAs($superAdmin)
+            ->post(route('super-admin.categories.restore', $category));
+
+        $response->assertSessionHas('error');
+    }
+
+    /**
+     * Test SuperAdmin can force delete unused category.
+     */
+    public function test_superadmin_can_force_delete_unused_category(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $category = Category::factory()->create(['name' => 'To Force Delete']);
+        $category->delete(); // Soft delete first
+
+        $response = $this->actingAs($superAdmin)
+            ->delete(route('super-admin.categories.force-delete', $category));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
+
+    /**
+     * Test SuperAdmin cannot force delete category used by kosts.
+     */
+    public function test_superadmin_cannot_force_delete_category_used_by_kosts(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $category = Category::factory()->create();
+        $kost = Kost::factory()->active()->create();
+        $kost->categories()->attach($category);
+        $category->delete(); // Soft delete first
+
+        $response = $this->actingAs($superAdmin)
+            ->delete(route('super-admin.categories.force-delete', $category));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('categories', ['id' => $category->id]);
+    }
+
+    /**
+     * Test SuperAdmin cannot force delete active category.
+     */
+    public function test_superadmin_cannot_force_delete_active_category(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $category = Category::factory()->create(['name' => 'Active']);
+
+        $response = $this->actingAs($superAdmin)
+            ->delete(route('super-admin.categories.force-delete', $category));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('categories', ['id' => $category->id]);
     }
 }
